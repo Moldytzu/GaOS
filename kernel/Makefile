@@ -71,7 +71,8 @@ src/limine.h:
 # Link rules for the final kernel executable.
 bin/$(KERNEL): linker.ld $(OBJ)
 	@ mkdir -p "$$(dirname $@)"
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	@ $(LD) $(OBJ) $(LDFLAGS) -o $@
+	@ echo -e '\tLD $@'
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
@@ -79,17 +80,20 @@ bin/$(KERNEL): linker.ld $(OBJ)
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c src/limine.h
 	@ mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	@ $(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	@ echo -e '\tCC $<'
 
 # Compilation rules for *.S files.
 obj/%.S.o: src/%.S
 	@ mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	@ $(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	@ echo -e '\tCC $<'
 
 # Compilation rules for *.asm (nasm) files.
 obj/%.asm.o: src/%.asm
 	@ mkdir -p "$$(dirname $@)"
-	nasm $(NASMFLAGS) $< -o $@
+	@ nasm $(NASMFLAGS) $< -o $@
+	@ echo -e '\tNASM $<'
 
 # Remove object files and the final executable.
 .PHONY: clean
