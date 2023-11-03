@@ -19,7 +19,9 @@ typedef struct __attribute__((packed))
 // globals
 bool framebuffer_available = false;
 framebuffer_t main_framebuffer;
+cursor_t main_cursor;
 
+// font
 extern uint8_t _binary_kfont_psf_start[];
 static const uint8_t *kfont_ptr = (uint8_t *)_binary_kfont_psf_start;
 static psf2_header_t *font;
@@ -56,6 +58,24 @@ void framebuffer_plot_character(char c, size_t x, size_t y, uint32_t colour)
     }
 }
 
+void framebuffer_write_character(char c)
+{
+    // handle end of the line
+    if (main_cursor.x + font->width >= main_framebuffer.width || c == '\n')
+    {
+        main_cursor.y += font->height;
+        main_cursor.x = 0;
+    }
+
+    if (c == '\n')
+        return;
+
+    // fixme: we should handle end of buffer too
+
+    framebuffer_plot_character(c, main_cursor.x, main_cursor.y, main_cursor.colour); // draw the character
+    main_cursor.x += font->width;                                                    // increase the coordonate
+}
+
 void framebuffer_init()
 {
     // generate the framebuffer structure
@@ -80,7 +100,11 @@ void framebuffer_init()
         return;
     }
 
+    // set up initial cursor metadata
+    main_cursor.x = main_cursor.y = 0; // left-top
+    main_cursor.colour = 0xFFFFFF;     // white
+
     framebuffer_available = true;
 
-    framebuffer_plot_character('A', 0, 0, 0xFFFF00); // plot an 'A'
+    framebuffer_write_character('A');
 }

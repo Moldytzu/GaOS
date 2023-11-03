@@ -10,8 +10,15 @@ typedef struct
     size_t bpp;
 } framebuffer_t;
 
+typedef struct
+{
+    size_t x, y;
+    uint32_t colour;
+} cursor_t;
+
 extern bool framebuffer_available;
 extern framebuffer_t main_framebuffer;
+extern cursor_t main_cursor;
 
 void framebuffer_init();
 
