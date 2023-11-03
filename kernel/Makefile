@@ -2,11 +2,12 @@
 KERNEL := kernel.elf
 
 # This is the prefix of our custom cross-compiler
-PREFIX := ~/cross_compiler/bin/x86_64-elf- # fixme: this could be moved here, in a toolchain folder
+PREFIX := ~/cross_compiler/bin/x86_64-elf-
+# fixme: this could be moved here, in a toolchain folder
 
 # Default compiler/linker
-CC := cc
-LD := ld
+CC := $(PREFIX)gcc
+LD := $(PREFIX)ld
 
 # User controllable flags.
 CFLAGS := -g -O2 -pipe
