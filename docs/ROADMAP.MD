@@ -3,7 +3,7 @@
 * Hello World []
   * Load the kernel in the higher-half using Limine [x]
   * Have a way to display things on the screen []
-    * Serial []
+    * Serial [x]
     * Framebuffer with font []
 * Symetric multiprocessing []
   * Enumerate MADT for other processors []

@@ -8,6 +8,7 @@ PREFIX := ~/cross_compiler/bin/$(OUTPUT_ARCH)-elf-
 # Default compiler/linker
 CC := $(PREFIX)gcc
 LD := $(PREFIX)ld
+OBJCOPY := $(PREFIX)objcopy
 
 # User controllable flags.
 CFLAGS := -g -O2 -pipe
@@ -71,7 +72,8 @@ src/limine.h:
 # Link rules for the final kernel executable.
 bin/$(KERNEL): linker.ld $(OBJ)
 	@ mkdir -p "$$(dirname $@)"
-	@ $(LD) $(OBJ) $(LDFLAGS) -o $@
+	@ $(OBJCOPY) -I binary -O elf64-x86-64 -B i386 kfont.psf obj/kfont.o
+	@ $(LD) $(OBJ) obj/kfont.o $(LDFLAGS) -o $@
 	@ echo -e '\tLD $@'
 
 # Include header dependencies.

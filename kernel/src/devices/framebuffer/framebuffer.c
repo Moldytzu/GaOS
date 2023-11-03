@@ -5,6 +5,9 @@
 bool framebuffer_available = false;
 framebuffer_t main_framebuffer;
 
+extern uint8_t _binary_kfont_psf_start[];
+const uint8_t *kfont_ptr = (uint8_t *)_binary_kfont_psf_start;
+
 bool framebuffer_generate_structure_from_limine(framebuffer_t *f)
 {
     if (kernel_framebuffer_request.response && kernel_framebuffer_request.response->framebuffer_count == 0) // check if we have a framebuffer
