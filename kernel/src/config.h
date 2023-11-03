@@ -1,0 +1,3 @@
+/*
+    Gallium Operating System kernel configuration header
+*/

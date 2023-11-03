@@ -4,8 +4,10 @@
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stdnoreturn.h>
+#include <config.h>
 
 #define iasm asm volatile
+#define ifunc static inline __attribute__((always_inline))
 
 void *memcpy(void *dest, const void *src, size_t n);
 void *memset(void *s, int c, size_t n);
