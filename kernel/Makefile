@@ -2,7 +2,7 @@
 KERNEL := kernel.elf
 
 # This is the prefix of our custom cross-compiler
-PREFIX := ~/cross_compiler/bin/x86_64-elf-
+PREFIX := ~/cross_compiler/bin/$(OUTPUT_ARCH)-elf-
 # fixme: this could be moved here, in a toolchain folder
 
 # Default compiler/linker
@@ -20,14 +20,12 @@ CFLAGS += \
     -Wall \
     -Wextra \
     -Werror \
-    -Isrc/ \
     -std=gnu11 \
     -ffreestanding \
     -fno-stack-protector \
     -fno-stack-check \
     -fno-lto \
     -fPIE \
-    -m64 \
     -march=x86-64 \
     -mno-80387 \
     -mno-mmx \
@@ -37,14 +35,15 @@ CFLAGS += \
 
 # Internal C preprocessor flags that should not be changed by the user.
 CPPFLAGS := \
-    -I src \
+    -Isrc/ \
     $(CPPFLAGS) \
     -MMD \
-    -MP
+    -MP \
+    -D ARCH_$(OUTPUT_ARCH)
 
 # Internal linker flags that should not be changed by the user.
 LDFLAGS += \
-    -m elf_x86_64 \
+    -m elf_$(OUTPUT_ARCH) \
     -nostdlib \
     -static \
     -pie \

@@ -1,18 +1,27 @@
 override IMAGE_NAME := disk
+OUTPUT_ARCH = x86_64
+
+# make the architecture available in all makefiles
+export OUTPUT_ARCH
+
+QEMU_FLAGS = -m 2G
+ifeq ($(OUTPUT_ARCH),x86_64)
+	QEMU_FLAGS += -M q35
+endif
 
 .PHONY: all
 all: install_hdd
 
 .PHONY: run
 run: all
-	qemu-system-x86_64 -M q35 -m 2G -hda $(IMAGE_NAME).hdd -boot c
+	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd -boot c
 
 run-kvm: all
-	qemu-system-x86_64 -M q35 -m 2G -hda $(IMAGE_NAME).hdd -boot c --enable-kvm
+	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd -boot c --enable-kvm
 
 .PHONY: run-hdd-uefi
 run-uefi: ovmf install_hdd
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf

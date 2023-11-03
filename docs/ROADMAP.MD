@@ -1,7 +1,7 @@
 # Proposed roadmap to follow in Gallium Operating System development
 
 * Hello World []
-  * Load the kernel in the higher-half using Limine []
+  * Load the kernel in the higher-half using Limine [x]
   * Have a way to display things on the screen []
     * Serial []
     * Framebuffer with font []
