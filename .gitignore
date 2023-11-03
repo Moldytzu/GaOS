@@ -1,5 +1,6 @@
 /limine
 /ovmf
 /iso_root
+/.vscode
 *.iso
 *.hdd

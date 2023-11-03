@@ -19,6 +19,8 @@ LDFLAGS :=
 CFLAGS += \
     -Wall \
     -Wextra \
+    -Werror \
+    -Isrc/ \
     -std=gnu11 \
     -ffreestanding \
     -fno-stack-protector \
