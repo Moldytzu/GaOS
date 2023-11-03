@@ -45,13 +45,17 @@ bool framebuffer_generate_structure_from_limine(framebuffer_t *f)
 
 void framebuffer_plot_character(char c, size_t x, size_t y, uint32_t colour)
 {
-    uint8_t *character = (uint8_t *)((uint64_t)font_glyphs + c * font->glyph_size);
-    uint8_t line_pitch = font->glyph_size / font->height;
+    uint8_t *character = font_glyphs + c * font->glyph_size; // first byte of the glyph
+    uint8_t line_pitch = font->glyph_size / font->height;    // bytes per line
 
     for (uint32_t yy = 0; yy < font->height; yy++)
     {
         for (uint32_t xx = 0; xx < font->width; xx++)
         {
+            // here we index the character base with the pitch and the offset
+            // since xx can span on multiple bytes, we have to divide by 8
+            // after that we create a bitmask from the same xx but modulo 8 (same reason as on top but we need the bit index)
+            // we and them and if we have a positive result, we can plot the pixel
             if ((character[yy * line_pitch + xx / bitsof(uint8_t)] & (0b10000000 >> xx % bitsof(uint8_t))))
                 framebuffer_plot_pixel(x + xx, y + yy, colour);
         }
