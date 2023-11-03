@@ -1,10 +1,10 @@
 # Proposed roadmap to follow in Gallium Operating System development
 
-* Hello World []
+* Hello World [x]
   * Load the kernel in the higher-half using Limine [x]
-  * Have a way to display things on the screen []
+  * Have a way to display things on the screen [x]
     * Serial [x]
-    * Framebuffer with font []
+    * Framebuffer with font [x]
 * Symetric multiprocessing []
   * Enumerate MADT for other processors []
   * Implement helper functions to handle I/O APIC and Local APIC []

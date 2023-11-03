@@ -80,6 +80,12 @@ void framebuffer_write_character(char c)
     main_cursor.x += font->width;                                                    // increase the coordonate
 }
 
+void framebuffer_write_string(char *string)
+{
+    while (*string)
+        framebuffer_write_character(*string++);
+}
+
 void framebuffer_init()
 {
     // generate the framebuffer structure
@@ -110,5 +116,5 @@ void framebuffer_init()
 
     framebuffer_available = true;
 
-    framebuffer_write_character('A');
+    framebuffer_write_string("framebuffer: initialised\n");
 }
