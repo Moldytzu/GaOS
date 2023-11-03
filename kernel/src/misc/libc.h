@@ -10,6 +10,7 @@
 #define iasm asm volatile
 #define ifunc static inline __attribute__((always_inline))
 #define bitsof(type) (sizeof(type) * 8)
+#define pstruct typedef struct __attribute__((packed))
 
 void *memcpy(void *dest, const void *src, size_t n);
 void *memset(void *s, int c, size_t n);
