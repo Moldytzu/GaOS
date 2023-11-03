@@ -4,7 +4,7 @@ OUTPUT_ARCH = x86_64
 # make the architecture available in all makefiles
 export OUTPUT_ARCH
 
-QEMU_FLAGS = -m 2G
+QEMU_FLAGS = -m 2G -serial stdio
 ifeq ($(OUTPUT_ARCH),x86_64)
 	QEMU_FLAGS += -M q35
 endif
