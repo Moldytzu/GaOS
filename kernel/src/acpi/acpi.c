@@ -16,20 +16,6 @@ pstruct
 }
 acpi_xsdp_t;
 
-pstruct
-{
-    char signature[4];
-    uint32_t length;
-    uint8_t revision;
-    uint8_t checksum;
-    char oem[6];
-    char oem_table[8];
-    uint32_t oem_revision;
-    uint32_t creator_id;
-    uint32_t creator_revision;
-}
-acpi_sdt_header_t;
-
 acpi_sdt_header_t *sdt;
 acpi_xsdp_t *sdp;
 
@@ -82,6 +68,4 @@ void acpi_init()
         sdt = (acpi_sdt_header_t *)((uint64_t)sdp->rsdt + kernel_hhdm_offset);
     else // acpi 2.0+
         sdt = (acpi_sdt_header_t *)(sdp->xsdt + kernel_hhdm_offset);
-
-    printk("MADT is at 0x%p\n", acpi_get_table("APIC")); // madt
 }

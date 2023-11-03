@@ -14,14 +14,12 @@
 // this is the entry point of the kernel
 void _start(void)
 {
-    arch_simd_enable(); // enable simd on this platform
-    serial_init();      // initialise serial interface
-    limine_init();      // initialise limine protocol
-    framebuffer_init(); // initialise the framebuffer
-    acpi_init();        // initialise the acpi
-
-    printk("this should be on framebuffer %d %x", 10, 10);
-    printk_serial("this should be on serial %d %x", 10, 10);
+    arch_simd_enable();                                               // enable simd on this platform
+    serial_init();                                                    // initialise serial interface
+    limine_init();                                                    // initialise limine protocol
+    framebuffer_init();                                               // initialise the framebuffer
+    acpi_init();                                                      // initialise the acpi
+    printk("smp: bootstraped %d processors \n", arch_bootstrap_ap()); // boot up application cores
 
     halt();
 }
