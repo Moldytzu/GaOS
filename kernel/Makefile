@@ -70,7 +70,7 @@ src/limine.h:
 
 # Link rules for the final kernel executable.
 bin/$(KERNEL): linker.ld $(OBJ)
-	mkdir -p "$$(dirname $@)"
+	@ mkdir -p "$$(dirname $@)"
 	$(LD) $(OBJ) $(LDFLAGS) -o $@
 
 # Include header dependencies.
@@ -78,17 +78,17 @@ bin/$(KERNEL): linker.ld $(OBJ)
 
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c src/limine.h
-	mkdir -p "$$(dirname $@)"
+	@ mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
 obj/%.S.o: src/%.S
-	mkdir -p "$$(dirname $@)"
+	@ mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 obj/%.asm.o: src/%.asm
-	mkdir -p "$$(dirname $@)"
+	@ mkdir -p "$$(dirname $@)"
 	nasm $(NASMFLAGS) $< -o $@
 
 # Remove object files and the final executable.
