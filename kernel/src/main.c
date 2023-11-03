@@ -16,5 +16,8 @@ void _start(void)
     limine_init();      // initialise limine protocol
     framebuffer_init(); // initialise the framebuffer
 
+    printk("this should be on framebuffer %d %x", 10, 10);
+    printk_serial("this should be on serial %d %x", 10, 10);
+
     halt();
 }
