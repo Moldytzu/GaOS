@@ -26,11 +26,7 @@ CFLAGS += \
     -fno-stack-check \
     -fno-lto \
     -fPIE \
-    -march=x86-64 \
-    -mno-80387 \
-    -mno-mmx \
-    -mno-sse \
-    -mno-sse2 \
+    -march=nocona \
     -mno-red-zone
 
 # Internal C preprocessor flags that should not be changed by the user.
