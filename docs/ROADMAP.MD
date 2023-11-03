@@ -10,6 +10,7 @@
   * Implement helper functions to handle I/O APIC and Local APIC []
   * Boot-up Application Processors []
   * Jump the Application Processors in the kernel []
+  * Implement spinlocks []
 * Memory managemnet []
   * Implement a page frame allocator using bitmaps []
     * Make it return only higher half addresses
