@@ -1,3 +1,6 @@
+#define MODULE "page_allocator"
+#include <misc/logger.h>
+
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
 
@@ -9,7 +12,7 @@ void page_allocator_create_pools_limine()
     memory_map_entries = kernel_memmap_request.response->entries;
     memory_map_entries_count = kernel_memmap_request.response->entry_count;
 
-    printk("page_allocator: %d memory map entries\n", memory_map_entries_count);
+    log_info("%d memory map entries", memory_map_entries_count);
 }
 
 void page_allocator_init()

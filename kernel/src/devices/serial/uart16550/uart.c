@@ -1,3 +1,6 @@
+#define MODULE "uart16550"
+#include <misc/logger.h>
+
 #include <devices/serial/uart16550/uart.h>
 #include <arch/arch.h>
 
@@ -31,7 +34,7 @@ void uart16550_init()
     // enable fifo
     arch_pio_write8(COM_PORT_FIFO_CONTROL, 0b110001); // set thresold to 14 bytes
 
-    uart16550_send_string("uart16550: initialised\n");
+    log_info("initialised");
 }
 
 static bool uart16550_can_send()

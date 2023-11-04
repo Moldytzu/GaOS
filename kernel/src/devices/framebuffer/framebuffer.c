@@ -1,3 +1,6 @@
+#define MODULE "framebuffer"
+#include <misc/logger.h>
+
 #include <devices/framebuffer/framebuffer.h>
 #include <devices/serial/serial.h>
 #include <boot/limine.h>
@@ -116,5 +119,5 @@ void framebuffer_init()
 
     framebuffer_available = true;
 
-    framebuffer_write_string("framebuffer: initialised\n");
+    log_info("initialised");
 }

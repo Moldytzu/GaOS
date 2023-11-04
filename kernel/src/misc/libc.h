@@ -19,6 +19,8 @@ int memcmp(const void *s1, const void *s2, size_t n);
 
 size_t strlen(char *str);
 
+void vprintk(const char *fmt, va_list list);
+void vprintk_serial(const char *fmt, va_list list);
 void printk(const char *fmt, ...);
 void printk_serial(const char *fmt, ...);
 

@@ -1,3 +1,6 @@
+#define MODULE "main"
+#include <misc/logger.h>
+
 #include <misc/libc.h>
 #include <boot/limine.h>
 
@@ -17,13 +20,13 @@
 // this is the entry point of the kernel
 void _start(void)
 {
-    arch_simd_enable();                                               // enable simd on this platform
-    serial_init();                                                    // initialise serial interface
-    limine_init();                                                    // initialise limine protocol
-    framebuffer_init();                                               // initialise the framebuffer
-    page_allocator_init();                                            // initialise the page allocator
-    acpi_init();                                                      // initialise the acpi
-    printk("smp: bootstraped %d processors \n", arch_bootstrap_ap()); // boot up application cores
+    arch_simd_enable();                                            // enable simd on this platform
+    serial_init();                                                 // initialise serial interface
+    limine_init();                                                 // initialise limine protocol
+    framebuffer_init();                                            // initialise the framebuffer
+    page_allocator_init();                                         // initialise the page allocator
+    acpi_init();                                                   // initialise the acpi
+    log_info("bootstraped %d processors \n", arch_bootstrap_ap()); // boot up application cores
 
     halt();
 }

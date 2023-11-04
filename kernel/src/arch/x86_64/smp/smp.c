@@ -1,3 +1,6 @@
+#define MODULE "smp"
+#include <misc/logger.h>
+
 #include <arch/x86_64/arch.h>
 #include <acpi/acpi.h>
 

@@ -1,3 +1,6 @@
+#define MODULE "acpi"
+#include <misc/logger.h>
+
 #include <acpi/acpi.h>
 #include <boot/limine.h>
 
@@ -61,7 +64,7 @@ void acpi_init()
 {
     sdp = (acpi_xsdp_t *)kernel_rsdp_request.response->address;
 
-    printk("acpi: revision %d\n", sdp->revision);
+    log_info("revision %d", sdp->revision);
 
     // determine the correct system descriptor table based on revision
     if (sdp->revision == 0) // acpi 1.0

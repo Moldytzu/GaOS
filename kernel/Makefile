@@ -28,7 +28,8 @@ CFLAGS += \
     -fno-lto \
     -fPIE \
     -march=nocona \
-    -mno-red-zone
+    -mno-red-zone \
+    -Wno-unused-function
 
 # Internal C preprocessor flags that should not be changed by the user.
 CPPFLAGS := \

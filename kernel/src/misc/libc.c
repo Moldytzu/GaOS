@@ -130,6 +130,20 @@ void printk(const char *fmt, ...)
 
     va_list list;
     va_start(list, fmt);
+    vprintk(fmt, list);
+    va_end(list);
+}
+
+void printk_serial(const char *fmt, ...)
+{
+    va_list list;
+    va_start(list, fmt);
+    vprintk_serial(fmt, list);
+    va_end(list);
+}
+
+void vprintk(const char *fmt, va_list list)
+{
     for (size_t i = 0; fmt[i]; i++)
     {
         if (fmt[i] != '%')
@@ -159,13 +173,10 @@ void printk(const char *fmt, ...)
 
         i++;
     }
-    va_end(list);
 }
 
-void printk_serial(const char *fmt, ...)
+void vprintk_serial(const char *fmt, va_list list)
 {
-    va_list list;
-    va_start(list, fmt);
     for (size_t i = 0; fmt[i]; i++)
     {
         if (fmt[i] != '%')
@@ -195,7 +206,6 @@ void printk_serial(const char *fmt, ...)
 
         i++;
     }
-    va_end(list);
 }
 
 void halt()
