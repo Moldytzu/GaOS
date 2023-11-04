@@ -17,6 +17,11 @@ volatile struct limine_hhdm_request kernel_hhdm_request = {
     .revision = 0,
 };
 
+volatile struct limine_memmap_request kernel_memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST,
+    .revision = 0,
+};
+
 uint64_t kernel_hhdm_offset;
 
 void limine_init()
