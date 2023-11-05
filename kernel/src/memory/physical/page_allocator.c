@@ -11,7 +11,7 @@ typedef struct
     size_t used;
     size_t available;
     size_t total;
-    bool busy;
+    size_t bitmap_entries;
 } page_allocator_pool_t;
 
 struct limine_memmap_entry **memory_map_entries;
@@ -19,7 +19,7 @@ size_t memory_map_entries_count;
 page_allocator_pool_t allocator_pools[128];
 size_t allocator_pool_index = 0;
 
-void page_allocator_create_pools_limine()
+static void page_allocator_create_pools_limine()
 {
     memory_map_entries = kernel_memmap_request.response->entries;
     memory_map_entries_count = kernel_memmap_request.response->entry_count;
@@ -38,21 +38,19 @@ void page_allocator_create_pools_limine()
 
         // determine the required bytes for the bitmap
         size_t required_bitmap_bytes = entry->length / PAGE / bitsof(uint8_t);
-        if (required_bitmap_bytes % 4096)
-            required_bitmap_bytes += 4096 - required_bitmap_bytes % 4096;
+        if (required_bitmap_bytes % PAGE) // align to a page's lenght
+            required_bitmap_bytes += PAGE - required_bitmap_bytes % PAGE;
 
         // write the metadata
+        pool->bitmap_entries = entry->length / PAGE;
         pool->bitmap_base = entry->base + kernel_hhdm_offset;
-        pool->allocate_base = entry->base + required_bitmap_bytes;
+        pool->allocate_base = entry->base + required_bitmap_bytes + kernel_hhdm_offset;
         pool->used = 0;
         pool->available = pool->total = entry->length - required_bitmap_bytes;
-        pool->busy = false;
 
         // clear the bitmap
         memset((void *)pool->bitmap_base, 0, required_bitmap_bytes);
     }
-
-    log_info("%d KB to be reclaimed", to_reclaim / 1024);
 }
 
 void page_allocator_init()
@@ -72,9 +70,96 @@ void page_allocator_init()
     log_info("%d MB system", total_ram / 1024 / 1024);
 }
 
+// todo: move these in another source file
+static void bitmap_set(uint64_t bitmap, uint64_t index)
+{
+    uint64_t byte_offset = index / bitsof(uint64_t);
+    uint64_t bit = index % bitsof(uint64_t);
+    uint64_t mask = 1UL << bit;
+    uint64_t *pointer = (uint64_t *)bitmap + byte_offset;
+
+    *pointer |= mask;
+}
+
+static void bitmap_unset(uint64_t bitmap, uint64_t index)
+{
+    uint64_t byte_offset = index / bitsof(uint64_t);
+    uint64_t bit = index % bitsof(uint64_t);
+    uint64_t mask = 1UL << bit;
+    uint64_t *pointer = (uint64_t *)bitmap + byte_offset;
+
+    *pointer &= ~mask;
+}
+
+static uint64_t bitmap_get(uint64_t bitmap, uint64_t index)
+{
+    uint64_t byte_offset = index / bitsof(uint64_t);
+    uint64_t bit = index % bitsof(uint64_t);
+    uint64_t mask = 1UL << bit;
+    uint64_t *pointer = (uint64_t *)bitmap + byte_offset;
+
+    return *pointer & mask;
+}
+
 void *page_allocate(size_t pages)
 {
-    (void)pages;
+    if (!pages)
+    {
+        log_warn("requested null pages. allocating one page.");
+        pages = 1;
+    }
+
+    size_t required_bytes = pages * PAGE;
+
+    for (size_t i = 0; i < allocator_pool_index; i++)
+    {
+        page_allocator_pool_t *pool = &allocator_pools[i];
+
+        if (pool->available < required_bytes) // can't hold the data
+            continue;
+
+        // the 'pool' variable holds a valid pool viable for allocation
+
+        // try to find first available page
+        for (size_t index = 0; index < pool->bitmap_entries; index++)
+        {
+            if (bitmap_get(pool->bitmap_base, index))
+                continue;
+
+            if (index + pages > pool->bitmap_entries) // doesn't fit
+                continue;
+
+            // check if the range is contiguous
+            bool can_allocate = true;
+            for (size_t offset = 0; offset < pages; offset++)
+            {
+                if (bitmap_get(pool->bitmap_base, offset + index))
+                {
+                    can_allocate = false;
+                    break;
+                }
+            }
+
+            if (!can_allocate)
+                continue;
+
+            // set the bits
+            for (size_t offset = 0; offset < pages; offset++)
+                bitmap_set(pool->bitmap_base, offset + index);
+
+            // update metadata
+            pool->used += required_bytes;
+            pool->available -= required_bytes;
+
+            // return initialised memory
+            void *pointer = (void *)(pool->allocate_base + index * PAGE);
+            memset(pointer, 0, required_bytes);
+            return pointer;
+        }
+    }
+
+    log_error("failed to allocate %d pages (%d KB)", pages, required_bytes / 1024);
+
     return NULL;
 }
 
