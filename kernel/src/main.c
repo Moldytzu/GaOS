@@ -25,6 +25,7 @@ void _start(void)
     limine_init();                                                 // initialise limine protocol
     framebuffer_init();                                            // initialise the framebuffer
     page_allocator_init();                                         // initialise the page allocator
+    arch_swap_stack(page_allocate(1), PAGE);                       // allocate a new stack
     acpi_init();                                                   // initialise the acpi
     log_info("bootstraped %d processors \n", arch_bootstrap_ap()); // boot up application cores
 
