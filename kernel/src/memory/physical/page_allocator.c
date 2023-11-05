@@ -1,6 +1,7 @@
 #define MODULE "page_allocator"
 #include <misc/logger.h>
 
+#include <misc/panic.h>
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
 
@@ -158,7 +159,7 @@ void *page_allocate(size_t pages)
         }
     }
 
-    log_error("failed to allocate %d pages (%d KB)", pages, required_bytes / 1024);
+    panic("failed to allocate %d pages (%d KB)", pages, required_bytes / 1024);
 
     return NULL;
 }

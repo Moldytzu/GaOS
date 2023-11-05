@@ -208,8 +208,10 @@ void vprintk_serial(const char *fmt, va_list list)
     }
 }
 
-void halt()
+noreturn void halt()
 {
     iasm("cli");
     iasm("hlt");
+    while (1)
+        ;
 }
