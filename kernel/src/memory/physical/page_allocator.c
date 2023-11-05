@@ -155,6 +155,9 @@ void *page_allocate(size_t pages)
             // return initialised memory
             void *pointer = (void *)(pool->allocate_base + index * PAGE);
             memset(pointer, 0, required_bytes);
+
+            // printk_serial("page_allocator: allocating %p (%d pages)\n", pointer, pages);
+
             return pointer;
         }
     }
@@ -166,6 +169,31 @@ void *page_allocate(size_t pages)
 
 void page_deallocate(void *base, size_t pages)
 {
-    (void)base;
-    (void)pages;
+    uint64_t base_int = (uint64_t)base;
+    for (size_t i = 0; i < allocator_pool_index; i++)
+    {
+        page_allocator_pool_t *pool = &allocator_pools[i];
+
+        if (pool->allocate_base <= base_int && base_int <= pool->allocate_base + pool->total)
+        {
+            // found the correct pool
+
+            size_t index = (base_int - pool->allocate_base) / PAGE; // use the reverse equation to determine the page index
+
+            for (size_t offset = 0; offset < pages; offset++)
+            {
+                if (!bitmap_get(pool->bitmap_base, index + offset)) // oops... this page was already deallocated
+                {
+                    log_error("failed to deallocate already deallocated page at %p", base); // todo: print the caller instruction pointer
+                    continue;
+                }
+
+                bitmap_unset(pool->bitmap_base, index + offset);
+            }
+
+            return;
+        }
+    }
+
+    log_error("bogus deallocation of %p", base); // todo: print the caller instruction pointer
 }
