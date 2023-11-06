@@ -9,3 +9,5 @@ ifunc void arch_hint_spinlock()
 {
     iasm("pause");
 }
+
+void arch_init();
