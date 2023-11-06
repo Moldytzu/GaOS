@@ -3,6 +3,7 @@
 
 #include <arch/x86_64/page_table_manager/table_manager.h>
 #include <memory/physical/page_allocator.h>
+#include <boot/limine.h>
 
 #define TABLE_ENTRY_PRESENT (1 << 0)
 #define TABLE_ENTRY_READ_WRITE (1 << 1)
@@ -15,11 +16,30 @@
 #define TABLE_ENTRY_HUGE_PAGES (1 << 7)
 #define TABLE_ENTRY_NO_EXECUTE (1 << 63)
 
-pstruct
+typedef struct
 {
     uint64_t entries[512];
+} arch_page_table_t;
+
+typedef arch_page_table_t arch_page_table_layer_t;
+
+typedef struct
+{
+    uint64_t pml4;
+    uint64_t pml3;
+    uint64_t pml2;
+    uint64_t pml1;
+    uint64_t p;
+} arch_table_indexer_t;
+
+static void arch_table_manager_index(arch_table_indexer_t *index, uint64_t virtual_address)
+{
+    index->p = (virtual_address & (0x1FFULL << 12)) >> 12;
+    index->pml1 = (virtual_address & (0x1FFULL << 21)) >> 21;
+    index->pml2 = (virtual_address & (0x1FFULL << 30)) >> 30;
+    index->pml3 = (virtual_address & (0x1FFULL << 39)) >> 39;
+    index->pml4 = (virtual_address & (0x1FFULL << 48)) >> 48;
 }
-arch_page_table_t;
 
 static void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
 {
@@ -30,9 +50,56 @@ static void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
 
 static uint64_t arch_table_manager_get_address(uint64_t *entry)
 {
-    return (*entry >> 12) & 0xFFFFFFFFFF;
+    return ((*entry >> 12) & 0xFFFFFFFFFF) << 12;
+}
+
+static void arch_table_manager_switch_to(arch_page_table_t *table)
+{
+    iasm("mov %0, %%cr3" ::"r"((uint64_t)table - kernel_hhdm_offset) : "memory");
+}
+
+arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_layer_t *layer, uint64_t index)
+{
+    uint64_t *entry = &layer->entries[index]; // index next layer's entry
+
+    // allocate it if needed
+    if (!(*entry & TABLE_ENTRY_PRESENT))
+    {
+        uint64_t newLayer = (uint64_t)page_allocate(1);        // allocate a new layer
+        newLayer -= kernel_hhdm_offset;                        // get physical address of it
+        arch_table_manager_set_address(entry, newLayer >> 12); // set the page address
+        *entry |= TABLE_ENTRY_PRESENT;                         // set present bit
+    }
+
+    *entry |= TABLE_ENTRY_USER; // for some reason I have to set as userspace all layers that contain userspace pages
+
+    return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
+}
+
+void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags)
+{
+    // generate indices
+    arch_table_indexer_t indexer;
+    arch_table_manager_index(&indexer, virtual_address);
+
+    // traverse the page table
+    arch_page_table_layer_t *pml3 = arch_table_manager_next_layer(table, indexer.pml3);
+    arch_page_table_layer_t *pml2 = arch_table_manager_next_layer(pml3, indexer.pml2);
+    arch_page_table_layer_t *pml1 = arch_table_manager_next_layer(pml2, indexer.pml1);
+
+    uint64_t *entry = &pml1->entries[indexer.p];
+    *entry |= flags | TABLE_ENTRY_PRESENT;
+    arch_table_manager_set_address(entry, physical_address >> 12);
+}
+
+arch_page_table_t *arch_table_manager_new()
+{
+    return page_allocate(1);
 }
 
 void arch_table_manager_init()
 {
+    // arch_page_table_t *table = arch_table_manager_new();
+    // arch_table_manager_map(table, 0x1000, 0x1000, TABLE_ENTRY_USER);
+    // arch_table_manager_switch_to(table);
 }
