@@ -13,6 +13,9 @@ arch_gdt_load:
     mov fs, ax
     mov ss, ax
     mov gs, ax
+
+    mov ax, (8*5) ; 5th segment, tss
+    ltr ax
     
     pop rdi        ; pop return address
     mov rax, (8*2) ; 2nd segment, kernel code
