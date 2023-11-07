@@ -5,24 +5,6 @@
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
 
-#define TABLE_ENTRY_PRESENT (1 << 0)
-#define TABLE_ENTRY_READ_WRITE (1 << 1)
-#define TABLE_ENTRY_READ_ONLY 0
-#define TABLE_ENTRY_USER (1 << 2)
-#define TABLE_ENTRY_WRITE_THROUGH (1 << 3)
-#define TABLE_ENTRY_CACHE_DISABLE (1 << 4)
-#define TABLE_ENTRY_ACCESSED (1 << 5)
-#define TABLE_ENTRY_DIRTY (1 << 6)
-#define TABLE_ENTRY_HUGE_PAGES (1 << 7)
-#define TABLE_ENTRY_NO_EXECUTE (1 << 63)
-
-typedef struct
-{
-    uint64_t entries[512];
-} arch_page_table_t;
-
-typedef arch_page_table_t arch_page_table_layer_t;
-
 typedef struct
 {
     uint64_t pml4;
