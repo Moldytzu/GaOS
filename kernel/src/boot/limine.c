@@ -22,6 +22,11 @@ volatile struct limine_memmap_request kernel_memmap_request = {
     .revision = 0,
 };
 
+volatile struct limine_kernel_address_request kernel_kernel_address_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0,
+};
+
 uint64_t kernel_hhdm_offset;
 
 void limine_init()
