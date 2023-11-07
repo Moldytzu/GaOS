@@ -23,3 +23,13 @@
 
 uint64_t arch_get_id();
 void arch_xapic_init(bool bsp);
+
+ifunc void xapic_write(uint64_t offset, uint32_t value)
+{
+    *((volatile uint32_t *)((uint8_t *)XAPIC_BASE + offset)) = value;
+}
+
+ifunc uint32_t xapic_read(uint64_t offset)
+{
+    return *((volatile uint32_t *)((uint8_t *)XAPIC_BASE + offset));
+}

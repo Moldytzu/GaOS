@@ -7,19 +7,9 @@
 #include <arch/x86_64/pio.h>
 #include <arch/x86_64/msr.h>
 
-ifunc void xapic_write(uint64_t offset, uint32_t value)
-{
-    *((volatile uint32_t *)((uint8_t *)XAPIC_BASE + offset)) = value;
-}
-
-ifunc uint32_t xapic_read(uint64_t offset)
-{
-    return *((volatile uint32_t *)((uint8_t *)XAPIC_BASE + offset));
-}
-
 uint64_t arch_get_id()
 {
-    return xapic_read(XAPIC_REG_ID);
+    return xapic_read(XAPIC_REG_ID) >> 24;
 }
 
 void arch_xapic_init(bool bsp)
