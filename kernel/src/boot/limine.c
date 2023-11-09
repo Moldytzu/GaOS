@@ -33,6 +33,11 @@ volatile struct limine_stack_size_request kernel_stack_size_request = {
     .stack_size = 0x1000, /*a page*/
 };
 
+volatile struct limine_smp_request kernel_smp_request = {
+    .id = LIMINE_SMP_REQUEST,
+    .revision = 0,
+};
+
 uint64_t kernel_hhdm_offset;
 
 void limine_init()
