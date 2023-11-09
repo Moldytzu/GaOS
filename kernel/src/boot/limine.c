@@ -27,6 +27,12 @@ volatile struct limine_kernel_address_request kernel_kernel_address_request = {
     .revision = 0,
 };
 
+volatile struct limine_stack_size_request kernel_stack_size_request = {
+    .id = LIMINE_STACK_SIZE_REQUEST,
+    .revision = 0,
+    .stack_size = 0x1000, /*a page*/
+};
+
 uint64_t kernel_hhdm_offset;
 
 void limine_init()
