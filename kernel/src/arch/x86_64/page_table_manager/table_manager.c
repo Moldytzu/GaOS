@@ -37,11 +37,6 @@ static uint64_t arch_table_manager_get_address(uint64_t *entry)
     return ((*entry >> 12) & 0xFFFFFFFFFF) << 12;
 }
 
-static void arch_table_manager_switch_to(arch_page_table_t *table)
-{
-    iasm("mov %0, %%cr3" ::"r"((uint64_t)table - kernel_hhdm_offset) : "memory");
-}
-
 arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_layer_t *layer, uint64_t index, uint64_t flags)
 {
     uint64_t *entry = &layer->entries[index]; // index next layer's entry

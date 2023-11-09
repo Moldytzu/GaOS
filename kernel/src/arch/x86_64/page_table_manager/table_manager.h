@@ -1,5 +1,6 @@
 #pragma once
 #include <misc/libc.h>
+#include <boot/limine.h>
 
 #ifndef PAGE
 #define PAGE (4096)
@@ -23,6 +24,11 @@ typedef struct
 
 typedef arch_page_table_t arch_page_table_layer_t;
 extern arch_page_table_t *arch_bootstrap_page_table;
+
+ifunc void arch_table_manager_switch_to(arch_page_table_t *table)
+{
+    iasm("mov %0, %%cr3" ::"r"((uint64_t)table - kernel_hhdm_offset) : "memory");
+}
 
 void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags);
 void arch_table_manager_init();

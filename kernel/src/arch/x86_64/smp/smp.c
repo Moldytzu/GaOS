@@ -2,10 +2,12 @@
 #include <misc/logger.h>
 
 #include <arch/x86_64/arch.h>
+#include <arch/x86_64/gdt/gdt.h>
 #include <arch/x86_64/xapic/xapic.h>
 #include <acpi/acpi.h>
 #include <misc/libc.h>
 #include <boot/limine.h>
+#include <memory/physical/page_allocator.h>
 
 size_t arch_processor_count, arch_bsp_id;
 
@@ -17,7 +19,11 @@ bool arch_is_bsp()
 void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
 {
     (void)smp_info;
-    printk_serial("DA");
+
+    arch_load_gdt();
+    arch_table_manager_switch_to(arch_bootstrap_page_table);
+    arch_swap_stack(page_allocate(1), PAGE);
+    arch_xapic_init(true);
 
     halt();
 }
