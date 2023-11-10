@@ -4,7 +4,8 @@
 #include <arch/x86_64/simd/simd.h>                        // SSE/AVX
 #include <arch/x86_64/smp/smp.h>                          // SMP
 #include <arch/x86_64/stack/stack.h>                      // stack
-#include <arch/x86_64/page_table_manager/table_manager.h> // stack
+#include <arch/x86_64/page_table_manager/table_manager.h> // page tables
+#include <arch/x86_64/lock/spinlock.h>                    // spinlocks
 
 extern uint64_t arch_trampoline_base;
 
