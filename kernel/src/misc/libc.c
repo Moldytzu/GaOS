@@ -1,6 +1,7 @@
 #include <misc/libc.h>
 #include <devices/framebuffer/framebuffer.h>
 #include <devices/serial/serial.h>
+#include <arch/arch.h>
 
 size_t strlen(char *str)
 {
@@ -88,10 +89,13 @@ void strrev(char *str)
 
 // convert to a string (base 10)
 char to_stringout[32];
+arch_spinlock_t to_string_lock;
 char *to_string(uint64_t val)
 {
     if (!val)
         return "0"; // if the value is 0 then return a constant string "0"
+
+    arch_spinlock_acquire(&to_string_lock);
 
     int i = 0;
     for (; val; i++, val /= 10)
@@ -100,6 +104,8 @@ char *to_string(uint64_t val)
     to_stringout[i] = 0; // terminate string
 
     strrev(to_stringout); // reverse string
+
+    arch_spinlock_release(&to_string_lock);
 
     return to_stringout;
 }
@@ -112,6 +118,8 @@ char *to_hstring(uint64_t val)
     if (!val)
         return "0"; // if the value is 0 then return a constant string "0"
 
+    arch_spinlock_acquire(&to_string_lock);
+
     int i = 0;
     for (; i < 16 && val; i++, val = val >> 4) // shift the value by 4 to get each nibble
         to_hstringout[i] = digits[val & 0xF];  // get each nibble
@@ -119,6 +127,8 @@ char *to_hstring(uint64_t val)
     to_hstringout[i] = 0; // terminate string
 
     strrev(to_hstringout); // reverse string
+
+    arch_spinlock_release(&to_string_lock);
 
     return to_hstringout; // return the string
 }
