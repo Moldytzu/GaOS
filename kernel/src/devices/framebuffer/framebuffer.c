@@ -4,6 +4,7 @@
 #include <devices/framebuffer/framebuffer.h>
 #include <devices/serial/serial.h>
 #include <boot/limine.h>
+#include <arch/arch.h>
 
 #define PSF2_MAGIC "\x72\xB5\x4A\x86"
 
@@ -29,6 +30,8 @@ extern uint8_t _binary_kfont_psf_start[];
 static const uint8_t *kfont_ptr = (uint8_t *)_binary_kfont_psf_start;
 static psf2_header_t *font;
 static uint8_t *font_glyphs;
+
+arch_spinlock_t framebuffer_spinlock;
 
 bool framebuffer_generate_structure_from_limine(framebuffer_t *f)
 {
@@ -67,6 +70,8 @@ void framebuffer_plot_character(char c, size_t x, size_t y, uint32_t colour)
 
 void framebuffer_write_character(char c)
 {
+    arch_spinlock_acquire(&framebuffer_spinlock);
+
     // handle end of the line
     if (main_cursor.x + font->width >= main_framebuffer.width || c == '\n')
     {
@@ -74,13 +79,18 @@ void framebuffer_write_character(char c)
         main_cursor.x = 0;
     }
 
-    if (c == '\n')
+    if (c == '\n') // don't plot \n
+    {
+        arch_spinlock_release(&framebuffer_spinlock);
         return;
+    }
 
     // fixme: we should handle end of buffer too
 
     framebuffer_plot_character(c, main_cursor.x, main_cursor.y, main_cursor.colour); // draw the character
     main_cursor.x += font->width;                                                    // increase the coordonate
+
+    arch_spinlock_release(&framebuffer_spinlock);
 }
 
 void framebuffer_write_string(char *string)
