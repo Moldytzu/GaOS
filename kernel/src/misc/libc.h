@@ -26,3 +26,10 @@ void printk(const char *fmt, ...);
 void printk_serial(const char *fmt, ...);
 
 noreturn void halt();
+
+ifunc void zero64(uint64_t *s, size_t n)
+{
+    n /= sizeof(uint64_t);
+    for (size_t i = 0; i < n; i++)
+        s[i] = 0;
+}
