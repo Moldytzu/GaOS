@@ -16,7 +16,7 @@ typedef struct
 
 arch_page_table_t *arch_bootstrap_page_table;
 
-static void arch_table_manager_index(arch_table_indexer_t *index, uint64_t virtual_address)
+ifunc void arch_table_manager_index(arch_table_indexer_t *index, uint64_t virtual_address)
 {
     index->p = (virtual_address & (0x1FFULL << 12)) >> 12;
     index->pml1 = (virtual_address & (0x1FFULL << 21)) >> 21;
@@ -25,19 +25,19 @@ static void arch_table_manager_index(arch_table_indexer_t *index, uint64_t virtu
     index->pml4 = (virtual_address & (0x1FFULL << 48)) >> 48;
 }
 
-static void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
+ifunc void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
 {
-    address &= 0xFFFFFFFFFF;      // clamp the address to 40-bit physical
+    // note: address here is a page number, max physical address will be 40 + 12 = 52 bits (4096 TB!)
     *entry &= 0xFFF0000000000FFF; // clear old address field
     *entry |= address << 12;      // put the new address
 }
 
-static uint64_t arch_table_manager_get_address(uint64_t *entry)
+ifunc uint64_t arch_table_manager_get_address(uint64_t *entry)
 {
     return ((*entry >> 12) & 0xFFFFFFFFFF) << 12;
 }
 
-arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_layer_t *layer, uint64_t index, uint64_t flags)
+ifunc arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_layer_t *layer, uint64_t index, uint64_t flags)
 {
     uint64_t *entry = &layer->entries[index]; // index next layer's entry
 
