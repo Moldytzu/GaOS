@@ -14,6 +14,9 @@ typedef struct
     size_t available;
     size_t total;
     size_t bitmap_entries;
+
+    // for optimizations
+    size_t last_allocated_page_index;
 } page_allocator_pool_t;
 
 struct limine_memmap_entry **memory_map_entries;
@@ -50,6 +53,7 @@ static void page_allocator_create_pools_limine()
         pool->allocate_base = entry->base + required_bitmap_bytes + kernel_hhdm_offset;
         pool->used = 0;
         pool->available = pool->total = entry->length - required_bitmap_bytes;
+        pool->last_allocated_page_index = 0;
 
         // clear the bitmap
         memset((void *)pool->bitmap_base, 0, required_bitmap_bytes);
@@ -126,7 +130,7 @@ void *page_allocate(size_t pages)
         // the 'pool' variable holds a valid pool viable for allocation
 
         // try to find first available page
-        for (size_t index = 0; index < pool->bitmap_entries; index++)
+        for (size_t index = pool->last_allocated_page_index; index < pool->bitmap_entries; index++)
         {
             if (bitmap_get(pool->bitmap_base, index))
                 continue;
@@ -155,6 +159,7 @@ void *page_allocate(size_t pages)
             // update metadata
             pool->used += required_bytes;
             pool->available -= required_bytes;
+            pool->last_allocated_page_index = index;
 
             // return initialised memory
             void *pointer = (void *)(pool->allocate_base + index * PAGE);
