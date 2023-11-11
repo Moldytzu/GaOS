@@ -5,25 +5,7 @@
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
 
-typedef struct
-{
-    uint64_t pml4;
-    uint64_t pml3;
-    uint64_t pml2;
-    uint64_t pml1;
-    uint64_t p;
-} arch_table_indexer_t;
-
 arch_page_table_t *arch_bootstrap_page_table;
-
-ifunc void arch_table_manager_index(arch_table_indexer_t *index, uint64_t virtual_address)
-{
-    index->p = (virtual_address & (0x1FFULL << 12)) >> 12;
-    index->pml1 = (virtual_address & (0x1FFULL << 21)) >> 21;
-    index->pml2 = (virtual_address & (0x1FFULL << 30)) >> 30;
-    index->pml3 = (virtual_address & (0x1FFULL << 39)) >> 39;
-    index->pml4 = (virtual_address & (0x1FFULL << 48)) >> 48;
-}
 
 ifunc void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
 {
@@ -58,15 +40,18 @@ ifunc arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_lay
 void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags)
 {
     // generate indices
-    arch_table_indexer_t indexer;
-    arch_table_manager_index(&indexer, virtual_address);
+    // uint64_t pml4 = (virtual_address & (0x1FFULL << 48)) >> 48; // for future use (5 level paging)
+    uint64_t pml3_index = (virtual_address & (0x1FFULL << 39)) >> 39;
+    uint64_t pml2_index = (virtual_address & (0x1FFULL << 30)) >> 30;
+    uint64_t pml1_index = (virtual_address & (0x1FFULL << 21)) >> 21;
+    uint64_t p_index = (virtual_address & (0x1FFULL << 12)) >> 12;
 
     // traverse the page table
-    arch_page_table_layer_t *pml3 = arch_table_manager_next_layer(table, indexer.pml3, flags);
-    arch_page_table_layer_t *pml2 = arch_table_manager_next_layer(pml3, indexer.pml2, flags);
-    arch_page_table_layer_t *pml1 = arch_table_manager_next_layer(pml2, indexer.pml1, flags);
+    arch_page_table_layer_t *pml3 = arch_table_manager_next_layer(table, pml3_index, flags);
+    arch_page_table_layer_t *pml2 = arch_table_manager_next_layer(pml3, pml2_index, flags);
+    arch_page_table_layer_t *pml1 = arch_table_manager_next_layer(pml2, pml1_index, flags);
 
-    uint64_t *entry = &pml1->entries[indexer.p];
+    uint64_t *entry = &pml1->entries[p_index];
     *entry |= flags | TABLE_ENTRY_PRESENT;
     arch_table_manager_set_address(entry, physical_address >> 12);
 }
