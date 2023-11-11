@@ -47,10 +47,10 @@ ifunc arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_lay
         uint64_t newLayer = (uint64_t)page_allocate(1);        // allocate a new layer
         newLayer -= kernel_hhdm_offset;                        // get physical address of it
         arch_table_manager_set_address(entry, newLayer >> 12); // set the page address
-        *entry |= TABLE_ENTRY_PRESENT;                         // set present bit
+        *entry |= flags | TABLE_ENTRY_PRESENT;                 // set flags
     }
-
-    *entry |= flags;
+    else
+        *entry |= flags;
 
     return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
 }
