@@ -4,6 +4,7 @@
 #include <misc/panic.h>
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
+#include <arch/arch.h>
 
 typedef struct
 {
@@ -19,6 +20,7 @@ struct limine_memmap_entry **memory_map_entries;
 size_t memory_map_entries_count;
 page_allocator_pool_t allocator_pools[128];
 size_t allocator_pool_index = 0;
+arch_spinlock_t page_allocator_lock;
 
 static void page_allocator_create_pools_limine()
 {
@@ -110,6 +112,8 @@ void *page_allocate(size_t pages)
         pages = 1;
     }
 
+    arch_spinlock_acquire(&page_allocator_lock);
+
     size_t required_bytes = pages * PAGE;
 
     for (size_t i = 0; i < allocator_pool_index; i++)
@@ -158,9 +162,13 @@ void *page_allocate(size_t pages)
 
             // printk_serial("page_allocator: allocating %p (%d pages)\n", pointer, pages);
 
+            arch_spinlock_release(&page_allocator_lock);
+
             return pointer;
         }
     }
+
+    arch_spinlock_release(&page_allocator_lock);
 
     panic("failed to allocate %d pages (%d KB)", pages, required_bytes / 1024);
 
@@ -169,6 +177,8 @@ void *page_allocate(size_t pages)
 
 void page_deallocate(void *base, size_t pages)
 {
+    arch_spinlock_acquire(&page_allocator_lock);
+
     uint64_t base_int = (uint64_t)base;
     for (size_t i = 0; i < allocator_pool_index; i++)
     {
@@ -191,9 +201,13 @@ void page_deallocate(void *base, size_t pages)
                 bitmap_unset(pool->bitmap_base, index + offset);
             }
 
+            arch_spinlock_release(&page_allocator_lock);
+
             return;
         }
     }
 
     log_error("bogus deallocation of %p", base); // todo: print the caller instruction pointer
+
+    arch_spinlock_release(&page_allocator_lock);
 }
