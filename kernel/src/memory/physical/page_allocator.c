@@ -56,7 +56,7 @@ static void page_allocator_create_pools_limine()
         pool->last_allocated_page_index = 0;
 
         // clear the bitmap
-        memset((void *)pool->bitmap_base, 0, required_bitmap_bytes);
+        zero64((void *)pool->bitmap_base, required_bitmap_bytes);
     }
 }
 
@@ -163,7 +163,7 @@ void *page_allocate(size_t pages)
 
             // return initialised memory
             void *pointer = (void *)(pool->allocate_base + index * PAGE);
-            memset(pointer, 0, required_bytes);
+            zero64(pointer, required_bytes);
 
             // printk_serial("page_allocator: allocating %p (%d pages)\n", pointer, pages);
 
