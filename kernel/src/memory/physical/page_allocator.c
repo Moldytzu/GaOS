@@ -139,18 +139,9 @@ void *page_allocate(size_t pages)
                 continue;
 
             // check if the range is contiguous
-            bool can_allocate = true;
             for (size_t offset = 0; offset < pages; offset++)
-            {
-                if (bitmap_get(pool->bitmap_base, offset + index))
-                {
-                    can_allocate = false;
-                    break;
-                }
-            }
-
-            if (!can_allocate)
-                continue;
+                if (bitmap_get(pool->bitmap_base, offset + index)) // this page is allocated
+                    goto try_next;                                 // try next offset
 
             // set the bits
             for (size_t offset = 0; offset < pages; offset++)
@@ -170,6 +161,8 @@ void *page_allocate(size_t pages)
             arch_spinlock_release(&page_allocator_lock);
 
             return pointer;
+
+        try_next:
         }
     }
 
