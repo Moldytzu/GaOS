@@ -1,5 +1,6 @@
 #define MODULE "x86_64/idt"
 #include <misc/logger.h>
+#include <misc/panic.h>
 
 #include <arch/x86_64/idt/idt.h>
 #include <memory/physical/page_allocator.h>
@@ -26,10 +27,32 @@ arch_idt_gate_descriptor_t;
 arch_idtr_t arch_global_idtr;     // fixme: move this in a per-cpu strucutre, while keeping it the same across them
 extern void *arch_isr_handlers[]; // array of handlers
 
+uint64_t arch_read_cr2()
+{
+    uint64_t value = 0;
+    iasm("mov %%cr2, %0" ::"r"(value));
+    return value;
+}
+
 void arch_isr_handler(arch_processor_state_t *state, uint64_t interrupt_number)
 {
     (void)state;
-    log_info("interrupt %d", interrupt_number);
+    if (interrupt_number < 0x20)
+    {
+        // handle exceptions
+        if (interrupt_number == 0xE) // page fault
+        {
+            uint32_t error = state->error;
+            panic("Page Fault caused by %s page, on a %s in %s at 0x%x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", arch_read_cr2());
+        }
+        else
+            panic("exception 0x%x", interrupt_number);
+    }
+    else
+    {
+        // handle interrupt
+        log_info("interrupt 0x%x", interrupt_number);
+    }
 }
 
 void arch_interrupts_map_vector(uint64_t vector, void *handler)
