@@ -5,7 +5,7 @@ set -e
 
 ARCH="x86_64"
 INTERVAL="0.0001"
-INITIALWAIT="0.85"
+INITIALWAIT="0.1"
 CMDLINE="-M q35 -cpu core2duo -m 2G -boot c -hda disk.hdd -no-reboot"
 KERNEL="kernel/bin/kernel.elf"
 
