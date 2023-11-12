@@ -44,11 +44,11 @@ LDFLAGS += \
     -m elf_$(OUTPUT_ARCH) \
     -nostdlib \
     -static \
-    # -pie \ # disabled for debugging 
     --no-dynamic-linker \
     -z text \
     -z max-page-size=0x1000 \
     -T linker.ld
+    # -pie \ # disabled for debugging 
 
 # Internal nasm flags that should not be changed by the user.
 NASMFLAGS += \
