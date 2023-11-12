@@ -95,5 +95,10 @@ void arch_load_gdt()
     info->tss_segment.base3 = (uint8_t)(tss_address >> 24);
     info->tss_segment.base4 = (uint32_t)(tss_address >> 32);
 
+    // allocate stacks
+    info->tss.ist[0] = (uint64_t)page_allocate(1) + PAGE;
+    info->tss.rsp[0] = (uint64_t)page_allocate(1) + PAGE;
+    info->tss.rsp[2] = (uint64_t)page_allocate(1) + PAGE;
+
     arch_gdt_load(&info->gdtr);
 }

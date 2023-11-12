@@ -3,6 +3,7 @@
 #include <misc/panic.h>
 
 #include <arch/x86_64/idt/idt.h>
+#include <arch/arch.h>
 #include <memory/physical/page_allocator.h>
 
 pstruct
@@ -65,7 +66,7 @@ void arch_interrupts_map_vector(uint64_t vector, void *handler)
     gate->offset3 = (uint64_t)handler >> 32;
 
     gate->segment_selector = 8 * 2; // kernel code
-    gate->ist = 0;                  // todo: implement ists
+    gate->ist = 1;                  // set the ist
     gate->attributes = 0xEE;        // set gate type to 64-bit interrupt, dpl to 3 and present bit
 }
 
