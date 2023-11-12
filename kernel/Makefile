@@ -44,7 +44,7 @@ LDFLAGS += \
     -m elf_$(OUTPUT_ARCH) \
     -nostdlib \
     -static \
-    -pie \
+    # -pie \ # disabled for debugging 
     --no-dynamic-linker \
     -z text \
     -z max-page-size=0x1000 \
