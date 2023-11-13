@@ -37,7 +37,9 @@ uint64_t arch_read_cr2()
 
 void arch_isr_handler(arch_processor_state_t *state, uint64_t interrupt_number)
 {
-    (void)state;
+    if (interrupt_number == 0x2) // NMI
+        halt();
+
     if (interrupt_number < 0x20)
     {
         // handle exceptions
@@ -80,6 +82,4 @@ void arch_interrupts_init()
         arch_interrupts_map_vector(i, arch_isr_handlers[i]);
 
     arch_idt_load(&arch_global_idtr);
-
-    iasm("int $0x20");
 }
