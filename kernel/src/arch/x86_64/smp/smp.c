@@ -16,6 +16,7 @@ bool arch_is_bsp()
     return arch_get_id() == arch_bsp_id;
 }
 
+arch_spinlock_t arch_smp_bootstrap_lock;
 void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
 {
     (void)smp_info;
@@ -24,6 +25,8 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
     arch_table_manager_switch_to(arch_bootstrap_page_table);
     arch_swap_stack(page_allocate(1), PAGE);
     arch_xapic_init(true);
+
+    arch_spinlock_release(&arch_smp_bootstrap_lock); // release the lock
 
     halt();
 }
@@ -39,7 +42,12 @@ int arch_bootstrap_ap_limine()
         if (cpus[i]->lapic_id == arch_bsp_id) // ignore the bsp (this processor)
             continue;
 
+        arch_spinlock_acquire(&arch_smp_bootstrap_lock); // lock
+
         cpus[i]->goto_address = arch_bootstrap_entry_limine; // wake up the processor
+
+        while (arch_smp_bootstrap_lock) // wait to be unlocked by the processor
+            arch_hint_spinlock();
     }
 
     return arch_processor_count - 1;
