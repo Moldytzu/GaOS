@@ -1,9 +1,12 @@
 #include <misc/panic.h>
 #include <misc/libc.h>
 #include <devices/framebuffer/framebuffer.h>
+#include <arch/arch.h>
 
 noreturn void panic(const char *fmt, ...)
 {
+    arch_kill_ap();
+
     va_list list;
 
     /// framebuffer
