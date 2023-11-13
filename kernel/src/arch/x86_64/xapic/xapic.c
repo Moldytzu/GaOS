@@ -12,6 +12,7 @@ uint64_t arch_get_id()
     return xapic_read(XAPIC_REG_ID) >> 24;
 }
 
+bool arch_initialised_xapic = false;
 void arch_xapic_init(bool bsp)
 {
     if ((rdmsr(MSR_APIC_BASE) & 0xFFFFF000) != (uint64_t)XAPIC_BASE)
@@ -24,6 +25,8 @@ void arch_xapic_init(bool bsp)
         arch_pio_write8(0xA0, 0b11111111);
 
         arch_table_manager_map(arch_bootstrap_page_table, XAPIC_BASE, XAPIC_BASE, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the base
+
+        arch_initialised_xapic = true;
     }
 
     // reset important registers to a known state before enabling the apic (not required by any spec)
@@ -44,4 +47,21 @@ void arch_xapic_init(bool bsp)
     xapic_write(XAPIC_REG_SIV, 0x120); // software enable apic and set the spurious vector to 0x20
 
     log_info("enabled for %x", arch_get_id());
+}
+
+void arch_kill_ap()
+{
+    // kill other application processors
+    if (!arch_initialised_xapic)
+        return;
+
+    // 11.6 Volume 3 Intel SDM
+
+    uint64_t icr = 0;
+    icr |= (0b100) << 8; // set delivery mode to nmi
+    icr |= (0b11) << 18; // set destination shorthand to all excluding self
+
+    // send the interrupt command register
+    xapic_write(XAPIC_REG_ICR_LOW, icr & 0xFFFFFFFF);
+    xapic_write(XAPIC_REG_ICR_HIGH, (icr >> 32) & 0xFFFFFFFF);
 }
