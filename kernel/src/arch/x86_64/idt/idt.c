@@ -8,13 +8,6 @@
 
 pstruct
 {
-    uint16_t size;
-    uint64_t offset;
-}
-arch_idtr_t;
-
-pstruct
-{
     uint16_t offset;
     uint16_t segment_selector;
     uint8_t ist;
@@ -37,7 +30,7 @@ uint64_t arch_read_cr2()
 
 void arch_isr_handler(arch_processor_state_t *state, uint64_t interrupt_number)
 {
-    if (interrupt_number == 0x2) // NMI
+    if (interrupt_number == 0x2 || interrupt_number == 0x8) // NMI, Double Fault
         halt();
 
     if (interrupt_number < 0x20)
@@ -72,7 +65,6 @@ void arch_interrupts_map_vector(uint64_t vector, void *handler)
     gate->attributes = 0xEE;        // set gate type to 64-bit interrupt, dpl to 3 and present bit
 }
 
-extern void arch_idt_load(arch_idtr_t *);
 void arch_interrupts_init()
 {
     arch_global_idtr.offset = (uint64_t)page_allocate(1);

@@ -25,6 +25,7 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
     arch_table_manager_switch_to(arch_bootstrap_page_table);
     arch_swap_stack(page_allocate(1), PAGE);
     arch_xapic_init(true);
+    arch_idt_load(&arch_global_idtr);
 
     arch_spinlock_release(&arch_smp_bootstrap_lock); // release the lock
 

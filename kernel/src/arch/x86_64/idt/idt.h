@@ -28,4 +28,13 @@ pstruct
 }
 arch_processor_state_t;
 
+pstruct
+{
+    uint16_t size;
+    uint64_t offset;
+}
+arch_idtr_t;
+
+extern arch_idtr_t arch_global_idtr;
+extern void arch_idt_load(arch_idtr_t *);
 void arch_interrupts_init();

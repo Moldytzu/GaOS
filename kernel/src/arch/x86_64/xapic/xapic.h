@@ -28,6 +28,7 @@ void arch_kill_ap();
 ifunc void xapic_write(uint64_t offset, uint32_t value)
 {
     *((volatile uint32_t *)((uint8_t *)XAPIC_BASE + offset)) = value;
+    iasm("mfence" ::: "memory");
 }
 
 ifunc uint32_t xapic_read(uint64_t offset)
