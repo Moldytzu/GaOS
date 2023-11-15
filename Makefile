@@ -4,10 +4,14 @@ OUTPUT_ARCH = x86_64
 # make the architecture available in all makefiles
 export OUTPUT_ARCH
 
-QEMU_FLAGS = -m 2G -serial stdio -smp 2 
+QEMU_FLAGS = -m 2G -serial stdio -smp 2
 QEMU_LOG = -D qemu.out -d int -no-reboot -no-shutdown
+QEMU_ACCELERATED = 
+
+# architecture-specific flags
 ifeq ($(OUTPUT_ARCH),x86_64)
 	QEMU_FLAGS += -M q35,smm=off
+	QEMU_ACCELERATED += --enable-kvm -cpu host
 endif
 
 .PHONY: all
@@ -17,8 +21,8 @@ all: install_hdd
 run: all
 	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd -boot c
 
-run-kvm: all
-	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd -boot c --enable-kvm
+run-accel: all
+	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd -boot c $(QEMU_ACCELERATED)
 
 run-uefi: all ovmf
 	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
