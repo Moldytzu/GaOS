@@ -87,50 +87,44 @@ void strrev(char *str)
     }
 }
 
-// convert to a string (base 10)
-char to_stringout[32];
-arch_spinlock_t to_string_lock;
-char *to_string(uint64_t val)
+// safe itoa-like function
+char *num_to_string(uint64_t value, char *buffer, size_t buffer_bytes, int base)
 {
-    if (!val)
-        return "0"; // if the value is 0 then return a constant string "0"
+    buffer_bytes--; // reserve one byte for null-termination
 
-    arch_spinlock_acquire(&to_string_lock);
-
-    int i = 0;
-    for (; val; i++, val /= 10)
-        to_stringout[i] = (val % 10) + '0';
-
-    to_stringout[i] = 0; // terminate string
-
-    strrev(to_stringout); // reverse string
-
-    arch_spinlock_release(&to_string_lock);
-
-    return to_stringout;
-}
-
-// convert to a string (base 16)
-char to_hstringout[32];
-char *to_hstring(uint64_t val)
-{
     const char *digits = "0123456789ABCDEF";
-    if (!val)
-        return "0"; // if the value is 0 then return a constant string "0"
+    size_t buffer_index = 0;
 
-    arch_spinlock_acquire(&to_string_lock);
+    if (!value)
+    {
+        // "0"
+        *buffer = '0';
+        *(buffer + 1) = 0;
+        return buffer;
+    }
 
-    int i = 0;
-    for (; i < 16 && val; i++, val = val >> 4) // shift the value by 4 to get each nibble
-        to_hstringout[i] = digits[val & 0xF];  // get each nibble
+    // split the number in base
+    while (value)
+    {
+        int digit = value % base;
+        value /= base;
+        buffer[buffer_index++] = digits[digit];
 
-    to_hstringout[i] = 0; // terminate string
+        if (buffer_index >= buffer_bytes) // safety check
+            break;
+    }
 
-    strrev(to_hstringout); // reverse string
+    // reverse the buffer
+    for (int i = 0, j = buffer_index - 1; i < j; i++, j--)
+    {
+        const char a = buffer[i];
+        buffer[i] = buffer[j];
+        buffer[j] = a;
+    }
 
-    arch_spinlock_release(&to_string_lock);
+    buffer[buffer_index] = 0; // null terminate buffer
 
-    return to_hstringout; // return the string
+    return buffer;
 }
 
 void printk(const char *fmt, ...)
@@ -154,6 +148,7 @@ void printk_serial(const char *fmt, ...)
 
 void vprintk(const char *fmt, va_list list)
 {
+    char conversion_buffer[32];
     for (size_t i = 0; fmt[i]; i++)
     {
         if (fmt[i] != '%')
@@ -164,12 +159,14 @@ void vprintk(const char *fmt, va_list list)
 
         switch (fmt[i + 1])
         {
-        case 'd':
-            framebuffer_write_string(to_string(va_arg(list, uint64_t))); // decimal
+        case 'd': // decimal
+            num_to_string(va_arg(list, uint64_t), conversion_buffer, 32, 10);
+            framebuffer_write_string(conversion_buffer);
             break;
-        case 'x':
-        case 'p':
-            framebuffer_write_string(to_hstring((uint64_t)va_arg(list, void *))); // pointer/hex
+        case 'x': // hex
+        case 'p': // pointer
+            num_to_string(va_arg(list, uint64_t), conversion_buffer, 32, 16);
+            framebuffer_write_string(conversion_buffer);
             break;
         case 's':
             framebuffer_write_string(va_arg(list, char *)); // string
@@ -187,6 +184,8 @@ void vprintk(const char *fmt, va_list list)
 
 void vprintk_serial(const char *fmt, va_list list)
 {
+    char conversion_buffer[32];
+
     for (size_t i = 0; fmt[i]; i++)
     {
         if (fmt[i] != '%')
@@ -197,12 +196,14 @@ void vprintk_serial(const char *fmt, va_list list)
 
         switch (fmt[i + 1])
         {
-        case 'd':
-            serial_send_string(to_string(va_arg(list, uint64_t))); // decimal
+        case 'd': // decimal
+            num_to_string(va_arg(list, uint64_t), conversion_buffer, 32, 10);
+            serial_send_string(conversion_buffer);
             break;
-        case 'x':
-        case 'p':
-            serial_send_string(to_hstring((uint64_t)va_arg(list, void *))); // pointer/hex
+        case 'x': // hex
+        case 'p': // pointer
+            num_to_string(va_arg(list, uint64_t), conversion_buffer, 32, 16);
+            serial_send_string(conversion_buffer);
             break;
         case 's':
             serial_send_string(va_arg(list, char *)); // string
