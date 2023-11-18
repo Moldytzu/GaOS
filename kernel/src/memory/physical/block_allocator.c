@@ -40,25 +40,12 @@ void *block_allocator_allocate_block(size_t pages)
 
 void block_allocator_push_block(block_header_t **list, block_header_t *block)
 {
-    // hmm... for decreased time complexity, should we just insert at the head of the list??
-    if (*list != NULL)
-    {
-        // point to the last block in list
-        block_header_t *current_block = *list;
+    block->next = block->previous = NULL; // make sure the links aren't present
 
-        while (current_block->next)
-            current_block = current_block->next;
+    if (*list) // link next block if the list has any blocks
+        block->next = *list;
 
-        // push the block
-        current_block->next = block;
-        block->previous = current_block;
-        block->next = NULL;
-    }
-    else
-    {
-        block->next = block->previous = NULL; // because the list is empty, this doesn't have any links
-        *list = block;                        // make the list be this block
-    }
+    *list = block; // make this block the head (start)
 }
 
 void block_allocator_remove_block_from_list(block_header_t *block)
@@ -175,11 +162,8 @@ void *block_allocate(size_t size)
     while (current_block && current_block->size < size)
         current_block = current_block->next;
 
-    if (!current_block) // didn't find a big enough block
-    {
-        block_allocator_create_free_block(size / PAGE + 1); // create one that fits our needs
-        return block_allocate(size);                        // try again
-    }
+    if (!current_block)                                                     // didn't find a big enough block
+        current_block = block_allocator_create_free_block(size / PAGE + 1); // create one that fits our needs
 
     // now current_block holds the block we will allocate
 
