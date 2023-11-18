@@ -16,6 +16,7 @@
 
 // memory
 #include <memory/physical/page_allocator.h>
+#include <memory/physical/block_allocator.h>
 
 // this is the entry point of the kernel
 void _start(void)
@@ -27,6 +28,7 @@ void _start(void)
     page_allocator_init();                                      // initialise the page allocator
     arch_swap_stack(page_allocate(1), PAGE);                    // allocate a new stack
     arch_init();                                                // initialise this platform
+    block_allocator_init();                                     // initialise the block allocator
     acpi_init();                                                // initialise the acpi
     log_info("bootstraped %d processors", arch_bootstrap_ap()); // boot up application cores
 
