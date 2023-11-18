@@ -46,7 +46,7 @@ void arch_xapic_init(bool bsp)
 
     xapic_write(XAPIC_REG_SIV, 0x120); // software enable apic and set the spurious vector to 0x20
 
-    log_info("enabled for %x", arch_get_id());
+    log_info("enabled for %d", arch_get_id());
 }
 
 void arch_kill_ap()
