@@ -4,6 +4,7 @@
 #include <memory/physical/block_allocator.h>
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
+#include <arch/arch.h>
 
 struct block_header
 {
@@ -19,6 +20,18 @@ block_header_t *block_free_list_start = NULL;
 block_header_t *block_busy_list_start = NULL;
 
 uint64_t block_allocator_virtual_base = 0;
+
+void *block_allocator_allocate_block(size_t pages)
+{
+    uint64_t physical_base = (uint64_t)page_allocate(pages) - kernel_hhdm_offset;
+    uint64_t virtual_base = block_allocator_virtual_base;
+    block_allocator_virtual_base += pages * PAGE;
+
+    for (size_t i = 0; i < pages * PAGE; i += PAGE)
+        arch_table_manager_map(arch_bootstrap_page_table, virtual_base + i, physical_base + i, TABLE_ENTRY_READ_WRITE);
+
+    return (void *)virtual_base;
+}
 
 void block_allocator_push_block(block_header_t **list, block_header_t *block)
 {
@@ -56,7 +69,7 @@ block_header_t *block_allocator_create_free_block(size_t pages)
     {
         // there isn't a start
         // we have to allocate one
-        block_free_list_start = page_allocate(pages);
+        block_free_list_start = block_allocator_allocate_block(pages);
         block_free_list_start->size = pages * PAGE - sizeof(block_header_t);
 
         return block_free_list_start;
@@ -64,7 +77,7 @@ block_header_t *block_allocator_create_free_block(size_t pages)
     else
     {
         // create a new block
-        block_header_t *new_block = page_allocate(pages);
+        block_header_t *new_block = block_allocator_allocate_block(pages);
         new_block->size = pages * PAGE - sizeof(block_header_t);
 
         block_allocator_push_block(&block_free_list_start, new_block); // push it on the list
@@ -131,6 +144,7 @@ void block_allocator_init()
     log_info("using virtual base 0x%p", block_allocator_virtual_base);
 
     block_allocator_create_free_block(1);
+    block_allocator_dump_free_list();
 }
 
 void *block_allocate(size_t size)
