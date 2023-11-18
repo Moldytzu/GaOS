@@ -1,5 +1,9 @@
+#define MODULE "block_allocator"
+#include <misc/logger.h>
+
 #include <memory/physical/block_allocator.h>
 #include <memory/physical/page_allocator.h>
+#include <boot/limine.h>
 
 struct block_header
 {
@@ -13,6 +17,8 @@ typedef struct block_header block_header_t; // create a type for the block heade
 // fixme: all of these functions aren't thread-safe!
 block_header_t *block_free_list_start = NULL;
 block_header_t *block_busy_list_start = NULL;
+
+uint64_t block_allocator_virtual_base = 0;
 
 void block_allocator_push_block(block_header_t **list, block_header_t *block)
 {
@@ -108,16 +114,23 @@ void block_allocator_dump_busy_list()
     block_allocator_dump_list(block_busy_list_start);
 }
 
+extern struct limine_memmap_entry **memory_map_entries; // page_allocator.c
+extern size_t memory_map_entries_count;
+void block_allocator_find_lowest_free_virtual_address_limine()
+{
+    // find highest address in the memory map
+    // the protocol gurantees that the entries are sorted by base, lowest to highest
+    // thus the highest address should be last entry
+    struct limine_memmap_entry *highest_entry = memory_map_entries[memory_map_entries_count - 1];
+    block_allocator_virtual_base = highest_entry->base + highest_entry->length + kernel_hhdm_offset;
+}
+
 void block_allocator_init()
 {
-    block_allocator_create_free_block(5);
-    block_allocator_create_free_block(5);
-    block_header_t *block = block_allocator_create_free_block(1);
-    block_allocator_create_free_block(10);
-    block_allocator_move_to_busy_list(block);
-    block_allocator_dump_free_list();
-    block_allocator_dump_busy_list();
-    // halt();
+    block_allocator_find_lowest_free_virtual_address_limine();
+    log_info("using virtual base 0x%p", block_allocator_virtual_base);
+
+    block_allocator_create_free_block(1);
 }
 
 void *block_allocate(size_t size)
