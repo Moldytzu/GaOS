@@ -6,6 +6,8 @@
 #include <boot/limine.h>
 #include <arch/arch.h>
 
+#define BLOCK_MINIMUM_ALLOCATION 16
+
 struct block_header
 {
     size_t size;
@@ -35,6 +37,7 @@ void *block_allocator_allocate_block(size_t pages)
 
 void block_allocator_push_block(block_header_t **list, block_header_t *block)
 {
+    // hmm... for decreased time complexity, should we just insert at the head of the list??
     if (*list != NULL)
     {
         // point to the last block in list
@@ -50,17 +53,26 @@ void block_allocator_push_block(block_header_t **list, block_header_t *block)
     }
     else
     {
-        block->next = block->previous = NULL;
-        *list = block;
+        block->next = block->previous = NULL; // because the list is empty, this doesn't have any links
+        *list = block;                        // make the list be this block
     }
 }
 
 void block_allocator_remove_block_from_list(block_header_t *block)
 {
-    if (block->previous)
-        block->previous->next = block->next;
-    if (block->next)
-        block->next->previous = block->previous;
+    // handles all the cases needed when removing a block from a list
+
+    if (block == block_free_list_start)
+        block_free_list_start = block->next;
+    else if (block == block_busy_list_start)
+        block_busy_list_start = block->next;
+    else
+    {
+        if (block->previous)
+            block->previous->next = block->next;
+        if (block->next)
+            block->next->previous = block->previous;
+    }
 }
 
 block_header_t *block_allocator_create_free_block(size_t pages)
@@ -142,15 +154,49 @@ void block_allocator_init()
 {
     block_allocator_find_lowest_free_virtual_address_limine();
     log_info("using virtual base 0x%p", block_allocator_virtual_base);
-
-    block_allocator_create_free_block(1);
-    block_allocator_dump_free_list();
 }
 
 void *block_allocate(size_t size)
 {
-    (void)size;
-    return NULL;
+    if (size < BLOCK_MINIMUM_ALLOCATION) // clamp the allocation size to the minimum
+        size = BLOCK_MINIMUM_ALLOCATION;
+
+    if (size % 16) // round up size to next 16 (0x10)
+        size += size % 16;
+
+    if (block_free_list_start == NULL)                      // no blocks available
+        block_allocator_create_free_block(size / PAGE + 1); // create one that fits our needs
+
+    // find first block that fits our size
+    block_header_t *current_block = block_free_list_start;
+    while (current_block && current_block->size < size)
+        current_block = current_block->next;
+
+    if (!current_block) // didn't find a big enough block
+    {
+        block_allocator_create_free_block(size / PAGE + 1); // create one that fits our needs
+        return block_allocate(size);                        // try again
+    }
+
+    // now current_block holds the block we will allocate
+
+    // try to split if possible
+    if (current_block->size > size + sizeof(block_header_t) + BLOCK_MINIMUM_ALLOCATION)
+    {
+        size_t old_size = current_block->size;                            // hold a copy of the original size
+        size_t new_block_size = old_size - size - sizeof(block_header_t); // size of the new block
+
+        current_block->size = size; // clamp the size of the block to the requested size
+
+        block_header_t *new_block = (block_header_t *)((uint64_t)current_block + sizeof(block_header_t) + current_block->size); // move the pointer after the whole block
+        new_block->size = new_block_size;                                                                                       // set the size
+        new_block->next = current_block->next;                                                                                  // link it in the list
+        new_block->previous = current_block;                                                                                    //
+        current_block->next = new_block;                                                                                        // make the block refer to the newly created block
+    }
+
+    block_allocator_move_to_busy_list(current_block);                  // mark it as busy
+    return (void *)((uint64_t)current_block + sizeof(block_header_t)); // return contents
 }
 
 void block_deallocate(void *block)
