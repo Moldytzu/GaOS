@@ -26,10 +26,10 @@ ifunc arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_lay
     // allocate it if needed
     if (!(*entry & TABLE_ENTRY_PRESENT))
     {
-        uint64_t newLayer = (uint64_t)page_allocate(1);        // allocate a new layer
-        newLayer -= kernel_hhdm_offset;                        // get physical address of it
-        arch_table_manager_set_address(entry, newLayer >> 12); // set the page address
-        *entry |= flags | TABLE_ENTRY_PRESENT;                 // set flags
+        uint64_t newLayer = (uint64_t)page_allocate(1); // allocate a new layer
+        newLayer -= kernel_hhdm_offset;                 // get physical address of it
+        *entry |= newLayer;                             // set the page address
+        *entry |= flags | TABLE_ENTRY_PRESENT;          // set flags
     }
     else
         *entry |= flags;
