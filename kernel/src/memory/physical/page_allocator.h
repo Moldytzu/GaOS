@@ -2,7 +2,7 @@
 #include <misc/libc.h>
 
 #ifndef PAGE
-#define PAGE (4096)
+#include <arch/arch.h>
 #endif
 
 void page_allocator_init();

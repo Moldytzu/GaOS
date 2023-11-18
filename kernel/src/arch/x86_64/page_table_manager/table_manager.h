@@ -3,7 +3,7 @@
 #include <boot/limine.h>
 
 #ifndef PAGE
-#define PAGE (4096)
+#include <arch/arch.h>
 #endif
 
 #define TABLE_ENTRY_PRESENT (1 << 0)

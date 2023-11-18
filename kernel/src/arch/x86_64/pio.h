@@ -1,3 +1,4 @@
+#pragma once
 #include <misc/libc.h>
 
 ifunc void arch_pio_write8(uint16_t port, uint8_t val)

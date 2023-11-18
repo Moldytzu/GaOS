@@ -9,6 +9,8 @@
 #include <arch/x86_64/idt/idt.h>                          // interrupts
 #include <arch/x86_64/xapic/xapic.h>                      // interrupt controller
 
+#define PAGE 4096
+
 extern uint64_t arch_trampoline_base;
 
 ifunc void arch_hint_spinlock()
