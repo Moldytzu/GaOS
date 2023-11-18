@@ -22,16 +22,19 @@ block_header_t *block_free_list_start = NULL;
 block_header_t *block_busy_list_start = NULL;
 
 uint64_t block_allocator_virtual_base = 0;
+uint64_t block_allocator_current_virtual_address = 0;
 
 void *block_allocator_allocate_block(size_t pages)
 {
-    uint64_t physical_base = (uint64_t)page_allocate(pages) - kernel_hhdm_offset;
-    uint64_t virtual_base = block_allocator_virtual_base;
-    block_allocator_virtual_base += pages * PAGE;
+    uint64_t physical_base = (uint64_t)page_allocate(pages) - kernel_hhdm_offset; // allocate physical memory
+    uint64_t virtual_base = block_allocator_current_virtual_address;              // allocate a virtual address
+    block_allocator_current_virtual_address += pages * PAGE;
 
+    // create mappings
     for (size_t i = 0; i < pages * PAGE; i += PAGE)
         arch_table_manager_map(arch_bootstrap_page_table, virtual_base + i, physical_base + i, TABLE_ENTRY_READ_WRITE);
 
+    // return virtual address
     return (void *)virtual_base;
 }
 
@@ -147,7 +150,7 @@ void block_allocator_find_lowest_free_virtual_address_limine()
     // the protocol gurantees that the entries are sorted by base, lowest to highest
     // thus the highest address should be last entry
     struct limine_memmap_entry *highest_entry = memory_map_entries[memory_map_entries_count - 1];
-    block_allocator_virtual_base = highest_entry->base + highest_entry->length + kernel_hhdm_offset;
+    block_allocator_virtual_base = block_allocator_current_virtual_address = highest_entry->base + highest_entry->length + kernel_hhdm_offset;
 }
 
 void block_allocator_init()
@@ -195,11 +198,20 @@ void *block_allocate(size_t size)
         current_block->next = new_block;                                                                                        // make the block refer to the newly created block
     }
 
-    block_allocator_move_to_busy_list(current_block);                  // mark it as busy
-    return (void *)((uint64_t)current_block + sizeof(block_header_t)); // return contents
+    block_allocator_move_to_busy_list(current_block); // mark it as busy
+
+    void *contents = (void *)((uint64_t)current_block + sizeof(block_header_t)); // point after header
+    memset(contents, 0, size);                                                   // initialise memory
+    return contents;
 }
 
 void block_deallocate(void *block)
 {
-    (void)block;
+    uint64_t block_virtual_address = (uint64_t)block;
+    block_header_t *header = (block_header_t *)((uint64_t)block - sizeof(block_header_t));
+
+    if (block_allocator_virtual_base < block_virtual_address && block_virtual_address < block_allocator_current_virtual_address) // check if the block is in the expected memory region
+        block_allocator_move_to_free_list(header);                                                                               // todo: maybe check for merge oportunities?
+    else
+        log_error("bogus deallocation of %p", header); // todo: print the caller instruction pointer
 }
