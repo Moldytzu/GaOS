@@ -10,6 +10,7 @@
 #include <memory/physical/page_allocator.h>
 
 size_t arch_processor_count, arch_bsp_id;
+bool arch_aps_online;
 
 bool arch_is_bsp()
 {
@@ -50,6 +51,8 @@ int arch_bootstrap_ap_limine()
         while (arch_smp_bootstrap_lock) // wait to be unlocked by the processor
             arch_hint_spinlock();
     }
+
+    arch_aps_online = arch_processor_count > 1; // mark application processors as online if there are some
 
     return arch_processor_count - 1;
 }
