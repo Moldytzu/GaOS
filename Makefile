@@ -1,5 +1,6 @@
 override IMAGE_NAME := disk
 OUTPUT_ARCH = x86_64
+CORES = $(shell nproc)
 
 # make the architecture available in all makefiles
 export OUTPUT_ARCH
@@ -36,11 +37,11 @@ ovmf:
 
 limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v5.x-branch-binary --depth=1
-	$(MAKE) -C limine
+	$(MAKE) -C limine -j$(CORES)
 
 .PHONY: kernel
 kernel:
-	$(MAKE) -C kernel
+	$(MAKE) -C kernel -j$(CORES)
 
 $(IMAGE_NAME).hdd: limine
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
