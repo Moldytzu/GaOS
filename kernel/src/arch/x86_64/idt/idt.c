@@ -21,7 +21,7 @@ arch_idt_gate_descriptor_t;
 arch_idtr_t arch_global_idtr;     // fixme: move this in a per-cpu strucutre, while keeping it the same across them
 extern void *arch_isr_handlers[]; // array of handlers
 
-uint64_t arch_read_cr2()
+static uint64_t __attribute__((noinline)) arch_read_cr2()
 {
     uint64_t value = 0;
     iasm("mov %%cr2, %0" ::"r"(value));
