@@ -68,9 +68,9 @@ void arch_interrupts_map_vector(uint64_t vector, void *handler)
 void arch_interrupts_init()
 {
     arch_global_idtr.offset = (uint64_t)page_allocate(1);
-    arch_global_idtr.size = 256 * sizeof(arch_idt_gate_descriptor_t) - 1; // there are 256 vectors, thus the size will be this
+    arch_global_idtr.size = 0xFF * sizeof(arch_idt_gate_descriptor_t) - 1;
 
-    for (size_t i = 0; i < 256; i++)
+    for (size_t i = 0; i < 0xFF; i++)
         arch_interrupts_map_vector(i, arch_isr_handlers[i]);
 
     arch_idt_load(&arch_global_idtr);
