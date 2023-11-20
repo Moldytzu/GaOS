@@ -72,5 +72,9 @@ void arch_hpet_init()
     arch_hpet_timer.ticks_per_second = ticks_per_second; // set the ticks per second in timer structure
     clock_register_time_source(arch_hpet_timer);
 
-    // todo: actually enable the main counter
+    // enable the main counter as periodic without interrupts
+    arch_hpet_write(HPET_OFFSET_MAIN_COUNTER, 0);                                        // clear the counter
+    arch_hpet_write(HPET_OFFSET_TIMER_CONFIGURATION_CAPABILITY(0), (1 << 3) | (1 << 6)); // configure the timer (periodic timer-specific configuration)
+    arch_hpet_write(HPET_OFFSET_TIMER_COMPARATOR(0), 0);                                 // clear the comparator
+    arch_hpet_write(HPET_OFFSET_GENERAL_CONFIGURATION, 0b1);                             // enable counter
 }
