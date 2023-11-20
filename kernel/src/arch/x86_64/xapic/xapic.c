@@ -7,9 +7,20 @@
 #include <arch/x86_64/pio.h>
 #include <arch/x86_64/msr.h>
 
+ifunc void arch_xapic_write(uint64_t offset, uint32_t value)
+{
+    *((volatile uint32_t *)((uint8_t *)XAPIC_BASE + offset)) = value;
+    iasm("mfence" ::: "memory");
+}
+
+ifunc uint32_t arch_xapic_read(uint64_t offset)
+{
+    return *((volatile uint32_t *)((uint8_t *)XAPIC_BASE + offset));
+}
+
 uint64_t arch_get_id()
 {
-    return xapic_read(XAPIC_REG_ID) >> 24;
+    return arch_xapic_read(XAPIC_REG_ID) >> 24;
 }
 
 void arch_xapic_init(bool bsp)
@@ -27,11 +38,11 @@ void arch_xapic_init(bool bsp)
     }
 
     // reset important registers to a known state before enabling the apic (not required by any spec)
-    xapic_write(XAPIC_REG_DFR, 0xFF000000);
-    xapic_write(XAPIC_REG_LDR, 0x01000000);
-    xapic_write(XAPIC_REG_LVT0, 0x00010000);
-    xapic_write(XAPIC_REG_LVT1, 0x00010000);
-    xapic_write(XAPIC_REG_TPR, 0);
+    arch_xapic_write(XAPIC_REG_DFR, 0xFF000000);
+    arch_xapic_write(XAPIC_REG_LDR, 0x01000000);
+    arch_xapic_write(XAPIC_REG_LVT0, 0x00010000);
+    arch_xapic_write(XAPIC_REG_LVT1, 0x00010000);
+    arch_xapic_write(XAPIC_REG_TPR, 0);
 
     // enable the LAPIC in XAPIC mode (11.4.3 Volume 3 Intel SDM)
     uint64_t base = rdmsr(MSR_APIC_BASE) | 0b100000000000; // set global enable flag
@@ -41,7 +52,7 @@ void arch_xapic_init(bool bsp)
 
     wrmsr(MSR_APIC_BASE, base); // write back the base
 
-    xapic_write(XAPIC_REG_SIV, 0x120); // software enable apic and set the spurious vector to 0x20
+    arch_xapic_write(XAPIC_REG_SIV, 0x120); // software enable apic and set the spurious vector to 0x20
 
     log_info("enabled for %d", arch_get_id());
 }
@@ -59,6 +70,6 @@ void arch_kill_ap()
     icr |= (0b11) << 18; // set destination shorthand to all excluding self
 
     // send the interrupt command register
-    xapic_write(XAPIC_REG_ICR_LOW, icr & 0xFFFFFFFF);
-    xapic_write(XAPIC_REG_ICR_HIGH, (icr >> 32) & 0xFFFFFFFF);
+    arch_xapic_write(XAPIC_REG_ICR_LOW, icr & 0xFFFFFFFF);
+    arch_xapic_write(XAPIC_REG_ICR_HIGH, (icr >> 32) & 0xFFFFFFFF);
 }
