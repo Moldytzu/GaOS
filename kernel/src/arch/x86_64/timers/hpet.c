@@ -58,8 +58,6 @@ void arch_hpet_init()
     if (!arch_hpet_header)
         return;
 
-    arch_table_manager_map(arch_bootstrap_page_table, (uint64_t)arch_hpet_header, (uint64_t)arch_hpet_header, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the header
-
     if (arch_hpet_header->base_address.address_space != ACPI_ADDRESS_SPACE_SYSTEM_MEMORY) // unsupported address space
         return;
 

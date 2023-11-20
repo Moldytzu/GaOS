@@ -1,6 +1,7 @@
 #pragma once
 #include <misc/libc.h>
 #include <devices/framebuffer/framebuffer.h>
+#include <clock/clock.h>
 
 #ifndef MODULE
 #error logger has to have a MODULE name set
@@ -16,12 +17,19 @@ static void log_info(const char *fmt, ...)
 {
     va_list list;
 
+    // read nanoseconds from system timer
+    uint64_t nanoseconds = 0, miliseconds;
+    if (clock_system_timer.time_keeping_capable)
+        nanoseconds = clock_system_timer.read_nanoseconds();
+
+    miliseconds = nanoseconds / 1000000 /*nanoseconds to miliseconds*/;
+
     /// framebuffer
     if (framebuffer_available)
     {
         // print the prefix
         main_cursor.colour = PREFIX_COLOUR;
-        printk("%s: ", MODULE);
+        printk("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
 
         // print the format
         main_cursor.colour = INFO_COLOUR;
@@ -35,7 +43,7 @@ static void log_info(const char *fmt, ...)
 
     /// serial
     // print the prefix
-    printk_serial("%s: ", MODULE);
+    printk_serial("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
 
     // print the format
     va_start(list, fmt);
@@ -50,12 +58,19 @@ static void log_warn(const char *fmt, ...)
 {
     va_list list;
 
+    // read nanoseconds from system timer
+    uint64_t nanoseconds = 0, miliseconds;
+    if (clock_system_timer.time_keeping_capable)
+        nanoseconds = clock_system_timer.read_nanoseconds();
+
+    miliseconds = nanoseconds / 1000000 /*nanoseconds to miliseconds*/;
+
     /// framebuffer
     if (framebuffer_available)
     {
         // print the prefix
         main_cursor.colour = PREFIX_COLOUR;
-        printk("%s: ", MODULE);
+        printk_serial("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
 
         // print the format
         main_cursor.colour = WARN_COLOUR;
@@ -84,12 +99,19 @@ static void log_error(const char *fmt, ...)
 {
     va_list list;
 
+    // read nanoseconds from system timer
+    uint64_t nanoseconds = 0, miliseconds;
+    if (clock_system_timer.time_keeping_capable)
+        nanoseconds = clock_system_timer.read_nanoseconds();
+
+    miliseconds = nanoseconds / 1000000 /*nanoseconds to miliseconds*/;
+
     /// framebuffer
     if (framebuffer_available)
     {
         // print the prefix
         main_cursor.colour = PREFIX_COLOUR;
-        printk("%s: ", MODULE);
+        printk("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
 
         // print the format
         main_cursor.colour = ERROR_COLOUR;
@@ -104,7 +126,7 @@ static void log_error(const char *fmt, ...)
 
     /// serial
     // print the prefix
-    printk_serial("%s: ", MODULE);
+    printk_serial("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
 
     // print the format
     va_start(list, fmt);
