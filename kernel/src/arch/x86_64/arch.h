@@ -24,3 +24,4 @@ ifunc void arch_hint_serialize()
 }
 
 void arch_init();
+void arch_late_init();
