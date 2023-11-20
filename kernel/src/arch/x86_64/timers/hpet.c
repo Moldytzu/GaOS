@@ -1,8 +1,18 @@
 #define MODULE "hpet"
 #include <misc/logger.h>
 
+#include <arch/arch.h>
 #include <arch/x86_64/timers/hpet.h>
 #include <acpi/acpi.h>
+#include <clock/clock.h>
+
+#define HPET_OFFSET_GENERAL_CAPABILITIES 0
+#define HPET_OFFSET_GENERAL_CONFIGURATION 0x10
+#define HPET_OFFSET_GENERAL_INTERRUPT 0x20
+#define HPET_OFFSET_MAIN_COUNTER 0xF0
+#define HPET_OFFSET_TIMER_CONFIGURATION_CAPABILITY(n) (0x100 + 0x20 * n)
+#define HPET_OFFSET_TIMER_COMPARATOR(n) (0x108 + 0x20 * n)
+#define HPET_OFFSET_TIMER_INTERRUPT(n) (0x110 + 0x20 * n)
 
 pstruct
 {
@@ -16,6 +26,30 @@ pstruct
 acpi_hpet_t;
 
 acpi_hpet_t *arch_hpet_header;
+uint64_t arch_hpet_ticks_to_nanoseconds;
+
+ifunc void arch_hpet_write(uint64_t offset, uint64_t data)
+{
+    *((volatile uint64_t *)(arch_hpet_header->base_address.address + offset)) = data;
+}
+
+ifunc uint64_t arch_hpet_read(uint64_t offset)
+{
+    return *((volatile uint64_t *)(arch_hpet_header->base_address.address + offset));
+}
+
+uint64_t arch_hpet_read_nanoseconds()
+{
+    return arch_hpet_read(HPET_OFFSET_MAIN_COUNTER) * arch_hpet_ticks_to_nanoseconds;
+}
+
+static clock_time_source_t arch_hpet_timer = {
+    .name = "hpet",
+    .time_keeping_capable = true,
+    .ticks_per_second = 0,
+    .read_nanoseconds = arch_hpet_read_nanoseconds,
+    .one_shot_capable = false,
+};
 
 void arch_hpet_init()
 {
@@ -23,4 +57,20 @@ void arch_hpet_init()
 
     if (!arch_hpet_header)
         return;
+
+    arch_table_manager_map(arch_bootstrap_page_table, (uint64_t)arch_hpet_header, (uint64_t)arch_hpet_header, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the header
+
+    if (arch_hpet_header->base_address.address_space != ACPI_ADDRESS_SPACE_SYSTEM_MEMORY) // unsupported address space
+        return;
+
+    arch_table_manager_map(arch_bootstrap_page_table, arch_hpet_header->base_address.address, arch_hpet_header->base_address.address, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the base
+
+    uint32_t ticks_to_femtoseconds = arch_hpet_read(HPET_OFFSET_GENERAL_CAPABILITIES) >> 32;
+    uint32_t ticks_per_second = 1000000000000000 /*femtosecond to second*/ / ticks_to_femtoseconds; // read the capabilites to calculate the frequency
+    arch_hpet_ticks_to_nanoseconds = ticks_to_femtoseconds / 1000000 /*femtosecond to nanosecond*/;
+
+    arch_hpet_timer.ticks_per_second = ticks_per_second; // set the ticks per second in timer structure
+    clock_register_time_source(arch_hpet_timer);
+
+    // todo: actually enable the main counter
 }

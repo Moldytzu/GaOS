@@ -15,9 +15,9 @@ void arch_init()
     arch_interrupts_init();
     arch_table_manager_init();
     arch_xapic_init(true);
+    arch_hpet_init();
 }
 
 void arch_late_init()
 {
-    arch_hpet_init();
 }

@@ -27,9 +27,9 @@ void _start(void)
     framebuffer_init();                                         // initialise the framebuffer
     page_allocator_init();                                      // initialise the page allocator
     arch_swap_stack(page_allocate(1), PAGE);                    // allocate a new stack
+    acpi_init();                                                // initialise the acpi
     arch_init();                                                // initialise arch first stage
     block_allocator_init();                                     // initialise the block allocator
-    acpi_init();                                                // initialise the acpi
     log_info("bootstraped %d processors", arch_bootstrap_ap()); // boot up application cores
     arch_late_init();                                           // initialise arch last stage
 

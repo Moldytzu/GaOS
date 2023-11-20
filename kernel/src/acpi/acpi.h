@@ -1,6 +1,9 @@
 #pragma once
 #include <misc/libc.h>
 
+#define ACPI_ADDRESS_SPACE_SYSTEM_MEMORY 0
+#define ACPI_ADDRESS_SPACE_I_O 1
+
 pstruct
 {
     char signature[4];
