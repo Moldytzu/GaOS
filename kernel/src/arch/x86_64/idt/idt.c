@@ -39,15 +39,15 @@ void arch_isr_handler(arch_processor_state_t *state, uint64_t interrupt_number)
         if (interrupt_number == 0xE) // page fault
         {
             uint32_t error = state->error;
-            panic("Page Fault caused by %s page, on a %s in %s at 0x%x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", arch_read_cr2());
+            panic("Page Fault caused by %s page, on a %s in %s of 0x%x at 0x%x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", arch_read_cr2(), state->rip);
         }
         else
-            panic("exception 0x%x", interrupt_number);
+            panic("Exception 0x%x at 0x%x", interrupt_number, state->rip);
     }
     else
     {
         // handle interrupt
-        log_info("interrupt 0x%x", interrupt_number);
+        log_info("Interrupt 0x%x at", interrupt_number, state->rip);
     }
 }
 
