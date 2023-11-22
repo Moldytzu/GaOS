@@ -10,6 +10,11 @@
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
 
+void arch_early_init()
+{
+    arch_tsc_reset();
+}
+
 void arch_init()
 {
     arch_load_gdt();

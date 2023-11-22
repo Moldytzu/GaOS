@@ -24,5 +24,6 @@ ifunc void arch_hint_serialize()
     iasm("mfence" ::: "memory");
 }
 
+void arch_early_init();
 void arch_init();
 void arch_late_init();

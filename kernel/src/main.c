@@ -26,14 +26,15 @@ void _start(void)
     serial_init();                                              // initialise serial interface
     limine_init();                                              // initialise limine protocol
     framebuffer_init();                                         // initialise the framebuffer
+    arch_early_init();                                          // initialise first arch stage
     page_allocator_init();                                      // initialise the page allocator
     arch_swap_stack(page_allocate(1), PAGE);                    // allocate a new stack
     acpi_init();                                                // initialise the acpi
-    arch_init();                                                // initialise arch first stage
+    arch_init();                                                // initialise second arch stage
     timers_init();                                              // initialise the timers
     block_allocator_init();                                     // initialise the block allocator
     log_info("bootstraped %d processors", arch_bootstrap_ap()); // boot up application cores
-    arch_late_init();                                           // initialise arch last stage
+    arch_late_init();                                           // initialise last arch stage
 
     halt();
 }
