@@ -43,11 +43,19 @@ uint64_t arch_hpet_read_nanoseconds()
     return arch_hpet_read(HPET_OFFSET_MAIN_COUNTER) * arch_hpet_ticks_to_nanoseconds;
 }
 
+void arch_hpet_sleep_nanoseconds(uint64_t nanos)
+{
+    uint64_t target = arch_hpet_read_nanoseconds() + nanos;
+    while (arch_hpet_read_nanoseconds() < target)
+        arch_hint_spinlock();
+}
+
 static clock_time_source_t arch_hpet_timer = {
     .name = "hpet",
     .time_keeping_capable = true,
     .ticks_per_second = 0,
     .read_nanoseconds = arch_hpet_read_nanoseconds,
+    .sleep_nanoseconds = arch_hpet_sleep_nanoseconds,
     .one_shot_capable = false,
 };
 
