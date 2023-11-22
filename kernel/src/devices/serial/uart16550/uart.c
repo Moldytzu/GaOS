@@ -21,7 +21,7 @@ void uart16550_init()
     uint16_t divisor = 1;
     arch_pio_write8(COM_PORT_LINE_CONTROL, arch_pio_read8(COM_PORT_LINE_CONTROL) | 0b10000000);  // enable divisor registers access
     arch_pio_write8(COM_PORT_BASE + 0, divisor & 0xFF);                                          // send divisor
-    arch_pio_write8(COM_PORT_BASE + 0, divisor >> 8);                                            //    in two writes
+    arch_pio_write8(COM_PORT_BASE + 1, divisor >> 8);                                            //    in two writes
     arch_pio_write8(COM_PORT_LINE_CONTROL, arch_pio_read8(COM_PORT_LINE_CONTROL) & ~0b10000000); // disable divisor registers access
 
     // set data bits count to 8
