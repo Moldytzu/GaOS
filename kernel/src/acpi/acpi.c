@@ -60,11 +60,15 @@ acpi_sdt_header_t *acpi_get_table(char *signature)
         return acpi_get_table_xsdt(signature);
 }
 
+uint8_t acpi_revision;
+
 void acpi_init()
 {
     sdp = (acpi_xsdp_t *)kernel_rsdp_request.response->address;
 
     log_info("revision %d", sdp->revision);
+
+    acpi_revision = sdp->revision;
 
     // determine the correct system descriptor table based on revision
     if (sdp->revision == 0) // acpi 1.0

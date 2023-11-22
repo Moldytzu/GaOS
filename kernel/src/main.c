@@ -13,6 +13,7 @@
 // devices
 #include <devices/serial/serial.h>
 #include <devices/framebuffer/framebuffer.h>
+#include <devices/timers/timers.h>
 
 // memory
 #include <memory/physical/page_allocator.h>
@@ -29,6 +30,7 @@ void _start(void)
     arch_swap_stack(page_allocate(1), PAGE);                    // allocate a new stack
     acpi_init();                                                // initialise the acpi
     arch_init();                                                // initialise arch first stage
+    timers_init();                                              // initialise the timers
     block_allocator_init();                                     // initialise the block allocator
     log_info("bootstraped %d processors", arch_bootstrap_ap()); // boot up application cores
     arch_late_init();                                           // initialise arch last stage
