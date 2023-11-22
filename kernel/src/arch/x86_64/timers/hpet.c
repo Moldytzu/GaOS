@@ -1,4 +1,4 @@
-#define MODULE "hpet"
+#define MODULE "x86_64/hpet"
 #include <misc/logger.h>
 
 #include <arch/arch.h>
