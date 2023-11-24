@@ -1,5 +1,5 @@
 #define MODULE "x86_64/tsc"
-#include <misc/libc.h>
+#include <misc/logger.h>
 
 #include <misc/libc.h>
 #include <arch/arch.h>
@@ -43,16 +43,33 @@ void arch_tsc_init()
     if (!clock_system_timer.sleep_nanoseconds)
         return;
 
-    // fixme: check cpuid for support
+    // detect family and model
+    uint32_t eax, ebx, ecx, edx;
+    uint32_t model, family;
+    arch_cpuid(0x00000001, &eax, &ebx, &ecx, &edx);
 
-    // perform calibration
-    uint64_t a = rdtsc();
-    clock_system_timer.sleep_nanoseconds(100 * 1000000 /*nanoseconds to miliseconds*/); // wait 100 ms
-    uint64_t b = rdtsc();
+    family = (eax >> 8) & 0xF;
+    model = (eax >> 4) & 0xF;
+    if (family >= 6)
+        model = ((eax >> 16) << 4);
+    if (family == 15)
+        family += (eax >> 20);
 
-    arch_tsc_timer.ticks_per_second = (b - a) * 10; // determine ticks per second
+    // todo: check these in another part of code
 
-    clock_register_time_source(arch_tsc_timer);
+    if (family >= 7 || (family == 6 && model >= 0xF)) // new enough to have a constant tsc
+    {
+        // perform calibration
+        uint64_t a = rdtsc();
+        clock_system_timer.sleep_nanoseconds(100 * 1000000 /*nanoseconds to miliseconds*/); // wait 100 ms
+        uint64_t b = rdtsc();
+
+        arch_tsc_timer.ticks_per_second = (b - a) * 10; // determine ticks per second
+
+        clock_register_time_source(arch_tsc_timer);
+    }
+    else
+        log_warn("unreliable tsc detected");
 }
 
 void arch_tsc_reset()
