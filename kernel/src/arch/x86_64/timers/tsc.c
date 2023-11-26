@@ -74,6 +74,6 @@ void arch_tsc_init()
 
 void arch_tsc_reset()
 {
-    // fixme: check cpuid for support
+    // fixme: do this on each cpu independently
     arch_tsc_offset = rdtsc();
 }

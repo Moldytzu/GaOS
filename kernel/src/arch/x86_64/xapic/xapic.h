@@ -24,3 +24,5 @@
 uint64_t arch_get_id();
 void arch_xapic_init(bool bsp);
 void arch_kill_ap();
+void arch_xapic_write(uint64_t offset, uint32_t value);
+uint32_t arch_xapic_read(uint64_t offset);
