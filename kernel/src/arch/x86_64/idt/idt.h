@@ -39,3 +39,13 @@ extern arch_idtr_t arch_global_idtr;
 extern void arch_idt_load(arch_idtr_t *);
 void arch_interrupts_init();
 uint16_t arch_interrupts_reserve_kernel_vector();
+
+ifunc void arch_interrupts_enable()
+{
+    iasm("sti");
+}
+
+ifunc void arch_interrupts_disable()
+{
+    iasm("cli");
+}

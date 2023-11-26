@@ -75,6 +75,8 @@ void arch_interrupts_init()
         arch_interrupts_map_vector(i, arch_isr_handlers[i]);
 
     arch_idt_load(&arch_global_idtr);
+
+    arch_interrupts_enable();
 }
 
 uint16_t arch_interrupts_reserve_kernel_vector()
