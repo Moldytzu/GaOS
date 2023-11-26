@@ -11,7 +11,7 @@ typedef struct
     void (*sleep_nanoseconds)(uint64_t);
 
     bool one_shot_capable;
-    uint64_t (*schedule_one_shot)(); // this will program a one shot interrupt that will make preemption possible
+    void (*schedule_one_shot)(); // this will program a one shot interrupt that will make preemption possible
 } clock_time_source_t;
 
 extern clock_time_source_t clock_system_timer;
