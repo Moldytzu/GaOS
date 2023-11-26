@@ -18,6 +18,7 @@ pstruct
 }
 arch_idt_gate_descriptor_t;
 
+uint16_t interrupts_vector_base = 0x20;
 arch_idtr_t arch_global_idtr;     // fixme: move this in a per-cpu strucutre, while keeping it the same across them
 extern void *arch_isr_handlers[]; // array of handlers
 
@@ -74,4 +75,9 @@ void arch_interrupts_init()
         arch_interrupts_map_vector(i, arch_isr_handlers[i]);
 
     arch_idt_load(&arch_global_idtr);
+}
+
+uint16_t arch_interrupts_reserve_kernel_vector()
+{
+    return interrupts_vector_base++;
 }
