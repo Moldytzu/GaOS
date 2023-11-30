@@ -28,7 +28,7 @@ uint64_t rdtsc()
 
 uint64_t arch_tsc_read_nanoseconds()
 {
-    return (rdtsc() - arch_tsc_offset) * 1000000000 / arch_tsc_timer.ticks_per_second;
+    return (rdtsc() - arch_tsc_offset) / (arch_tsc_timer.ticks_per_second / 1000000000ULL /*seconds to nanoseconds*/);
 }
 
 void arch_tsc_sleep_nanoseconds(uint64_t nanoseconds)
