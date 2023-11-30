@@ -23,19 +23,17 @@ uint64_t arch_get_id()
     return arch_xapic_read(XAPIC_REG_ID) >> 24;
 }
 
-void arch_xapic_init(bool bsp)
+void arch_xapic_init()
 {
     if ((rdmsr(MSR_APIC_BASE) & 0xFFFFF000) != (uint64_t)XAPIC_BASE)
         panic("Out of spec xapic address. 0x%p != 0x%p", rdmsr(MSR_APIC_BASE) & 0xFFFFF000, (uint64_t)XAPIC_BASE);
 
-    if (bsp)
-    {
-        // mask the PIC if any
-        arch_pio_write8(0x20, 0b11111111);
-        arch_pio_write8(0xA0, 0b11111111);
+    // note: here we can't check if we're the bsp since the id detection code depends on the xapic being mapped
+    // mask the PIC if any
+    arch_pio_write8(0x20, 0b11111111);
+    arch_pio_write8(0xA0, 0b11111111);
 
-        arch_table_manager_map(arch_bootstrap_page_table, XAPIC_BASE, XAPIC_BASE, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the base
-    }
+    arch_table_manager_map(arch_bootstrap_page_table, XAPIC_BASE, XAPIC_BASE, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the base
 
     // reset important registers to a known state before enabling the apic (not required by any spec)
     arch_xapic_write(XAPIC_REG_DFR, 0xFF000000);
@@ -47,7 +45,7 @@ void arch_xapic_init(bool bsp)
     // enable the LAPIC in XAPIC mode (11.4.3 Volume 3 Intel SDM)
     uint64_t base = rdmsr(MSR_APIC_BASE) | 0b100000000000; // set global enable flag
 
-    if (bsp) // set the bsp flag
+    if (arch_is_bsp()) // set the bsp flag
         base |= (uint32_t)0b100000000;
 
     wrmsr(MSR_APIC_BASE, base); // write back the base

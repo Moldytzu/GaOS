@@ -52,7 +52,6 @@ void arch_xapic_timer_init()
 
     arch_interrupts_enable();
 
-    arch_xapic_timer_schedule_one_shot();
-
-    clock_register_time_source(arch_xapic_timer);
+    if (arch_is_bsp())
+        clock_register_time_source(arch_xapic_timer);
 }

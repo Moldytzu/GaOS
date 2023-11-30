@@ -21,7 +21,7 @@ void arch_init()
     arch_load_gdt();
     arch_interrupts_init();
     arch_table_manager_init();
-    arch_xapic_init(true);
+    arch_xapic_init();
     arch_hpet_init();
     arch_tsc_init();
 }
