@@ -6,9 +6,7 @@
 #include <arch/x86_64/xapic/xapic.h>
 #include <clock/clock.h>
 #include <misc/panic.h>
-
-// todo: create a proper kernel configuration system
-#define DESIRED_SCHEDULING_FREQUENCY 100
+#include <config.h>
 
 uint32_t ticks_per_scheduling_burst;
 uint16_t xapic_vector;
@@ -43,10 +41,10 @@ void arch_xapic_timer_init()
     arch_xapic_write(XAPIC_REG_LVT_TIMER, xapic_vector);      // oneshot mode
     arch_xapic_write(XAPIC_REG_TIMER_INIT_COUNT, 0xFFFFFFFF); // initialise with max, making it to overflow
 
-    clock_system_timer.sleep_nanoseconds(1000000000 /*one sec in nanos*/ / DESIRED_SCHEDULING_FREQUENCY);
+    clock_system_timer.sleep_nanoseconds(1000000000 /*one sec in nanos*/ / SCHEDULER_DESIRED_FREQUENCY);
 
     ticks_per_scheduling_burst = 0xFFFFFFFF - arch_xapic_read(XAPIC_REG_TIMER_CURRENT_COUNT);
-    arch_xapic_timer.ticks_per_second = ticks_per_scheduling_burst * 1000 / DESIRED_SCHEDULING_FREQUENCY;
+    arch_xapic_timer.ticks_per_second = ticks_per_scheduling_burst * 1000 / SCHEDULER_DESIRED_FREQUENCY;
 
     arch_xapic_write(XAPIC_REG_TIMER_INIT_COUNT, 0); // reset
 
