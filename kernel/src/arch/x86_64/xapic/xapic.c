@@ -53,6 +53,11 @@ void arch_xapic_init()
     arch_xapic_write(XAPIC_REG_SIV, 0x120); // software enable apic and set the spurious vector to 0x20
 
     log_info("enabled for %d", arch_get_id());
+
+    // add metadata to context
+    arch_context_t *context = arch_get_context();
+    context->is_bsp = arch_is_bsp();
+    context->cpu_id = arch_get_id();
 }
 
 void arch_kill_ap()

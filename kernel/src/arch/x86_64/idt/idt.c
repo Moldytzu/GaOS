@@ -19,7 +19,7 @@ pstruct
 arch_idt_gate_descriptor_t;
 
 uint16_t interrupts_vector_base = 0x20;
-arch_idtr_t arch_global_idtr;     // fixme: move this in a per-cpu strucutre, while keeping it the same across them
+arch_idtr_t arch_global_idtr;
 extern void *arch_isr_handlers[]; // array of handlers
 
 static uint64_t __attribute__((noinline)) arch_read_cr2()
