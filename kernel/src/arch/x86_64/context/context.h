@@ -4,9 +4,14 @@
 
 typedef struct
 {
+    // cpu identification
     uint16_t cpu_id;
     bool is_bsp;
+
+    // internal tables
     gdt_info_t *gdt;
+
+    // scheduler
 } arch_context_t;
 
 arch_context_t *arch_context_install();
