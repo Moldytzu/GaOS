@@ -55,7 +55,7 @@ void arch_xapic_init()
     log_info("enabled for %d", arch_get_id());
 
     // add metadata to context
-    arch_context_t *context = arch_get_context();
+    arch_cpu_context_t *context = arch_get_cpu_context();
     context->is_bsp = arch_is_bsp();
     context->cpu_id = arch_get_id();
 }

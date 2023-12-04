@@ -45,6 +45,6 @@ void arch_load_gdt()
     arch_gdt_load(&info->gdtr);
 
     // install a new context
-    arch_context_t *context = arch_context_install();
+    arch_cpu_context_t *context = arch_context_install();
     context->gdt = info;
 }
