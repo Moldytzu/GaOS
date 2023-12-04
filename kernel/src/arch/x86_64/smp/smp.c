@@ -8,6 +8,7 @@
 #include <misc/libc.h>
 #include <boot/limine.h>
 #include <memory/physical/page_allocator.h>
+#include <schedulers/task/task.h>
 
 size_t arch_processor_count, arch_bsp_id;
 bool arch_aps_online;
@@ -17,7 +18,7 @@ bool arch_is_bsp()
     return arch_get_id() == arch_bsp_id;
 }
 
-arch_spinlock_t arch_smp_bootstrap_lock;
+arch_spinlock_t arch_smp_bootstrap_lock, arch_smp_enable_scheduler_lock;
 void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
 {
     (void)smp_info;
@@ -28,13 +29,21 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
     arch_xapic_init(true);
     arch_idt_load(&arch_global_idtr);
 
-    arch_spinlock_release(&arch_smp_bootstrap_lock); // release the lock
+    arch_spinlock_release(&arch_smp_bootstrap_lock); // release the lock to indicate that we're ready
+
+    // spin until the schedulers are ready to use
+    while (arch_smp_enable_scheduler_lock)
+        arch_hint_spinlock();
+
+    task_scheduler_install_context();
 
     halt();
 }
 
 int arch_bootstrap_ap_limine()
 {
+    arch_spinlock_acquire(&arch_smp_enable_scheduler_lock);
+
     arch_processor_count = kernel_smp_request.response->cpu_count;
     arch_bsp_id = kernel_smp_request.response->bsp_lapic_id;
 
@@ -60,4 +69,9 @@ int arch_bootstrap_ap_limine()
 int arch_bootstrap_ap()
 {
     return arch_bootstrap_ap_limine();
+}
+
+void arch_bootstrap_ap_scheduler()
+{
+    arch_spinlock_release(&arch_smp_enable_scheduler_lock);
 }
