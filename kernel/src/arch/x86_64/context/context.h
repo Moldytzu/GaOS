@@ -12,8 +12,6 @@ typedef struct
 
     // internal tables
     gdt_info_t *gdt;
-
-    // scheduler
 } arch_cpu_context_t;
 
 arch_cpu_context_t *arch_context_install();

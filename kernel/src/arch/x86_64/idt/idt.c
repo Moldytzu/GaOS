@@ -29,7 +29,7 @@ static uint64_t __attribute__((noinline)) arch_read_cr2()
     return value;
 }
 
-void arch_isr_handler(arch_processor_state_t *state, uint64_t interrupt_number)
+void arch_isr_handler(arch_cpu_state_t *state, uint64_t interrupt_number)
 {
     if (interrupt_number == 0x2 || interrupt_number == 0x8) // NMI, Double Fault
         halt();

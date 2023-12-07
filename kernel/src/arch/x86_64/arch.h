@@ -10,6 +10,7 @@
 #include <arch/x86_64/xapic/xapic.h>                      // interrupt controller
 #include <arch/x86_64/cpuid.h>                            // cpu identification
 #include <arch/x86_64/context/context.h>                  // per-cpu context
+#include <arch/x86_64/state/state.h>
 
 #define PAGE 4096
 
