@@ -8,6 +8,8 @@ export OUTPUT_ARCH
 QEMU_FLAGS = -m 2G -serial stdio -smp 2
 QEMU_LOG = -D qemu.out -d int -no-reboot -no-shutdown
 QEMU_ACCELERATED = 
+QEMU_DEBUG = $(QEMU_LOG) -smp 1 -s -S
+GDB_FLAGS ?= -tui -q -x gdb.script
 
 # architecture-specific flags
 ifeq ($(OUTPUT_ARCH),x86_64)
@@ -24,6 +26,12 @@ run: all
 
 run-accel: all
 	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd -boot c $(QEMU_ACCELERATED)
+
+run-gdb: all
+	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) $(QEMU_DEBUG) -hda $(IMAGE_NAME).hdd -boot c &
+	gdb-multiarch $(GDB_FLAGS) kernel/bin/kernel.elf
+	pkill -f qemu-system-$(OUTPUT_ARCH)
+	reset
 
 run-uefi: all ovmf
 	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
