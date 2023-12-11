@@ -49,17 +49,19 @@ void test_task()
 
 void task_scheduler_round_robin_init()
 {
+    /*
 #ifdef ARCH_x86_64
     arch_cpu_state_t state;
     memset(&state, 0, sizeof(arch_cpu_state_t));
     state.cr3 = (uint64_t)arch_bootstrap_page_table - kernel_hhdm_offset;
     state.rip = (uint64_t)test_task;
-    state.cs = 16; // 32
+    state.cs = 8 * 4 | 3; // 8*2|0
     state.rflags = 0x202;
     state.rsp = (uint64_t)page_allocate(1) + PAGE;
-    state.ss = 8; // 24
+    state.ss = 8 * 3 | 3; // 8*1|0
     arch_switch_state(&state);
 #endif
+    */
 
     task_scheduler_round_robin_install_context();
 }
