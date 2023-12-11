@@ -3,16 +3,24 @@
 #include <memory/physical/page_allocator.h>
 #include <arch/arch.h>
 
-typedef struct
+struct scheduler_task
 {
     uint64_t id;
 
     arch_cpu_state_t state align_addr(16);
-} scheduler_task_t;
+
+    struct scheduler_task *next;
+    struct scheduler_task *previous;
+};
+
+typedef struct scheduler_task scheduler_task_t;
 
 struct scheduler_context
 {
     uint64_t cpu_id;
+
+    scheduler_task_t *running_head;
+    scheduler_task_t *running_last;
 
     struct scheduler_context *next;
     struct scheduler_context *previous;
@@ -47,6 +55,22 @@ void test_task()
         ;
 }
 
+scheduler_task_t *task_scheduler_pop_from_running_list()
+{
+    scheduler_context_t *context = arch_get_scheduler_context();
+    scheduler_task_t *to_pop = context->running_head; // grab our candidate off the list
+
+    if (context->running_head != context->running_last) // if it isn't alone we can move it in the back
+    {
+        context->running_head = context->running_head->next; // move the head after it
+        context->running_last->next = to_pop;                // insert it in the very end
+        context->running_last = to_pop;                      // make it the end
+        to_pop->next = context->running_head;                // link it to the start
+    }
+
+    return to_pop;
+}
+
 void task_scheduler_round_robin_init()
 {
     /*
@@ -64,4 +88,19 @@ void task_scheduler_round_robin_init()
     */
 
     task_scheduler_round_robin_install_context();
+
+    /*
+        scheduler_context_t *context = arch_get_scheduler_context();
+        context->running_head = block_allocate(sizeof(scheduler_task_t));
+        context->running_head->id = 1;
+
+        context->running_head->next = block_allocate(sizeof(scheduler_task_t));
+        context->running_head->next->id = 2;
+
+        context->running_last = context->running_head->next->next = block_allocate(sizeof(scheduler_task_t));
+        context->running_head->next->next->id = 3;
+
+        for (int i = 0; i < 10; i++)
+            printk_serial("%d\n", task_scheduler_pop_from_running_list()->id);
+    */
 }
