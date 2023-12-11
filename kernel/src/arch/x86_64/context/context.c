@@ -48,7 +48,7 @@ void *arch_get_scheduler_context()
     if (!context)
         return NULL;
 
-    if (!((arch_cpu_context_t *)context)->type)
+    if (((arch_cpu_context_t *)context)->type)
         iasm("swapgs");
 
     return arch_get_current_context();
