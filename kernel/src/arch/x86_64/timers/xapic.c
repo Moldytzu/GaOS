@@ -7,6 +7,7 @@
 #include <clock/clock.h>
 #include <misc/panic.h>
 #include <config.h>
+#include <schedulers/task/task.h>
 
 uint32_t ticks_per_scheduling_burst;
 uint16_t xapic_vector;
@@ -24,6 +25,13 @@ static clock_time_source_t arch_xapic_timer = {
     .one_shot_capable = true,
     .schedule_one_shot = arch_xapic_timer_schedule_one_shot,
 };
+
+noreturn void arch_xapic_isr_handler(arch_cpu_state_t *state)
+{
+    task_scheduler_reschedule(state);
+}
+
+extern void arch_xapic_isr_handler_entry();
 
 void arch_xapic_timer_init()
 {
@@ -50,6 +58,10 @@ void arch_xapic_timer_init()
 
     arch_interrupts_enable();
 
+    // register as timer
     if (arch_is_bsp())
         clock_register_time_source(arch_xapic_timer);
+
+    // register interrupt handler
+    arch_interrupts_map_vector(xapic_vector, (void *)arch_xapic_isr_handler_entry);
 }
