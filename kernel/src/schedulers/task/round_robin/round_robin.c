@@ -1,6 +1,7 @@
 #include <schedulers/task/round_robin/round_robin.h>
 #include <memory/physical/block_allocator.h>
 #include <memory/physical/page_allocator.h>
+#include <clock/clock.h>
 #include <arch/arch.h>
 
 struct scheduler_task
@@ -19,6 +20,7 @@ struct scheduler_context
 {
     uint64_t cpu_id;
 
+    scheduler_task_t *running_current;
     scheduler_task_t *running_head;
     scheduler_task_t *running_last;
     arch_spinlock_t running_lock;
@@ -50,7 +52,7 @@ void task_scheduler_round_robin_install_context()
     arch_install_scheduler_context(new_context);
 }
 
-scheduler_task_t *task_scheduler_pop_from_running_list()
+scheduler_task_t *task_scheduler_round_robin_pop_from_running_list()
 {
     scheduler_context_t *context = arch_get_scheduler_context();
 
@@ -64,11 +66,12 @@ scheduler_task_t *task_scheduler_pop_from_running_list()
         context->running_last = to_pop;                      // make it the end
         to_pop->next = context->running_head;                // link it to the start
     }
+    context->running_current = to_pop;
     arch_spinlock_release(&context->running_lock);
     return to_pop;
 }
 
-void task_scheduler_push_to_running_list(scheduler_task_t *task)
+void task_scheduler_round_robin_push_to_running_list(scheduler_task_t *task)
 {
     scheduler_context_t *context = arch_get_scheduler_context();
     arch_spinlock_acquire(&context->running_lock);
@@ -86,10 +89,34 @@ void task_scheduler_push_to_running_list(scheduler_task_t *task)
     arch_spinlock_release(&context->running_lock);
 }
 
-void test_task()
+void task1()
 {
     while (true)
-        ;
+        printk_serial("%d(%d)\n", 1, arch_get_id());
+}
+void task2()
+{
+    while (true)
+        printk_serial("%d(%d)\n", 2, arch_get_id());
+}
+void task3()
+{
+    while (true)
+        printk_serial("%d(%d)\n", 3, arch_get_id());
+}
+
+noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
+{
+    // todo: save simd state here
+
+    // save current state
+    scheduler_task_t *current = ((scheduler_context_t *)arch_get_scheduler_context())->running_current;
+    memcpy(&current->state, state, sizeof(arch_cpu_state_t));
+
+    // load new state
+    scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_running_list();
+    clock_preemption_timer.schedule_one_shot();
+    arch_switch_state(&next_task->state);
 }
 
 void task_scheduler_round_robin_init()
@@ -110,35 +137,38 @@ void task_scheduler_round_robin_init()
 
     task_scheduler_round_robin_install_context();
 
-    /*
-        scheduler_context_t *context = arch_get_scheduler_context();
-        context->running_head = block_allocate(sizeof(scheduler_task_t));
-        context->running_head->id = 1;
+#ifdef ARCH_x86_64
+    arch_cpu_state_t state;
+    memset(&state, 0, sizeof(arch_cpu_state_t));
+    state.cr3 = (uint64_t)arch_bootstrap_page_table - kernel_hhdm_offset;
+    state.cs = 8 * 2 | 0; //
+    state.rflags = 0x202;
+    state.rsp = (uint64_t)page_allocate(1) + PAGE;
+    state.ss = 8 * 1 | 0; //
 
-        context->running_head->next = block_allocate(sizeof(scheduler_task_t));
-        context->running_head->next->id = 2;
+    scheduler_task_t *task = block_allocate(sizeof(scheduler_task_t)), *first;
+    first = task;
+    task->id = 1;
+    task->state = state;
+    task->state.rip = (uint64_t)task1;
+    task_scheduler_round_robin_push_to_running_list(task);
 
-        context->running_last = context->running_head->next->next = block_allocate(sizeof(scheduler_task_t));
-        context->running_head->next->next->id = 3;
+    task = block_allocate(sizeof(scheduler_task_t));
+    task->id = 2;
+    task->state = state;
+    task->state.rip = (uint64_t)task2;
+    task_scheduler_round_robin_push_to_running_list(task);
 
-        for (int i = 0; i < 10; i++)
-            printk_serial("%d\n", task_scheduler_pop_from_running_list()->id);
-    */
+    task = block_allocate(sizeof(scheduler_task_t));
+    task->id = 3;
+    task->state = state;
+    task->state.rip = (uint64_t)task3;
+    task_scheduler_round_robin_push_to_running_list(task);
 
-    /*
-        scheduler_task_t *task = block_allocate(sizeof(scheduler_task_t));
-     task->id = 1;
-     task_scheduler_push_to_running_list(task);
-
-     task = block_allocate(sizeof(scheduler_task_t));
-     task->id = 2;
-     task_scheduler_push_to_running_list(task);
-
-     task = block_allocate(sizeof(scheduler_task_t));
-     task->id = 3;
-     task_scheduler_push_to_running_list(task);
-
-     for (int i = 0; i < 10; i++)
-         printk_serial("%d\n", task_scheduler_pop_from_running_list()->id);
-    */
+    scheduler_context_t *context = arch_get_scheduler_context();
+    context->running_current = first;
+    clock_preemption_timer.schedule_one_shot();
+    arch_interrupts_enable();
+    task1();
+#endif
 }
