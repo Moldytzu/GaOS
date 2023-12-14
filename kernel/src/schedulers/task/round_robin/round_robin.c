@@ -1,6 +1,7 @@
 #include <schedulers/task/round_robin/round_robin.h>
 #include <memory/physical/block_allocator.h>
 #include <memory/physical/page_allocator.h>
+#include <devices/serial/serial.h>
 #include <clock/clock.h>
 #include <arch/arch.h>
 
@@ -92,17 +93,23 @@ void task_scheduler_round_robin_push_to_running_list(scheduler_task_t *task)
 void task1()
 {
     while (true)
-        printk_serial("%d(%d)\n", 1, arch_get_id());
+        serial_send_byte('A');
+
+    task1();
 }
 void task2()
 {
     while (true)
-        printk_serial("%d(%d)\n", 2, arch_get_id());
+        serial_send_byte('B');
+
+    task2();
 }
 void task3()
 {
     while (true)
-        printk_serial("%d(%d)\n", 3, arch_get_id());
+        serial_send_byte('C');
+
+    task3();
 }
 
 noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
@@ -113,8 +120,11 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     scheduler_task_t *current = ((scheduler_context_t *)arch_get_scheduler_context())->running_current;
     memcpy(&current->state, state, sizeof(arch_cpu_state_t));
 
+    printk("saving %d\n", current->id);
+
     // load new state
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_running_list();
+    printk("loading %d\n", next_task->id);
     clock_preemption_timer.schedule_one_shot();
     arch_switch_state(&next_task->state);
 }
@@ -143,7 +153,6 @@ void task_scheduler_round_robin_init()
     state.cr3 = (uint64_t)arch_bootstrap_page_table - kernel_hhdm_offset;
     state.cs = 8 * 2 | 0; //
     state.rflags = 0x202;
-    state.rsp = (uint64_t)page_allocate(1) + PAGE;
     state.ss = 8 * 1 | 0; //
 
     scheduler_task_t *task = block_allocate(sizeof(scheduler_task_t)), *first;
@@ -151,18 +160,21 @@ void task_scheduler_round_robin_init()
     task->id = 1;
     task->state = state;
     task->state.rip = (uint64_t)task1;
+    task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
     task_scheduler_round_robin_push_to_running_list(task);
 
     task = block_allocate(sizeof(scheduler_task_t));
     task->id = 2;
     task->state = state;
     task->state.rip = (uint64_t)task2;
+    task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
     task_scheduler_round_robin_push_to_running_list(task);
 
     task = block_allocate(sizeof(scheduler_task_t));
     task->id = 3;
     task->state = state;
     task->state.rip = (uint64_t)task3;
+    task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
     task_scheduler_round_robin_push_to_running_list(task);
 
     scheduler_context_t *context = arch_get_scheduler_context();

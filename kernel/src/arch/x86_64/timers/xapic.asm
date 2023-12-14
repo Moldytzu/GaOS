@@ -46,6 +46,7 @@ extern arch_xapic_isr_handler
 global arch_xapic_isr_handler_entry
 
 arch_xapic_isr_handler_entry:
+    cli                         ; disable interrupts
     sub rsp, 8                  ; fake an error code on stack
     PUSH_REG                    ; push GPRs
     mov rdi, rsp                ; point to them
