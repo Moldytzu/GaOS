@@ -4,8 +4,6 @@
 
 typedef struct
 {
-    bool type; // false for cpu, true for scheduler
-
     // cpu identification
     uint64_t cpu_id;
     bool is_bsp;

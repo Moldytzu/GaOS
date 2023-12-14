@@ -6,6 +6,7 @@
 
 #define MSR_GS_BASE 0xC0000101
 #define MSR_GS_KERNEL_BASE 0xC0000102
+#define CONTEXT_TYPE_SCHEDULER 1ULL
 
 void *arch_get_current_context()
 {
@@ -15,7 +16,7 @@ void *arch_get_current_context()
 arch_cpu_context_t *arch_get_cpu_context()
 {
     arch_cpu_context_t *context = arch_get_current_context();
-    if (context == NULL || context->type)
+    if (context == NULL || (uint64_t)context & CONTEXT_TYPE_SCHEDULER) // first bit in context address describes the type
         iasm("swapgs");
 
     return arch_get_current_context();
@@ -38,7 +39,7 @@ arch_cpu_context_t *arch_context_install()
 void *arch_install_scheduler_context(void *context)
 {
     arch_get_cpu_context(); // this makes the MSR_GS_KERNEL_BASE empty
-    wrmsr(MSR_GS_KERNEL_BASE, (uint64_t)context);
+    wrmsr(MSR_GS_KERNEL_BASE, (uint64_t)context | CONTEXT_TYPE_SCHEDULER);
     return context;
 }
 
@@ -48,8 +49,11 @@ void *arch_get_scheduler_context()
     if (!context)
         return NULL;
 
-    if (((arch_cpu_context_t *)context)->type)
+    if (((uint64_t)context & CONTEXT_TYPE_SCHEDULER) == 0)
+    {
         iasm("swapgs");
+        context = arch_get_current_context();
+    }
 
-    return arch_get_current_context();
+    return (void *)((uint64_t)context & ~CONTEXT_TYPE_SCHEDULER); // remove the scheduler bit
 }
