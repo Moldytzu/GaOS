@@ -85,7 +85,15 @@ void framebuffer_write_character(char c)
         return;
     }
 
-    // fixme: we should handle end of buffer too
+    // we're too low in the buffer
+    if (main_cursor.y + font->height >= main_framebuffer.height)
+    {
+        // reset the cursor
+        main_cursor.y = 0;
+        main_cursor.x = 0;
+
+        memset(main_framebuffer.base, 0, main_framebuffer.height * main_framebuffer.pitch); // clear the framebuffer
+    }
 
     framebuffer_plot_character(c, main_cursor.x, main_cursor.y, main_cursor.colour); // draw the character
     main_cursor.x += font->width;                                                    // increase the coordonate
