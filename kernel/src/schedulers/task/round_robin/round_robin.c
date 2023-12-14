@@ -21,6 +21,7 @@ struct scheduler_context
 
     scheduler_task_t *running_head;
     scheduler_task_t *running_last;
+    arch_spinlock_t running_lock;
 
     struct scheduler_context *next;
     struct scheduler_context *previous;
@@ -49,26 +50,46 @@ void task_scheduler_round_robin_install_context()
     arch_install_scheduler_context(new_context);
 }
 
-void test_task()
-{
-    while (true)
-        ;
-}
-
 scheduler_task_t *task_scheduler_pop_from_running_list()
 {
     scheduler_context_t *context = arch_get_scheduler_context();
+
+    // arch_spinlock_acquire(&context->running_lock);
     scheduler_task_t *to_pop = context->running_head; // grab our candidate off the list
 
-    if (context->running_head != context->running_last) // if it isn't alone we can move it in the back
+    if (context->running_head != context->running_last && to_pop) // if it isn't alone and it is valid we can move it in the back
     {
         context->running_head = context->running_head->next; // move the head after it
         context->running_last->next = to_pop;                // insert it in the very end
         context->running_last = to_pop;                      // make it the end
         to_pop->next = context->running_head;                // link it to the start
     }
-
+    arch_spinlock_release(&context->running_lock);
     return to_pop;
+}
+
+void task_scheduler_push_to_running_list(scheduler_task_t *task)
+{
+    scheduler_context_t *context = arch_get_scheduler_context();
+    arch_spinlock_acquire(&context->running_lock);
+
+    // push it in the back
+    if (context->running_last)
+    {
+        context->running_last->next = task;
+        task->previous = context->running_last;
+        context->running_last = task;
+    }
+    else
+        context->running_head = context->running_last = task;
+
+    arch_spinlock_release(&context->running_lock);
+}
+
+void test_task()
+{
+    while (true)
+        ;
 }
 
 void task_scheduler_round_robin_init()
@@ -102,5 +123,22 @@ void task_scheduler_round_robin_init()
 
         for (int i = 0; i < 10; i++)
             printk_serial("%d\n", task_scheduler_pop_from_running_list()->id);
+    */
+
+    /*
+        scheduler_task_t *task = block_allocate(sizeof(scheduler_task_t));
+     task->id = 1;
+     task_scheduler_push_to_running_list(task);
+
+     task = block_allocate(sizeof(scheduler_task_t));
+     task->id = 2;
+     task_scheduler_push_to_running_list(task);
+
+     task = block_allocate(sizeof(scheduler_task_t));
+     task->id = 3;
+     task_scheduler_push_to_running_list(task);
+
+     for (int i = 0; i < 10; i++)
+         printk_serial("%d\n", task_scheduler_pop_from_running_list()->id);
     */
 }
