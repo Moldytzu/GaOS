@@ -17,14 +17,19 @@ struct scheduler_task
 
 typedef struct scheduler_task scheduler_task_t;
 
+typedef struct
+{
+    scheduler_task_t *current;
+    scheduler_task_t *head;
+    scheduler_task_t *last;
+    arch_spinlock_t lock;
+} scheduler_task_queue_t;
+
 struct scheduler_context
 {
     uint64_t cpu_id;
 
-    scheduler_task_t *running_current;
-    scheduler_task_t *running_head;
-    scheduler_task_t *running_last;
-    arch_spinlock_t running_lock;
+    scheduler_task_queue_t running;
 
     struct scheduler_context *next;
     struct scheduler_context *previous;
@@ -53,41 +58,38 @@ void task_scheduler_round_robin_install_context()
     arch_install_scheduler_context(new_context);
 }
 
-scheduler_task_t *task_scheduler_round_robin_pop_from_running_list()
+scheduler_task_t *task_scheduler_round_robin_pop_from_queue(scheduler_task_queue_t *queue)
 {
-    scheduler_context_t *context = arch_get_scheduler_context();
+    // arch_spinlock_acquire(&queue->lock);
+    scheduler_task_t *to_pop = queue->head; // grab our candidate off the queue
 
-    // arch_spinlock_acquire(&context->running_lock);
-    scheduler_task_t *to_pop = context->running_head; // grab our candidate off the list
-
-    if (context->running_head != context->running_last && to_pop) // if it isn't alone and it is valid we can move it in the back
+    if (queue->head != queue->last && to_pop) // if it isn't alone and it is valid we can move it in the back
     {
-        context->running_head = context->running_head->next; // move the head after it
-        context->running_last->next = to_pop;                // insert it in the very end
-        context->running_last = to_pop;                      // make it the end
-        to_pop->next = context->running_head;                // link it to the start
+        queue->head = queue->head->next; // move the head after it
+        queue->last->next = to_pop;      // insert it in the very end
+        queue->last = to_pop;            // make it the end
+        to_pop->next = queue->head;      // link it to the start
     }
-    context->running_current = to_pop;
-    arch_spinlock_release(&context->running_lock);
+    queue->current = to_pop;
+    arch_spinlock_release(&queue->lock);
     return to_pop;
 }
 
-void task_scheduler_round_robin_push_to_running_list(scheduler_task_t *task)
+void task_scheduler_round_robin_push_to_queue(scheduler_task_queue_t *queue, scheduler_task_t *task)
 {
-    scheduler_context_t *context = arch_get_scheduler_context();
-    arch_spinlock_acquire(&context->running_lock);
+    arch_spinlock_acquire(&queue->lock);
 
     // push it in the back
-    if (context->running_last)
+    if (queue->last)
     {
-        context->running_last->next = task;
-        task->previous = context->running_last;
-        context->running_last = task;
+        queue->last->next = task;
+        task->previous = queue->last;
+        queue->last = task;
     }
     else
-        context->running_head = context->running_last = task;
+        queue->head = queue->last = task;
 
-    arch_spinlock_release(&context->running_lock);
+    arch_spinlock_release(&queue->lock);
 }
 
 void task1()
@@ -116,14 +118,17 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
 {
     // todo: save simd state here
 
+    // get our context
+    scheduler_context_t *context = (scheduler_context_t *)arch_get_scheduler_context();
+
     // save current state
-    scheduler_task_t *current = ((scheduler_context_t *)arch_get_scheduler_context())->running_current;
+    scheduler_task_t *current = context->running.current;
     memcpy(&current->state, state, sizeof(arch_cpu_state_t));
 
     printk("saving %d\n", current->id);
 
     // load new state
-    scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_running_list();
+    scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
     printk("loading %d\n", next_task->id);
     clock_preemption_timer.schedule_one_shot();
     arch_switch_state(&next_task->state);
@@ -146,6 +151,7 @@ void task_scheduler_round_robin_init()
     */
 
     task_scheduler_round_robin_install_context();
+    scheduler_context_t *context = (scheduler_context_t *)arch_get_scheduler_context();
 
 #ifdef ARCH_x86_64
     arch_cpu_state_t state;
@@ -161,24 +167,23 @@ void task_scheduler_round_robin_init()
     task->state = state;
     task->state.rip = (uint64_t)task1;
     task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
-    task_scheduler_round_robin_push_to_running_list(task);
+    task_scheduler_round_robin_push_to_queue(&context->running, task);
 
     task = block_allocate(sizeof(scheduler_task_t));
     task->id = 2;
     task->state = state;
     task->state.rip = (uint64_t)task2;
     task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
-    task_scheduler_round_robin_push_to_running_list(task);
+    task_scheduler_round_robin_push_to_queue(&context->running, task);
 
     task = block_allocate(sizeof(scheduler_task_t));
     task->id = 3;
     task->state = state;
     task->state.rip = (uint64_t)task3;
     task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
-    task_scheduler_round_robin_push_to_running_list(task);
+    task_scheduler_round_robin_push_to_queue(&context->running, task);
 
-    scheduler_context_t *context = arch_get_scheduler_context();
-    context->running_current = first;
+    context->running.current = first;
     clock_preemption_timer.schedule_one_shot();
     arch_interrupts_enable();
     task1();
