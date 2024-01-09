@@ -10,6 +10,7 @@ struct scheduler_task
     uint64_t id;
 
     arch_cpu_state_t state align_addr(16);
+    arch_simd_state_t simd_state align_addr(16);
 
     struct scheduler_task *next;
     struct scheduler_task *previous;
@@ -60,7 +61,7 @@ void task_scheduler_round_robin_install_context()
 
 scheduler_task_t *task_scheduler_round_robin_pop_from_queue(scheduler_task_queue_t *queue)
 {
-    // arch_spinlock_acquire(&queue->lock);
+    arch_spinlock_acquire(&queue->lock);
     scheduler_task_t *to_pop = queue->head; // grab our candidate off the queue
 
     if (queue->head != queue->last && to_pop) // if it isn't alone and it is valid we can move it in the back
@@ -96,40 +97,36 @@ void task1()
 {
     while (true)
         serial_send_byte('A');
-
-    task1();
 }
 void task2()
 {
     while (true)
         serial_send_byte('B');
-
-    task2();
 }
 void task3()
 {
     while (true)
         serial_send_byte('C');
-
-    task3();
 }
 
 noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
 {
-    // todo: save simd state here
-
-    // get our context
+    // get our internal context
     scheduler_context_t *context = (scheduler_context_t *)arch_get_scheduler_context();
-
-    // save current state
     scheduler_task_t *current = context->running.current;
+
+    // save state
+    arch_save_simd_state(&current->simd_state);
     memcpy(&current->state, state, sizeof(arch_cpu_state_t));
 
     printk("saving %d\n", current->id);
 
     // load new state
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
+
     printk("loading %d\n", next_task->id);
+
+    arch_restore_simd_state(&current->simd_state);
     clock_preemption_timer.schedule_one_shot();
     arch_switch_state(&next_task->state);
 }
