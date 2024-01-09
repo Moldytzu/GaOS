@@ -134,6 +134,10 @@ extern struct limine_memmap_entry **memory_map_entries; // page_allocator.c
 extern size_t memory_map_entries_count;
 void block_allocator_find_lowest_free_virtual_address_limine()
 {
+    // we want to find the highest address that's mapped
+    // it's guranteed that the whole memory map is mapped
+    // thus we can be sure to choose an address above all of those in the map
+
     // find highest address in the memory map
     // the protocol gurantees that the entries are sorted by base, lowest to highest
     // thus the highest address should be last entry
