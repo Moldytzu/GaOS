@@ -28,4 +28,11 @@ pstruct
 }
 arch_cpu_state_t;
 
+typedef struct
+{
+    uint8_t data[512];
+} arch_simd_state_t;
+
 extern noreturn void arch_switch_state(arch_cpu_state_t *);
+extern void arch_save_simd_state(arch_simd_state_t *);
+extern void arch_restore_simd_state(arch_simd_state_t *);
