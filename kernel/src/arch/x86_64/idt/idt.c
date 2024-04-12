@@ -40,7 +40,11 @@ void arch_isr_handler(arch_cpu_state_t *state, uint64_t interrupt_number)
         if (interrupt_number == 0xE) // page fault
         {
             uint32_t error = state->error;
-            panic("Page Fault caused by %s page, on a %s in %s of 0x%x at 0x%x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", arch_read_cr2(), state->rip);
+            uint64_t cr2 = arch_read_cr2();
+            if (cr2 == 0)
+                panic("Null dereference at 0x%x", state->rip);
+            else
+                panic("Page Fault caused by %s page, on a %s in %s of 0x%x at 0x%x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", cr2, state->rip);
         }
         else
             panic("Exception 0x%x at 0x%x", interrupt_number, state->rip);
