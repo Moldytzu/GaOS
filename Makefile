@@ -1,9 +1,11 @@
 override IMAGE_NAME := disk
 OUTPUT_ARCH = x86_64
 CORES = $(shell nproc)
+TOOLCHAIN_BASE = $(shell pwd)/toolchain/$(OUTPUT_ARCH)/
 
 # make the architecture available in all makefiles
 export OUTPUT_ARCH
+export TOOLCHAIN_BASE
 
 QEMU_FLAGS = -m 2G -serial stdio -smp 2
 QEMU_LOG = -D qemu.out -d int -no-reboot -no-shutdown
@@ -70,3 +72,14 @@ clean:
 distclean: clean
 	rm -rf limine ovmf $(IMAGE_NAME).hdd
 	$(MAKE) -C kernel distclean
+
+deps-debian:
+	@echo Execution as root might be required for this target
+	@echo Use sudo if errors occur
+	@echo 
+	apt install build-essential fdisk nasm mtools gdisk # kernel
+	apt install libbison-dev flex libgmp-dev libmpfr-dev libmpc-dev texinfo gcc g++ make # gcc + binutils
+
+.PHONY: toolchain
+toolchain:
+	bash ./toolchain/build_kernel_toolchain.sh $(OUTPUT_ARCH)

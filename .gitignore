@@ -3,5 +3,7 @@
 /iso_root
 /.vscode
 /qemu.out
+/toolchain/*
+!/toolchain/*.sh
 *.iso
 *.hdd

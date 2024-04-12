@@ -2,8 +2,7 @@
 KERNEL := kernel.elf
 
 # This is the prefix of our custom cross-compiler
-PREFIX := ~/cross_compiler/bin/$(OUTPUT_ARCH)-elf-
-# fixme: this could be moved here, in a toolchain folder
+PREFIX := $(TOOLCHAIN_BASE)/kernel/bin/$(OUTPUT_ARCH)-elf-
 
 # Default compiler/linker
 CC := $(PREFIX)gcc
