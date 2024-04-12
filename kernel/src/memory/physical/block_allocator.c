@@ -157,7 +157,7 @@ void *block_allocate(size_t size)
         size = BLOCK_MINIMUM_ALLOCATION;
 
     if (size % 16) // round up size to next 16 (0x10)
-        size += size % 16;
+        size += 16 - size % 16;
 
     arch_spinlock_acquire(&block_allocator_lock);
 
