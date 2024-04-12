@@ -1,7 +1,7 @@
 #pragma once
 #include <misc/libc.h>
 
-pstruct
+pstruct align_addr(16)
 {
     uint64_t cr3;
     uint64_t rax;
@@ -28,7 +28,7 @@ pstruct
 }
 arch_cpu_state_t;
 
-typedef struct
+typedef struct align_addr(16)
 {
     uint8_t data[512];
 } arch_simd_state_t;

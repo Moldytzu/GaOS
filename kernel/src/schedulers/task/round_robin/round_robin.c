@@ -9,8 +9,8 @@ struct scheduler_task
 {
     uint64_t id;
 
-    arch_cpu_state_t state align_addr(16);
-    arch_simd_state_t simd_state align_addr(16);
+    arch_cpu_state_t state;
+    arch_simd_state_t simd_state;
 
     struct scheduler_task *next;
     struct scheduler_task *previous;

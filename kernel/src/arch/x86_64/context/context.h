@@ -2,7 +2,7 @@
 #include <misc/libc.h>
 #include <arch/x86_64/gdt/gdt.h>
 
-typedef struct
+typedef struct align_addr(16)
 {
     // cpu identification
     uint64_t cpu_id;
