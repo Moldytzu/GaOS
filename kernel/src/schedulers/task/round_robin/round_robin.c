@@ -93,22 +93,6 @@ void task_scheduler_round_robin_push_to_queue(scheduler_task_queue_t *queue, sch
     arch_spinlock_release(&queue->lock);
 }
 
-void task1()
-{
-    while (true)
-        serial_send_byte('A');
-}
-void task2()
-{
-    while (true)
-        serial_send_byte('B');
-}
-void task3()
-{
-    while (true)
-        serial_send_byte('C');
-}
-
 noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
 {
     // get our internal context
@@ -129,6 +113,22 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     arch_restore_simd_state(&current->simd_state);
     clock_preemption_timer.schedule_one_shot();
     arch_switch_state(&next_task->state);
+}
+
+void task1()
+{
+    while (true)
+        serial_send_byte('A');
+}
+void task2()
+{
+    while (true)
+        serial_send_byte('B');
+}
+void task3()
+{
+    while (true)
+        serial_send_byte('C');
 }
 
 void task_scheduler_round_robin_init()
