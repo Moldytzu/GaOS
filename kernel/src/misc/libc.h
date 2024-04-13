@@ -35,3 +35,17 @@ ifunc void zero64(uint64_t *s, size_t n)
     for (size_t i = 0; i < n; i++)
         s[i] = 0;
 }
+
+ifunc int min(int a, int b)
+{
+    if (a > b)
+        return b;
+    return a;
+}
+
+ifunc int max(int a, int b)
+{
+    if (a > b)
+        return a;
+    return b;
+}
