@@ -18,6 +18,7 @@
 
 // filesystem
 #include <filesystem/vfs.h>
+#include <filesystem/ustar.h>
 
 // memory
 #include <memory/physical/page_allocator.h>
@@ -43,6 +44,7 @@ void _start(void)
     log_info("bootstraped %d processors", arch_bootstrap_ap()); // boot up application processors
     arch_late_init();                                           // initialise last arch stage
     vfs_init();                                                 // initialise the virtual filesystem
+    ustar_init();                                               // initialise the initrd
     task_scheduler_init();                                      // initialise the task scheduler
     arch_bootstrap_ap_scheduler();                              // let the application processors use the schedulers
 

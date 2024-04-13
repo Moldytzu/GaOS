@@ -1,0 +1,165 @@
+#define MODULE "ustar"
+#include <misc/logger.h>
+
+#include <filesystem/ustar.h>
+#include <filesystem/vfs.h>
+#include <memory/physical/page_allocator.h>
+#include <memory/physical/block_allocator.h>
+#include <arch/arch.h>
+
+#include <boot/limine.h>
+
+#define TAR_BLOCK_SIZE 512
+
+pstruct
+{
+    char name[100];
+    uint64_t mode;
+    uint64_t uid;
+    uint64_t gid;
+    char size[12];
+    char mktime[12];
+    uint64_t chksum;
+    uint8_t typeflag;
+    char linkname[100];
+    char magic[6];
+    uint16_t version;
+    char uname[32];
+    char gname[32];
+    uint64_t devmajor;
+    uint64_t devminor;
+    char prefix[155];
+}
+ustar_header_t;
+
+typedef struct
+{
+    vfs_fs_node_t vfs_header;
+    ustar_header_t *ustar_header;
+} ustar_node_t;
+
+ustar_header_t *initrd;
+
+size_t parse_size_of(ustar_header_t *header)
+{
+    size_t size = 0;
+
+    for (int i = 0; i < 12; i++)
+    {
+        if (!header->size[i] || header->size[i] == ' ') // handle improper characters
+            continue;
+        size *= 8;
+        size += header->size[i] - '0';
+    }
+
+    return size;
+}
+
+ustar_header_t *ustar_open_header(const char *path)
+{
+    ustar_header_t *header = (ustar_header_t *)((uint64_t)initrd + TAR_BLOCK_SIZE);
+
+    while (true)
+    {
+        if (header->name[0] == '\0')
+            break;
+
+        size_t size = parse_size_of(header);                                // get the size
+        size_t real_size = size + TAR_BLOCK_SIZE - (size % TAR_BLOCK_SIZE); // align to next block size
+
+        log_info("%s %s %d", path, header->name, size);
+
+        void *contents = (void *)((uint64_t)header + TAR_BLOCK_SIZE);
+
+        if (strncmp(path, header->name + 1 /*skip .*/, strlen((char *)path)) == 0) // find exact match of path
+            return header;
+
+        header = (ustar_header_t *)((uint64_t)contents + real_size); // get next header
+    }
+
+    return NULL;
+}
+
+vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path)
+{
+    ustar_node_t *node = block_allocate(sizeof(ustar_node_t));
+    ustar_header_t *header = ustar_open_header(path);
+
+    if (header == NULL)
+        return NULL;
+
+    // fill in vfs header with path
+    size_t path_len = strlen((char *)path);
+    node->vfs_header.path_length = path_len;
+    node->vfs_header.path = block_allocate(path_len);
+    node->vfs_header.fs = fs;
+    memcpy(node->vfs_header.path, path, path_len);
+
+    node->ustar_header = header; // save ustar header for later
+
+    return (vfs_fs_node_t *)node;
+}
+
+void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+{
+    ustar_node_t *ustar_node = (ustar_node_t *)node;
+    size_t node_size = parse_size_of(ustar_node->ustar_header);
+    size = min(node_size, size);
+
+    if (offset >= node_size) // invalid offset
+        return NULL;
+
+    if (offset + size >= node_size) // properly map size to fit the file
+        size = node_size - offset;
+
+    log_info("reading %d bytes from %s + %d offset", size, node->path, offset);
+
+    void *contents = (void *)((uint64_t)ustar_node->ustar_header + TAR_BLOCK_SIZE);
+
+    return memcpy(buffer, (void *)((uint64_t)contents + offset), size);
+}
+
+void ustar_close(vfs_fs_node_t *node)
+{
+    ustar_node_t *ustar_node = (ustar_node_t *)node;
+
+    if (ustar_node->vfs_header.path)
+        block_deallocate(ustar_node->vfs_header.path);
+
+    block_deallocate(ustar_node);
+}
+
+void ustar_init()
+{
+    // todo: we should create a device namespace
+    // that can be called to get the required module
+    // to use as initrd
+
+    // open initrd file
+    struct limine_file *initrd_file = limine_get_module("/initrd.tar");
+    if (initrd_file == NULL)
+        return;
+    initrd = initrd_file->address;
+
+    // map in page table
+    for (size_t i = 0; i <= initrd_file->size; i += 4096)
+        arch_table_manager_map(arch_bootstrap_page_table, (uint64_t)initrd + i, (uint64_t)initrd + i - kernel_hhdm_offset, TABLE_ENTRY_READ_WRITE);
+
+    // instantiate the filesystem
+    vfs_fs_ops_t ustar;
+    ustar.close = ustar_close;
+    ustar.open = ustar_open;
+    ustar.read = ustar_read;
+    ustar.name = "ustar";
+    ustar.name_length = 5;
+
+    vfs_mount_fs("initrd", &ustar); // mount it
+
+    char *blk = page_allocate(1);
+    vfs_fs_node_t *node = vfs_open("/initrd/test.txt");
+    node->fs->read(node, blk, PAGE, 0);
+    log_info("%s", blk);
+
+    while (1)
+        ;
+}
