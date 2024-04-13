@@ -1,6 +1,7 @@
 override IMAGE_NAME := disk
 OUTPUT_ARCH = x86_64
 CORES = $(shell nproc)
+BASE = $(shell pwd)
 TOOLCHAIN_BASE = $(shell pwd)/toolchain/$(OUTPUT_ARCH)/
 
 # make the architecture available in all makefiles
@@ -59,9 +60,10 @@ $(IMAGE_NAME).hdd: limine
 	./limine/limine bios-install $(IMAGE_NAME).hdd
 
 install_hdd: $(IMAGE_NAME).hdd kernel
+	cd $(BASE)/root/initrd/ && tar -cf ../initrd.tar .
 	mformat -i $(IMAGE_NAME).hdd@@1M
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT
-	mcopy -i $(IMAGE_NAME).hdd@@1M kernel/bin/kernel.elf limine.cfg limine/limine-bios.sys ::/
+	mcopy -i $(IMAGE_NAME).hdd@@1M root/initrd.tar kernel/bin/kernel.elf limine.cfg limine/limine-bios.sys ::/
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
 
 .PHONY: clean

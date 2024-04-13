@@ -7,3 +7,4 @@
 !/toolchain/*.sh
 *.iso
 *.hdd
+*.tar
