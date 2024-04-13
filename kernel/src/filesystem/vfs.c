@@ -62,6 +62,7 @@ vfs_fs_node_t *vfs_open(const char *path)
         return NULL;
     }
 
+    // get the name of the filesystem targeted in the path
     size_t fsname_len;
     for (fsname_len = 1; path[fsname_len] != '/' && fsname_len < path_len; fsname_len++)
         ;

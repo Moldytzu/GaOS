@@ -10,6 +10,7 @@
 #include <boot/limine.h>
 
 #define TAR_BLOCK_SIZE 512
+#define TAR_HEADER_SIZE TAR_BLOCK_SIZE
 
 pstruct
 {
@@ -57,24 +58,25 @@ size_t parse_size_of(ustar_header_t *header)
 
 ustar_header_t *ustar_open_header(const char *path)
 {
-    ustar_header_t *header = (ustar_header_t *)((uint64_t)initrd + TAR_BLOCK_SIZE);
+    ustar_header_t *header = (ustar_header_t *)((uint64_t)initrd + TAR_BLOCK_SIZE); // point to the first header after the root
 
     while (true)
     {
         if (header->name[0] == '\0')
             break;
 
-        size_t size = parse_size_of(header);                                // get the size
-        size_t real_size = size + TAR_BLOCK_SIZE - (size % TAR_BLOCK_SIZE); // align to next block size
+        size_t size = parse_size_of(header); // get the size
 
-        log_info("%s %s %d", path, header->name, size);
+        // real_size = align_to_next_block_size(<tar reported size> + <tar block size>)
+        size_t real_size = size + TAR_HEADER_SIZE;
 
-        void *contents = (void *)((uint64_t)header + TAR_BLOCK_SIZE);
+        if (real_size % TAR_BLOCK_SIZE)
+            real_size += 512 - (real_size % TAR_BLOCK_SIZE);
 
         if (strncmp(path, header->name + 1 /*skip .*/, strlen((char *)path)) == 0) // find exact match of path
             return header;
 
-        header = (ustar_header_t *)((uint64_t)contents + real_size); // get next header
+        header = (ustar_header_t *)((uint64_t)header + real_size); // get next header
     }
 
     return NULL;
@@ -114,7 +116,7 @@ void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 
     log_info("reading %d bytes from %s + %d offset", size, node->path, offset);
 
-    void *contents = (void *)((uint64_t)ustar_node->ustar_header + TAR_BLOCK_SIZE);
+    void *contents = (void *)((uint64_t)ustar_node->ustar_header + TAR_HEADER_SIZE);
 
     return memcpy(buffer, (void *)((uint64_t)contents + offset), size);
 }
@@ -127,6 +129,31 @@ void ustar_close(vfs_fs_node_t *node)
         block_deallocate(ustar_node->vfs_header.path);
 
     block_deallocate(ustar_node);
+}
+
+void ustar_debug_print()
+{
+    ustar_header_t *header = (ustar_header_t *)((uint64_t)initrd + TAR_HEADER_SIZE);
+
+    // display all headers in the file
+    while (true)
+    {
+        if (header->name[0] == '\0')
+            break;
+
+        size_t size = parse_size_of(header); // get the size
+
+        // real_size = align_to_next_block_size(<tar reported size> + <tar block size>)
+        // the header will always occupy a block!
+        size_t real_size = size + TAR_BLOCK_SIZE;
+
+        if (real_size % TAR_BLOCK_SIZE)
+            real_size += 512 - (real_size % TAR_BLOCK_SIZE);
+
+        log_info("file %s with %d bytes (%d bytes on disk)", header->name, size, real_size);
+
+        header = (ustar_header_t *)((uint64_t)header + real_size); // get next header
+    }
 }
 
 void ustar_init()
@@ -159,6 +186,8 @@ void ustar_init()
     vfs_fs_node_t *node = vfs_open("/initrd/test.txt");
     node->fs->read(node, blk, PAGE, 0);
     log_info("%s", blk);
+
+    ustar_debug_print();
 
     while (1)
         ;
