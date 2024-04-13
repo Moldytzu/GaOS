@@ -160,6 +160,8 @@ void ustar_debug_print()
     }
 }
 
+vfs_fs_ops_t ustar;
+
 void ustar_init()
 {
     // todo: we should create a device namespace
@@ -177,7 +179,6 @@ void ustar_init()
         arch_table_manager_map(arch_bootstrap_page_table, (uint64_t)initrd + i, (uint64_t)initrd + i - kernel_hhdm_offset, TABLE_ENTRY_READ_WRITE);
 
     // instantiate the filesystem
-    vfs_fs_ops_t ustar;
     ustar.close = ustar_close;
     ustar.open = ustar_open;
     ustar.read = ustar_read;

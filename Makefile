@@ -91,7 +91,7 @@ deps-debian:
 	@echo Execution as root might be required for this target
 	@echo Use sudo if errors occur
 	@echo 
-	apt install build-essential fdisk nasm mtools gdisk # kernel
+	apt install build-essential fdisk nasm mtools gdisk gdb-multiarch # kernel
 	apt install libbison-dev flex libgmp-dev libmpfr-dev libmpc-dev texinfo gcc g++ make # gcc + binutils
 
 .PHONY: toolchain

@@ -20,6 +20,9 @@
 #include <filesystem/vfs.h>
 #include <filesystem/ustar.h>
 
+// executables
+#include <executables/elf.h>
+
 // memory
 #include <memory/physical/page_allocator.h>
 #include <memory/physical/block_allocator.h>
@@ -45,8 +48,13 @@ void _start(void)
     arch_late_init();                                           // initialise last arch stage
     vfs_init();                                                 // initialise the virtual filesystem
     ustar_init();                                               // initialise the initrd
-    task_scheduler_init();                                      // initialise the task scheduler
-    arch_bootstrap_ap_scheduler();                              // let the application processors use the schedulers
+
+    vfs_fs_node_t *hello_node = vfs_open("/initrd/hello.elf");
+    elf_load_from(hello_node);
+    halt();
+
+    task_scheduler_init();         // initialise the task scheduler
+    arch_bootstrap_ap_scheduler(); // let the application processors use the schedulers
 
     halt();
 }
