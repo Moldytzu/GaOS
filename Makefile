@@ -7,6 +7,7 @@ TOOLCHAIN_BASE = $(shell pwd)/toolchain/$(OUTPUT_ARCH)/
 # make the architecture available in all makefiles
 export OUTPUT_ARCH
 export TOOLCHAIN_BASE
+export BASE
 
 QEMU_FLAGS = -m 2G -serial stdio -smp 2
 QEMU_LOG = -D qemu.out -d int -no-reboot -no-shutdown
@@ -19,6 +20,9 @@ ifeq ($(OUTPUT_ARCH),x86_64)
 	QEMU_FLAGS += -M q35,smm=off
 	QEMU_ACCELERATED += --enable-kvm -cpu host
 endif
+
+# apps
+APPS = $(wildcard ./apps/*/.)
 
 .PHONY: all
 all: install_hdd
@@ -54,12 +58,17 @@ limine:
 kernel:
 	$(MAKE) -C kernel -j$(CORES)
 
+FORCE:
+
+$(APPS): FORCE
+	$(MAKE) -C $@
+
 $(IMAGE_NAME).hdd: limine
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
 	sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
 	./limine/limine bios-install $(IMAGE_NAME).hdd
 
-install_hdd: $(IMAGE_NAME).hdd kernel
+install_hdd: $(IMAGE_NAME).hdd kernel $(APPS)
 	cd $(BASE)/root/initrd/ && tar -cf ../initrd.tar .
 	mformat -i $(IMAGE_NAME).hdd@@1M
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT
@@ -69,6 +78,9 @@ install_hdd: $(IMAGE_NAME).hdd kernel
 .PHONY: clean
 clean:
 	$(MAKE) -C kernel clean
+	for dir in $(APPS); do \
+		$(MAKE) -C $$dir clean; \
+	done
 
 .PHONY: distclean
 distclean: clean
