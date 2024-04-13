@@ -34,6 +34,8 @@ acpi_sdt_header_t *acpi_get_table_xsdt(char *signature)
             return header;
     }
 
+    log_error("failed to get SDT %s", signature);
+
     return NULL;
 }
 
@@ -48,6 +50,8 @@ acpi_sdt_header_t *acpi_get_table_rsdt(char *signature)
         if (memcmp(header->signature, signature, 4) == 0)
             return header;
     }
+
+    log_error("failed to get SDT %s", signature);
 
     return NULL;
 }
