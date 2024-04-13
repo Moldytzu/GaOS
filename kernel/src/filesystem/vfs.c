@@ -5,43 +5,10 @@
 #include <memory/physical/block_allocator.h>
 #include <arch/arch.h>
 
-struct vfs_fs_node
-{
-    char *path;
-    size_t path_length;
-
-    struct vfs_fs_ops *fs;
-};
-
-typedef struct vfs_fs_node vfs_fs_node_t;
-
-struct vfs_fs_ops
-{
-    char *name;
-    size_t name_length;
-
-    struct vfs_fs_node *(*open)(struct vfs_fs_ops *fs, const char *path);
-    void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
-    void (*close)(struct vfs_fs_node *node);
-};
-
-typedef struct vfs_fs_ops vfs_fs_ops_t;
-
-struct vfs_mount_point
-{
-    char *name;
-    size_t name_length;
-
-    vfs_fs_ops_t *fs;
-
-    struct vfs_mount_point *next;
-    struct vfs_mount_point *prev;
-};
-
-typedef struct vfs_mount_point vfs_mount_point_t;
-
 vfs_mount_point_t *mount_points;
 arch_spinlock_t mount_lock;
+
+void vfs_print_debug();
 
 void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
 {
@@ -69,6 +36,8 @@ void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
     point->next = new_mount;
 
     arch_spinlock_release(&mount_lock);
+
+    log_info("mounting %s on /%s", fs->name, name);
 }
 
 vfs_fs_node_t *vfs_open(const char *path)
@@ -101,8 +70,8 @@ vfs_fs_node_t *vfs_open(const char *path)
     vfs_mount_point_t *mount = mount_points->next; // get first mount point
     while (mount)
     {
-        if (strncmp(path + 1, mount->fs->name, fsname_len) == 0) // compare the mount names
-            break;                                               // and if they're identical break
+        if (strncmp(path + 1, mount->name, fsname_len) == 0) // compare the mount names
+            break;                                           // and if they're identical break
 
         mount = mount->next; // else, continue comparing
     }
@@ -115,7 +84,7 @@ vfs_fs_node_t *vfs_open(const char *path)
 
     arch_spinlock_release(&mount_lock);
 
-    return mount->fs->open(mount->fs, path);
+    return mount->fs->open(mount->fs, path + fsname_len + 1 /*skip /<filesystem name>*/);
 }
 
 void vfs_print_debug()
@@ -132,55 +101,7 @@ void vfs_print_debug()
     arch_spinlock_release(&mount_lock);
 }
 
-vfs_fs_node_t *testfs_open(struct vfs_fs_ops *fs, const char *path)
-{
-    vfs_fs_node_t *node = block_allocate(sizeof(vfs_fs_node_t));
-
-    size_t path_len = strlen((char *)path);
-    node->path_length = path_len;
-    node->path = block_allocate(path_len);
-    node->fs = fs;
-    memcpy(node->path, path, path_len);
-
-    return node;
-}
-
-void *testfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
-{
-    (void)node, (void)size, (void)offset;
-
-    log_info("testfs read of %s", node->path);
-
-    return buffer;
-}
-
-void testfs_close(vfs_fs_node_t *node)
-{
-    if (node->path)
-        block_deallocate(node->path);
-
-    block_deallocate(node);
-}
-
 void vfs_init()
 {
     mount_points = block_allocate(sizeof(vfs_mount_point_t));
-
-    vfs_fs_ops_t testfs;
-    testfs.close = testfs_close;
-    testfs.open = testfs_open;
-    testfs.read = testfs_read;
-    testfs.name = "testfs";
-    testfs.name_length = 6;
-
-    vfs_mount_fs("test", &testfs);
-    // /test/fisier
-    vfs_fs_node_t *node = vfs_open("/test/fisier");
-    node->fs->read(node, NULL, 0, 0);
-    node->fs->close(node);
-
-    vfs_print_debug();
-
-    while (1)
-        ;
 }
