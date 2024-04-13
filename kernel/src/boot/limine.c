@@ -1,3 +1,6 @@
+#define MODULE "limine"
+#include <misc/logger.h>
+
 #include <boot/limine.h> // kernel interface
 
 LIMINE_BASE_REVISION(1) // set latest revision
@@ -56,6 +59,8 @@ struct limine_file *limine_get_module(const char *path)
         if (strncmp(file->path, path, strlen((char *)path)) == 0)
             return file;
     }
+
+    log_error("failed to get module %s", path);
 
     return NULL;
 }
