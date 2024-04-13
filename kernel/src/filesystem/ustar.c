@@ -79,6 +79,7 @@ ustar_header_t *ustar_open_header(const char *path)
         header = (ustar_header_t *)((uint64_t)header + real_size); // get next header
     }
 
+    log_error("failed to open header with path %s", path);
     return NULL;
 }
 
@@ -109,7 +110,10 @@ void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     size = min(node_size, size);
 
     if (offset >= node_size) // invalid offset
+    {
+        log_error("invalid offset %d when reading %s", offset, node->path);
         return NULL;
+    }
 
     if (offset + size >= node_size) // properly map size to fit the file
         size = node_size - offset;
@@ -182,13 +186,5 @@ void ustar_init()
 
     vfs_mount_fs("initrd", &ustar); // mount it
 
-    char *blk = page_allocate(1);
-    vfs_fs_node_t *node = vfs_open("/initrd/test.txt");
-    node->fs->read(node, blk, PAGE, 0);
-    log_info("%s", blk);
-
     ustar_debug_print();
-
-    while (1)
-        ;
 }
