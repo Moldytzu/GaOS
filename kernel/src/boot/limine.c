@@ -38,7 +38,27 @@ volatile struct limine_smp_request kernel_smp_request = {
     .revision = 0,
 };
 
+volatile struct limine_module_request module_request = {
+    .id = LIMINE_MODULE_REQUEST,
+    .revision = 0,
+};
+
 uint64_t kernel_hhdm_offset;
+
+struct limine_file *limine_get_module(const char *path)
+{
+    int count = module_request.response->module_count;
+    struct limine_file **modules = module_request.response->modules;
+
+    for (int i = 0; i < count; i++)
+    {
+        struct limine_file *file = modules[i];
+        if (strncmp(file->path, path, strlen((char *)path)) == 0)
+            return file;
+    }
+
+    return NULL;
+}
 
 void limine_init()
 {
