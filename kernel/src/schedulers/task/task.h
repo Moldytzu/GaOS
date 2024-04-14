@@ -7,6 +7,7 @@
 #define task_scheduler_init task_scheduler_round_robin_init
 #define task_scheduler_install_context task_scheduler_round_robin_install_context
 #define task_scheduler_reschedule task_scheduler_round_robin_reschedule
+#define task_scheduler_enable task_scheduler_round_robin_enable
 
 #else
 #error no task scheduler selected. check config.h
