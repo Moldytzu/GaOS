@@ -94,3 +94,4 @@ obj/%.asm.o: src/%.asm
 .PHONY: clean
 clean:
 	rm -rf bin obj
+	-rm $(BASE)/root/initrd/$(APP)
