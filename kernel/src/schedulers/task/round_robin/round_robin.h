@@ -4,3 +4,4 @@
 void task_scheduler_round_robin_init();
 void task_scheduler_round_robin_install_context();
 noreturn void task_scheduler_round_robin_reschedule();
+noreturn void task_scheduler_round_robin_enable();

@@ -28,7 +28,6 @@ void arch_xapic_init()
     if ((rdmsr(MSR_APIC_BASE) & 0xFFFFF000) != (uint64_t)XAPIC_BASE)
         panic("Out of spec xapic address. 0x%p != 0x%p", rdmsr(MSR_APIC_BASE) & 0xFFFFF000, (uint64_t)XAPIC_BASE);
 
-    // note: here we can't check if we're the bsp since the id detection code depends on the xapic being mapped
     // mask the PIC if any
     arch_pio_write8(0x20, 0b11111111);
     arch_pio_write8(0xA0, 0b11111111);
