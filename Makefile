@@ -61,7 +61,7 @@ kernel:
 FORCE:
 
 $(APPS): FORCE
-	$(MAKE) -C $@
+	$(MAKE) -C $@ -j$(CORES)
 
 $(IMAGE_NAME).hdd: limine
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
