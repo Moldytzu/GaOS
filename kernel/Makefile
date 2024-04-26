@@ -23,12 +23,15 @@ CFLAGS += \
     -std=gnu11 \
     -ffreestanding \
     -fno-stack-protector \
-    -fno-stack-check \
+    -fstack-protector-all \
+    -fsanitize=undefined \
     -fno-lto \
-    -fPIE \
+    -fno-pic \
+    -fpie \
     -march=nocona \
     -mno-red-zone \
-    -Wno-unused-function
+    -Wno-unused-function \
+    -Wno-frame-address
 
 # Internal C preprocessor flags that should not be changed by the user.
 CPPFLAGS := \
