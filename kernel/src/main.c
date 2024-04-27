@@ -39,7 +39,7 @@ void _start(void)
     framebuffer_init();                                         // initialise the framebuffer
     arch_early_init();                                          // initialise first arch stage
     page_allocator_init();                                      // initialise the page allocator
-    arch_swap_stack(page_allocate(1), PAGE);                    // allocate a new stack
+    arch_swap_stack(page_allocate(1), 1 * PAGE);                // allocate a new stack
     acpi_init();                                                // initialise the acpi
     arch_init();                                                // initialise second arch stage
     timers_init();                                              // initialise the timers
@@ -48,13 +48,14 @@ void _start(void)
     arch_late_init();                                           // initialise last arch stage
     vfs_init();                                                 // initialise the virtual filesystem
     ustar_init();                                               // initialise the initrd
+    task_scheduler_init();                                      // initialise the task scheduler
 
+    // load an executable from the initrd
     vfs_fs_node_t *hello_node = vfs_open("/initrd/hello.elf");
     elf_load_from(hello_node);
-    halt();
 
-    task_scheduler_init();         // initialise the task scheduler
     arch_bootstrap_ap_scheduler(); // let the application processors use the schedulers
+    task_scheduler_enable();       // enable the task scheduler
 
     halt();
 }
