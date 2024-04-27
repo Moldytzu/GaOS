@@ -15,7 +15,7 @@
 #define TABLE_ENTRY_ACCESSED (1 << 5)
 #define TABLE_ENTRY_DIRTY (1 << 6)
 #define TABLE_ENTRY_HUGE_PAGES (1 << 7)
-#define TABLE_ENTRY_NO_EXECUTE (1 << 63)
+#define TABLE_ENTRY_NO_EXECUTE (1ULL << 63)
 
 typedef struct
 {

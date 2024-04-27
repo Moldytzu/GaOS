@@ -11,7 +11,7 @@ ifunc void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
 {
     // note: address here is a page number, max physical address will be 40 + 12 = 52 bits (4096 TB!)
     *entry &= 0xFFF0000000000FFF; // clear old address field
-    *entry |= address << 12;      // put the new address
+    *entry |= address;            // put the new address
 }
 
 ifunc uint64_t arch_table_manager_get_address(uint64_t *entry)
@@ -22,6 +22,8 @@ ifunc uint64_t arch_table_manager_get_address(uint64_t *entry)
 ifunc arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_layer_t *layer, uint64_t index, uint64_t flags)
 {
     uint64_t *entry = &layer->entries[index]; // index next layer's entry
+
+    flags &= 0xFF; // drop the nx bit
 
     // allocate it if needed
     if (!(*entry & TABLE_ENTRY_PRESENT))
@@ -53,7 +55,7 @@ void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, 
 
     uint64_t *entry = &pml1->entries[p_index];
     *entry |= flags | TABLE_ENTRY_PRESENT;
-    arch_table_manager_set_address(entry, physical_address >> 12);
+    arch_table_manager_set_address(entry, physical_address);
 }
 
 arch_page_table_t *arch_table_manager_new(void)
