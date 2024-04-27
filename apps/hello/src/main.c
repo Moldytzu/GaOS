@@ -1,4 +1,7 @@
 int _start()
 {
-    return 80085;
+    while (1)
+        ;
+
+    return 0;
 }
