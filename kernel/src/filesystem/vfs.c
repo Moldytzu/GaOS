@@ -6,7 +6,7 @@
 #include <arch/arch.h>
 
 vfs_mount_point_t *mount_points;
-arch_spinlock_t mount_lock;
+spinlock_t mount_lock;
 
 void vfs_print_debug(void);
 
@@ -14,7 +14,7 @@ void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
 {
     // fixme: this should check if the name is already taken
 
-    arch_spinlock_acquire(&mount_lock);
+    spinlock_acquire(&mount_lock);
 
     size_t name_len = strlen((char *)name);
 
@@ -35,14 +35,14 @@ void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
 
     point->next = new_mount;
 
-    arch_spinlock_release(&mount_lock);
+    spinlock_release(&mount_lock);
 
     log_info("mounting %s on /%s", fs->name, name);
 }
 
 vfs_fs_node_t *vfs_open(const char *path)
 {
-    arch_spinlock_acquire(&mount_lock);
+    spinlock_acquire(&mount_lock);
 
     if (path == NULL)
     {
@@ -83,14 +83,14 @@ vfs_fs_node_t *vfs_open(const char *path)
         return NULL;
     }
 
-    arch_spinlock_release(&mount_lock);
+    spinlock_release(&mount_lock);
 
     return mount->fs->open(mount->fs, path + fsname_len + 1 /*skip /<filesystem name>*/);
 }
 
 void vfs_print_debug(void)
 {
-    arch_spinlock_acquire(&mount_lock);
+    spinlock_acquire(&mount_lock);
 
     vfs_mount_point_t *point = mount_points->next;
     while (point)
@@ -99,7 +99,7 @@ void vfs_print_debug(void)
         point = point->next;
     }
 
-    arch_spinlock_release(&mount_lock);
+    spinlock_release(&mount_lock);
 }
 
 void vfs_init(void)

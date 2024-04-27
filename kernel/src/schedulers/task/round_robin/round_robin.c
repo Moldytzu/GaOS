@@ -10,9 +10,9 @@
 #include <arch/arch.h>
 
 scheduler_context_t *last_context = NULL;
-arch_spinlock_t last_context_lock;
+spinlock_t last_context_lock;
 int last_id = 0;
-arch_spinlock_t last_id_lock;
+spinlock_t last_id_lock;
 
 /*
 
@@ -22,7 +22,7 @@ Operations with lists
 
 void debug_dump_queue(void)
 {
-    arch_spinlock_acquire(&last_id_lock);
+    spinlock_acquire(&last_id_lock);
     scheduler_context_t *context = arch_get_scheduler_context();
     scheduler_task_queue_t *queue = &context->running;
 
@@ -38,12 +38,12 @@ void debug_dump_queue(void)
 
     } while (task && task != queue->head);
 
-    arch_spinlock_release(&last_id_lock);
+    spinlock_release(&last_id_lock);
 }
 
 scheduler_task_t *task_scheduler_round_robin_pop_from_queue(scheduler_task_queue_t *queue)
 {
-    arch_spinlock_acquire(&queue->lock);
+    spinlock_acquire(&queue->lock);
 
     scheduler_task_t *to_pop = queue->head; // grab our candidate off the queue
 
@@ -61,13 +61,13 @@ scheduler_task_t *task_scheduler_round_robin_pop_from_queue(scheduler_task_queue
 
     // printk_serial("returning %p from %p", to_pop, queue);
 
-    arch_spinlock_release(&queue->lock);
+    spinlock_release(&queue->lock);
     return to_pop;
 }
 
 void task_scheduler_round_robin_push_to_queue(scheduler_task_queue_t *queue, scheduler_task_t *task)
 {
-    arch_spinlock_acquire(&queue->lock);
+    spinlock_acquire(&queue->lock);
 
     task->parent_queue = queue;
 
@@ -84,7 +84,7 @@ void task_scheduler_round_robin_push_to_queue(scheduler_task_queue_t *queue, sch
 
     // printk_serial("pushing %p to %p (%d new count)\n", task, queue, queue->count);
 
-    arch_spinlock_release(&queue->lock);
+    spinlock_release(&queue->lock);
 }
 
 /*
@@ -107,7 +107,7 @@ void task_scheduler_round_robin_install_context(void)
     new_context->cpu_id = arch_get_id();
 
     // add it in the chain
-    arch_spinlock_acquire(&last_context_lock);
+    spinlock_acquire(&last_context_lock);
     if (last_context)
     {
         last_context->next = new_context;
@@ -115,7 +115,7 @@ void task_scheduler_round_robin_install_context(void)
     }
 
     last_context = new_context;
-    arch_spinlock_release(&last_context_lock);
+    spinlock_release(&last_context_lock);
 
     // install the context
     arch_install_scheduler_context(new_context);
@@ -152,7 +152,7 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
 {
     // get our internal context
     scheduler_context_t *context = (scheduler_context_t *)arch_get_scheduler_context();
-    arch_spinlock_acquire(&context->running.lock);
+    spinlock_acquire(&context->running.lock);
     scheduler_task_t *current = context->running.current;
 
     // save state
@@ -162,7 +162,7 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     printk_serial("saved %d on %d\n", current->id, arch_get_id());
 
     // load new state
-    arch_spinlock_release(&context->running.lock);
+    spinlock_release(&context->running.lock);
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
 
     printk_serial("loading %d on %d\n", next_task->id, arch_get_id());
@@ -182,9 +182,9 @@ scheduler_task_t *task_scheduler_round_robin_create(const char *name)
     task->name_length = 8;
     task->empty = true;
 
-    arch_spinlock_acquire(&last_id_lock);
+    spinlock_acquire(&last_id_lock);
     task->id = ++last_id;
-    arch_spinlock_release(&last_id_lock);
+    spinlock_release(&last_id_lock);
 
     // find the least busy core
     size_t min = UINT64_MAX;

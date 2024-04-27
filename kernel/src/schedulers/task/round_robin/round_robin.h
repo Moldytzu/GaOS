@@ -26,7 +26,7 @@ struct scheduler_task_queue
     scheduler_task_t *current;
     scheduler_task_t *head;
     scheduler_task_t *last;
-    arch_spinlock_t lock;
+    spinlock_t lock;
     size_t count;
 };
 

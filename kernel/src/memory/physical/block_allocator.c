@@ -23,7 +23,7 @@ block_header_t *block_busy_list_start = NULL;
 uint64_t block_allocator_virtual_base = 0;
 uint64_t block_allocator_current_virtual_address = 0;
 
-arch_spinlock_t block_allocator_lock;
+spinlock_t block_allocator_lock;
 
 void *block_allocator_allocate_block(size_t pages)
 {
@@ -168,7 +168,7 @@ void *block_allocate(size_t size)
     if (size % 16) // round up size to next 16 (0x10)
         size += 16 - size % 16;
 
-    arch_spinlock_acquire(&block_allocator_lock);
+    spinlock_acquire(&block_allocator_lock);
 
     if (block_free_list_start == NULL)                      // no blocks available
         block_allocator_create_free_block(size / PAGE + 1); // create one that fits our needs
@@ -200,7 +200,7 @@ void *block_allocate(size_t size)
 
     block_allocator_move_to_busy_list(current_block); // mark it as busy
 
-    arch_spinlock_release(&block_allocator_lock);
+    spinlock_release(&block_allocator_lock);
 
     void *contents = (void *)((uint64_t)current_block + sizeof(block_header_t)); // point after header
     memset(contents, 0, size);                                                   // initialise memory
@@ -212,12 +212,12 @@ void block_deallocate(void *block)
     uint64_t block_virtual_address = (uint64_t)block;
     block_header_t *header = (block_header_t *)((uint64_t)block - sizeof(block_header_t));
 
-    arch_spinlock_acquire(&block_allocator_lock);
+    spinlock_acquire(&block_allocator_lock);
 
     if (block_allocator_virtual_base < block_virtual_address && block_virtual_address < block_allocator_current_virtual_address) // check if the block is in the expected memory region
         block_allocator_move_to_free_list(header);                                                                               // todo: maybe check for merge oportunities?
     else
         log_error("bogus deallocation of %p", header); // todo: print the caller instruction pointer
 
-    arch_spinlock_release(&block_allocator_lock);
+    spinlock_release(&block_allocator_lock);
 }

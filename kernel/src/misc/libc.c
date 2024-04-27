@@ -161,11 +161,11 @@ void printk_serial(const char *fmt, ...)
     va_end(list);
 }
 
-arch_spinlock_t printk_lock;
+spinlock_t printk_lock;
 
 void vprintk(const char *fmt, va_list list)
 {
-    arch_spinlock_acquire(&printk_lock);
+    spinlock_acquire(&printk_lock);
 
     char conversion_buffer[32];
     for (size_t i = 0; fmt[i]; i++)
@@ -201,12 +201,12 @@ void vprintk(const char *fmt, va_list list)
         i++;
     }
 
-    arch_spinlock_release(&printk_lock);
+    spinlock_release(&printk_lock);
 }
 
 void vprintk_serial(const char *fmt, va_list list)
 {
-    arch_spinlock_acquire(&printk_lock);
+    spinlock_acquire(&printk_lock);
 
     char conversion_buffer[32];
 
@@ -243,7 +243,7 @@ void vprintk_serial(const char *fmt, va_list list)
         i++;
     }
 
-    arch_spinlock_release(&printk_lock);
+    spinlock_release(&printk_lock);
 }
 
 noreturn void halt(void)

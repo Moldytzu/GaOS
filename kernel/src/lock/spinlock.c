@@ -1,8 +1,7 @@
+#include <lock/spinlock.h>
 #include <arch/arch.h>
 
-// fixme: this is portable, move out of arch
-
-void arch_spinlock_acquire(arch_spinlock_t *lock)
+void spinlock_acquire(spinlock_t *lock)
 {
     while (1)
     {
@@ -12,7 +11,7 @@ void arch_spinlock_acquire(arch_spinlock_t *lock)
     }
 }
 
-void arch_spinlock_release(arch_spinlock_t *lock)
+void spinlock_release(spinlock_t *lock)
 {
     __atomic_store_n(lock, 0, __ATOMIC_SEQ_CST);
 }

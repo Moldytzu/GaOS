@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <stdnoreturn.h>
 #include <config.h>
+#include <lock/spinlock.h>
 
 #define iasm asm volatile
 #define ifunc static inline __attribute__((always_inline))

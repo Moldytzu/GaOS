@@ -17,7 +17,7 @@ bool arch_is_bsp(void)
     return arch_get_id() == arch_bsp_id;
 }
 
-arch_spinlock_t arch_smp_bootstrap_lock, arch_smp_enable_scheduler_lock;
+spinlock_t arch_smp_bootstrap_lock, arch_smp_enable_scheduler_lock;
 void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
 {
     (void)smp_info;
@@ -29,9 +29,9 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
     arch_xapic_timer_init();
     arch_idt_load(&arch_global_idtr);
 
-    arch_spinlock_release(&arch_smp_bootstrap_lock); // release the lock to indicate that we're ready
+    spinlock_release(&arch_smp_bootstrap_lock); // release the lock to indicate that we're ready
 
-    arch_spinlock_wait_for(&arch_smp_enable_scheduler_lock); // wait for the scheduler to be enabled
+    spinlock_wait_for(&arch_smp_enable_scheduler_lock); // wait for the scheduler to be enabled
 
     task_scheduler_install_context();
     task_scheduler_enable();
@@ -41,7 +41,7 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
 
 int arch_bootstrap_ap_limine(void)
 {
-    arch_spinlock_acquire(&arch_smp_enable_scheduler_lock); // lock the scheduler enable
+    spinlock_acquire(&arch_smp_enable_scheduler_lock); // lock the scheduler enable
 
     arch_processor_count = kernel_smp_request.response->cpu_count;
     arch_bsp_id = kernel_smp_request.response->bsp_lapic_id;
@@ -52,9 +52,9 @@ int arch_bootstrap_ap_limine(void)
         if (cpus[i]->lapic_id == arch_bsp_id) // ignore the bsp (this processor)
             continue;
 
-        arch_spinlock_acquire(&arch_smp_bootstrap_lock);     // lock
+        spinlock_acquire(&arch_smp_bootstrap_lock);          // lock
         cpus[i]->goto_address = arch_bootstrap_entry_limine; // wake up the processor
-        arch_spinlock_wait_for(&arch_smp_bootstrap_lock);    // wait for the processor to unlock
+        spinlock_wait_for(&arch_smp_bootstrap_lock);         // wait for the processor to unlock
     }
 
     arch_aps_online = arch_processor_count > 1; // mark application processors as online if there are some
@@ -69,5 +69,5 @@ int arch_bootstrap_ap(void)
 
 void arch_bootstrap_ap_scheduler(void)
 {
-    arch_spinlock_release(&arch_smp_enable_scheduler_lock);
+    spinlock_release(&arch_smp_enable_scheduler_lock);
 }
