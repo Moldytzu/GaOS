@@ -7,10 +7,10 @@
 
 // displays the address if possible
 #define PRINT_TRACE_IF_POSSIBLE(x)                           \
-    if ((uint64_t)STACK_TRACE_WALK(x) <= kernel_hhdm_offset) \
+    if ((uint64_t)STACK_TRACE_WALK(x) <= 0xFFFFFFFF80000000) \
         halt();                                              \
-    printk("Trace %d: 0x%p\n", x, STACK_TRACE_WALK(x));      \
-    printk_serial("Trace %d: 0x%p\n", x, STACK_TRACE_WALK(x));
+    printk("Trace %d: %p\n", x, STACK_TRACE_WALK(x));        \
+    printk_serial("Trace %d: %p\n", x, STACK_TRACE_WALK(x));
 
 noreturn void panic(const char *fmt, ...)
 {
