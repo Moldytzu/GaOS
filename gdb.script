@@ -1,3 +1,14 @@
+# macros for easy debugging
+define c 
+  continue
+  refresh
+end
+
+define n
+  next
+  refresh
+end
+
 # prepare interface for assembly
 layout asm
 tui reg all
