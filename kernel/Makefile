@@ -20,6 +20,10 @@ CFLAGS += \
     -Wall \
     -Wextra \
     -Werror \
+    -Wlogical-op \
+    -Waggregate-return \
+    -Wstrict-prototypes \
+    -fno-omit-frame-pointer \
     -std=gnu11 \
     -ffreestanding \
     -fno-stack-protector \
