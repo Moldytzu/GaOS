@@ -161,8 +161,12 @@ void printk_serial(const char *fmt, ...)
     va_end(list);
 }
 
+arch_spinlock_t printk_lock;
+
 void vprintk(const char *fmt, va_list list)
 {
+    arch_spinlock_acquire(&printk_lock);
+
     char conversion_buffer[32];
     for (size_t i = 0; fmt[i]; i++)
     {
@@ -180,6 +184,7 @@ void vprintk(const char *fmt, va_list list)
             break;
         case 'x': // hex
         case 'p': // pointer
+            framebuffer_write_string("0x");
             num_to_string(va_arg(list, uint64_t), conversion_buffer, 32, 16);
             framebuffer_write_string(conversion_buffer);
             break;
@@ -195,10 +200,14 @@ void vprintk(const char *fmt, va_list list)
 
         i++;
     }
+
+    arch_spinlock_release(&printk_lock);
 }
 
 void vprintk_serial(const char *fmt, va_list list)
 {
+    arch_spinlock_acquire(&printk_lock);
+
     char conversion_buffer[32];
 
     for (size_t i = 0; fmt[i]; i++)
@@ -217,6 +226,7 @@ void vprintk_serial(const char *fmt, va_list list)
             break;
         case 'x': // hex
         case 'p': // pointer
+            serial_send_string("0x");
             num_to_string(va_arg(list, uint64_t), conversion_buffer, 32, 16);
             serial_send_string(conversion_buffer);
             break;
@@ -232,9 +242,11 @@ void vprintk_serial(const char *fmt, va_list list)
 
         i++;
     }
+
+    arch_spinlock_release(&printk_lock);
 }
 
-noreturn void halt()
+noreturn void halt(void)
 {
     iasm("cli");
     iasm("hlt");
