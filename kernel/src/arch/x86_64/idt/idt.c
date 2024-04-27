@@ -22,7 +22,7 @@ uint16_t interrupts_vector_base = 0x20;
 arch_idtr_t arch_global_idtr;
 extern void *arch_isr_handlers[]; // array of handlers
 
-static uint64_t __attribute__((noinline)) arch_read_cr2()
+static uint64_t __attribute__((noinline)) arch_read_cr2(void)
 {
     uint64_t value = 0;
     iasm("mov %%cr2, %0" ::"r"(value));
@@ -41,18 +41,18 @@ void arch_isr_handler(arch_cpu_state_t *state, uint64_t interrupt_number)
         {
             uint32_t error = state->error;
             uint64_t cr2 = arch_read_cr2();
-            if (cr2 == 0)
-                panic("Null dereference at 0x%x", state->rip);
+            if (cr2 < 0x1000)
+                panic("Null dereference at %x", state->rip);
             else
-                panic("Page Fault caused by %s page, on a %s in %s of 0x%x at 0x%x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", cr2, state->rip);
+                panic("Page Fault caused by %s page, on a %s in %s of %x at %x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", cr2, state->rip);
         }
         else
-            panic("Exception 0x%x at 0x%x", interrupt_number, state->rip);
+            panic("Exception %x at %x", interrupt_number, state->rip);
     }
     else
     {
         // handle interrupt
-        log_info("Interrupt 0x%x at 0x%p in %s", interrupt_number, state->rip, state->cs == 0x10 ? "kernel-mode" : "user-mode");
+        log_info("Interrupt %x at %p in %s", interrupt_number, state->rip, state->cs == 0x10 ? "kernel-mode" : "user-mode");
     }
 }
 
@@ -70,7 +70,7 @@ void arch_interrupts_map_vector(uint64_t vector, void *handler)
     gate->attributes = 0xEE;        // set gate type to 64-bit interrupt, dpl to 3 and present bit
 }
 
-void arch_interrupts_init()
+void arch_interrupts_init(void)
 {
     arch_global_idtr.offset = (uint64_t)page_allocate(1);
     arch_global_idtr.size = 0xFF * sizeof(arch_idt_gate_descriptor_t) - 1;
@@ -83,7 +83,7 @@ void arch_interrupts_init()
     arch_interrupts_enable();
 }
 
-uint16_t arch_interrupts_reserve_kernel_vector()
+uint16_t arch_interrupts_reserve_kernel_vector(void)
 {
     return interrupts_vector_base++;
 }
