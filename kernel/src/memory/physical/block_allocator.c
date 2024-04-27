@@ -113,18 +113,18 @@ void block_allocator_dump_list(block_header_t *list_start)
 
     while (current_block)
     {
-        printk_serial("range 0x%p-0x%p size %d B (~%d KB)\n", (uint64_t)current_block + sizeof(block_header_t), (uint64_t)current_block + sizeof(block_header_t) + current_block->size, current_block->size, current_block->size / 1024);
+        printk_serial("range %p-%p size %d B (~%d KB)\n", (uint64_t)current_block + sizeof(block_header_t), (uint64_t)current_block + sizeof(block_header_t) + current_block->size, current_block->size, current_block->size / 1024);
         current_block = current_block->next;
     }
 }
 
-void block_allocator_dump_free_list()
+void block_allocator_dump_free_list(void)
 {
     printk_serial("dumping free list\n");
     block_allocator_dump_list(block_free_list_start);
 }
 
-void block_allocator_dump_busy_list()
+void block_allocator_dump_busy_list(void)
 {
     printk_serial("dumping busy list\n");
     block_allocator_dump_list(block_busy_list_start);
@@ -132,7 +132,7 @@ void block_allocator_dump_busy_list()
 
 extern struct limine_memmap_entry **memory_map_entries; // page_allocator.c
 extern size_t memory_map_entries_count;
-void block_allocator_find_lowest_free_virtual_address_limine()
+void block_allocator_find_lowest_free_virtual_address_limine(void)
 {
     // we want to find the highest address that's mapped
     // it's guranteed that the whole memory map is mapped
@@ -145,10 +145,10 @@ void block_allocator_find_lowest_free_virtual_address_limine()
     block_allocator_virtual_base = block_allocator_current_virtual_address = highest_entry->base + highest_entry->length + kernel_hhdm_offset;
 }
 
-void block_allocator_init()
+void block_allocator_init(void)
 {
     block_allocator_find_lowest_free_virtual_address_limine();
-    log_info("using virtual base 0x%p", block_allocator_virtual_base);
+    log_info("using virtual base %p", block_allocator_virtual_base);
 }
 
 void *block_allocate(size_t size)
@@ -200,6 +200,8 @@ void *block_allocate(size_t size)
 
 void block_deallocate(void *block)
 {
+    return;
+    // fixme: this is broken
     uint64_t block_virtual_address = (uint64_t)block;
     block_header_t *header = (block_header_t *)((uint64_t)block - sizeof(block_header_t));
 

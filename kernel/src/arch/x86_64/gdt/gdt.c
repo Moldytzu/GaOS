@@ -8,7 +8,7 @@
 
 extern void arch_gdt_load(gdtr_t *);
 
-void arch_load_gdt()
+void arch_load_gdt(void)
 {
     gdt_info_t *info = page_allocate(1);
 

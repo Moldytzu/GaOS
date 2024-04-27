@@ -11,16 +11,16 @@ arch_idtr_t;
 
 extern arch_idtr_t arch_global_idtr;
 extern void arch_idt_load(arch_idtr_t *);
-void arch_interrupts_init();
+void arch_interrupts_init(void);
 void arch_interrupts_map_vector(uint64_t vector, void *handler);
-uint16_t arch_interrupts_reserve_kernel_vector();
+uint16_t arch_interrupts_reserve_kernel_vector(void);
 
-ifunc void arch_interrupts_enable()
+ifunc void arch_interrupts_enable(void)
 {
     iasm("sti");
 }
 
-ifunc void arch_interrupts_disable()
+ifunc void arch_interrupts_disable(void)
 {
     iasm("cli");
 }

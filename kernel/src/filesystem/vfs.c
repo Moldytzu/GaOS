@@ -8,7 +8,7 @@
 vfs_mount_point_t *mount_points;
 arch_spinlock_t mount_lock;
 
-void vfs_print_debug();
+void vfs_print_debug(void);
 
 void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
 {
@@ -88,7 +88,7 @@ vfs_fs_node_t *vfs_open(const char *path)
     return mount->fs->open(mount->fs, path + fsname_len + 1 /*skip /<filesystem name>*/);
 }
 
-void vfs_print_debug()
+void vfs_print_debug(void)
 {
     arch_spinlock_acquire(&mount_lock);
 
@@ -102,7 +102,7 @@ void vfs_print_debug()
     arch_spinlock_release(&mount_lock);
 }
 
-void vfs_init()
+void vfs_init(void)
 {
     mount_points = block_allocate(sizeof(vfs_mount_point_t));
 }

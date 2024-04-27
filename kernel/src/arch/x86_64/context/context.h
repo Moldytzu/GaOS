@@ -10,10 +10,11 @@ typedef struct align_addr(16)
 
     // internal tables
     gdt_info_t *gdt;
-} arch_cpu_context_t;
+}
+arch_cpu_context_t;
 
-arch_cpu_context_t *arch_context_install();
+arch_cpu_context_t *arch_context_install(void);
 void *arch_install_scheduler_context(void *context);
 
-arch_cpu_context_t *arch_get_cpu_context();
-void *arch_get_scheduler_context();
+arch_cpu_context_t *arch_get_cpu_context(void);
+void *arch_get_scheduler_context(void);

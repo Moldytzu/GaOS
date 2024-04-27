@@ -66,7 +66,7 @@ acpi_sdt_header_t *acpi_get_table(char *signature)
 
 uint8_t acpi_revision;
 
-void acpi_init()
+void acpi_init(void)
 {
     sdp = (acpi_xsdp_t *)kernel_rsdp_request.response->address;
 

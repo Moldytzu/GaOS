@@ -15,7 +15,7 @@
 #define COM_PORT_MODEM_STATUS (COM_PORT_BASE + 6)
 #define COM_PORT_SCRATCH_REGISTER (COM_PORT_BASE + 7)
 
-void uart16550_init()
+void uart16550_init(void)
 {
     // set baud rate divisor to 1 (115200 baud)
     uint16_t divisor = 1;
@@ -37,7 +37,7 @@ void uart16550_init()
     log_info("initialised");
 }
 
-static bool uart16550_can_send()
+static bool uart16550_can_send(void)
 {
     return arch_pio_read8(COM_PORT_LINE_STATUS) & 0b100000; // check if transmission buffer is empty
 }

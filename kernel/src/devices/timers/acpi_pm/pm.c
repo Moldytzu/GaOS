@@ -64,7 +64,7 @@ acpi_fadt_t;
 
 acpi_fadt_t *acpi_fadt;
 
-uint64_t acpi_pm_timer_read_nanoseconds()
+uint64_t acpi_pm_timer_read_nanoseconds(void)
 {
     uint64_t ticks = 0, nanoseconds = 0;
 
@@ -87,7 +87,7 @@ uint64_t acpi_pm_timer_read_nanoseconds()
     return nanoseconds;
 }
 
-void acpi_pm_timer_init()
+void acpi_pm_timer_init(void)
 {
     acpi_fadt = (acpi_fadt_t *)acpi_get_table("FACP");
 

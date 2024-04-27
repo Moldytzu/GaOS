@@ -8,12 +8,12 @@
 #define MSR_GS_KERNEL_BASE 0xC0000102
 #define CONTEXT_TYPE_SCHEDULER 1ULL
 
-void *arch_get_current_context()
+void *arch_get_current_context(void)
 {
     return (void *)rdmsr(MSR_GS_BASE);
 }
 
-arch_cpu_context_t *arch_get_cpu_context()
+arch_cpu_context_t *arch_get_cpu_context(void)
 {
     arch_cpu_context_t *context = arch_get_current_context();
     if (context == NULL || (uint64_t)context & CONTEXT_TYPE_SCHEDULER) // first bit in context address describes the type
@@ -22,7 +22,7 @@ arch_cpu_context_t *arch_get_cpu_context()
     return arch_get_current_context();
 }
 
-arch_cpu_context_t *arch_context_install()
+arch_cpu_context_t *arch_context_install(void)
 {
     // gdt is a requirement for this
 
@@ -43,7 +43,7 @@ void *arch_install_scheduler_context(void *context)
     return context;
 }
 
-void *arch_get_scheduler_context()
+void *arch_get_scheduler_context(void)
 {
     void *context = arch_get_current_context();
     if (!context)

@@ -3,7 +3,7 @@
 #ifdef ARCH_x86_64
 #include <devices/serial/uart16550/uart.h>
 
-void serial_init()
+void serial_init(void)
 {
     uart16550_init();
 }
@@ -21,7 +21,7 @@ void serial_send_string(char *string)
 #else
 #pragma message "This architecture doesn't support serial"
 
-void serial_init()
+void serial_init(void)
 {
 }
 

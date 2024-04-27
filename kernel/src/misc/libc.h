@@ -27,7 +27,7 @@ void vprintk_serial(const char *fmt, va_list list);
 void printk(const char *fmt, ...);
 void printk_serial(const char *fmt, ...);
 
-noreturn void halt();
+noreturn void halt(void);
 
 ifunc void zero64(uint64_t *s, size_t n)
 {

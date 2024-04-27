@@ -29,5 +29,5 @@ pstruct
 acpi_gas_t;
 
 extern uint8_t acpi_revision;
-void acpi_init();
+void acpi_init(void);
 acpi_sdt_header_t *acpi_get_table(char *signature);

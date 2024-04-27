@@ -107,7 +107,7 @@ void framebuffer_write_string(char *string)
         framebuffer_write_character(*string++);
 }
 
-void framebuffer_init()
+void framebuffer_init(void)
 {
     // generate the framebuffer structure
     if (!framebuffer_generate_structure_from_limine(&main_framebuffer))

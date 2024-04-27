@@ -1,3 +1,3 @@
 #pragma once
 
-extern void arch_simd_enable();
+extern void arch_simd_enable(void);

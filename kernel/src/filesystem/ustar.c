@@ -135,7 +135,7 @@ void ustar_close(vfs_fs_node_t *node)
     block_deallocate(ustar_node);
 }
 
-void ustar_debug_print()
+void ustar_debug_print(void)
 {
     ustar_header_t *header = (ustar_header_t *)((uint64_t)initrd + TAR_HEADER_SIZE);
 
@@ -162,7 +162,7 @@ void ustar_debug_print()
 
 vfs_fs_ops_t ustar;
 
-void ustar_init()
+void ustar_init(void)
 {
     // todo: we should create a device namespace
     // that can be called to get the required module

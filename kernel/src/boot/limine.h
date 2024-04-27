@@ -11,4 +11,4 @@ extern volatile struct limine_smp_request kernel_smp_request;
 extern uint64_t kernel_hhdm_offset;
 
 struct limine_file *limine_get_module(const char *path);
-void limine_init();
+void limine_init(void);

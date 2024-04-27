@@ -65,7 +65,7 @@ struct limine_file *limine_get_module(const char *path)
     return NULL;
 }
 
-void limine_init()
+void limine_init(void)
 {
     if (LIMINE_BASE_REVISION_SUPPORTED == false) // check if the bootloader supports what we request
         halt();

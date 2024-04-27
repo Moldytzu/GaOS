@@ -36,6 +36,6 @@ struct vfs_mount_point
 
 typedef struct vfs_mount_point vfs_mount_point_t;
 
-void vfs_init();
+void vfs_init(void);
 void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs);
 vfs_fs_node_t *vfs_open(const char *path);

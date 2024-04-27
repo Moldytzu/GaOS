@@ -31,5 +31,5 @@ ifunc void arch_table_manager_switch_to(arch_page_table_t *table)
 }
 
 void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags);
-void arch_table_manager_init();
-arch_page_table_t *arch_table_manager_new();
+void arch_table_manager_init(void);
+arch_page_table_t *arch_table_manager_new(void);

@@ -20,12 +20,12 @@
 
 #define XAPIC_BASE (0xFEE00000)
 
-uint64_t arch_get_id();
-void arch_xapic_init();
-void arch_kill_ap();
+uint64_t arch_get_id(void);
+void arch_xapic_init(void);
+void arch_kill_ap(void);
 void arch_xapic_write(uint64_t offset, uint32_t value);
 uint32_t arch_xapic_read(uint64_t offset);
-ifunc void arch_xapic_eoi()
+ifunc void arch_xapic_eoi(void)
 {
     arch_xapic_write(XAPIC_REG_EOI, 0);
 }

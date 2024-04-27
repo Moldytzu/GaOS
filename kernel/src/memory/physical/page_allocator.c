@@ -25,7 +25,7 @@ page_allocator_pool_t allocator_pools[128];
 size_t allocator_pool_index = 0;
 arch_spinlock_t page_allocator_lock;
 
-static void page_allocator_create_pools_limine()
+static void page_allocator_create_pools_limine(void)
 {
     memory_map_entries = kernel_memmap_request.response->entries;
     memory_map_entries_count = kernel_memmap_request.response->entry_count;
@@ -60,7 +60,7 @@ static void page_allocator_create_pools_limine()
     }
 }
 
-void page_allocator_init()
+void page_allocator_init(void)
 {
     page_allocator_create_pools_limine();
 

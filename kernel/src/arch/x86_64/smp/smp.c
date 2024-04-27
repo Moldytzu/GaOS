@@ -12,7 +12,7 @@
 size_t arch_processor_count, arch_bsp_id;
 bool arch_aps_online;
 
-bool arch_is_bsp()
+bool arch_is_bsp(void)
 {
     return arch_get_id() == arch_bsp_id;
 }
@@ -24,7 +24,7 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
 
     arch_load_gdt();
     arch_table_manager_switch_to(arch_bootstrap_page_table);
-    arch_swap_stack(page_allocate(1), PAGE);
+    arch_swap_stack(page_allocate(1), 1 * PAGE);
     arch_xapic_init();
     arch_xapic_timer_init();
     arch_idt_load(&arch_global_idtr);
@@ -39,7 +39,7 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
     halt();
 }
 
-int arch_bootstrap_ap_limine()
+int arch_bootstrap_ap_limine(void)
 {
     arch_spinlock_acquire(&arch_smp_enable_scheduler_lock); // lock the scheduler enable
 
@@ -62,12 +62,12 @@ int arch_bootstrap_ap_limine()
     return arch_processor_count - 1;
 }
 
-int arch_bootstrap_ap()
+int arch_bootstrap_ap(void)
 {
     return arch_bootstrap_ap_limine();
 }
 
-void arch_bootstrap_ap_scheduler()
+void arch_bootstrap_ap_scheduler(void)
 {
     arch_spinlock_release(&arch_smp_enable_scheduler_lock);
 }

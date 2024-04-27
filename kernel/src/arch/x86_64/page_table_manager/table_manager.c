@@ -56,12 +56,12 @@ void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, 
     arch_table_manager_set_address(entry, physical_address >> 12);
 }
 
-arch_page_table_t *arch_table_manager_new()
+arch_page_table_t *arch_table_manager_new(void)
 {
     return page_allocate(1);
 }
 
-void arch_table_manager_create_bootstrap_table_limine()
+void arch_table_manager_create_bootstrap_table_limine(void)
 {
     arch_bootstrap_page_table = arch_table_manager_new();
 
@@ -95,7 +95,7 @@ void arch_table_manager_create_bootstrap_table_limine()
     }
 }
 
-void arch_table_manager_init()
+void arch_table_manager_init(void)
 {
     arch_table_manager_create_bootstrap_table_limine();
     arch_table_manager_switch_to(arch_bootstrap_page_table);
