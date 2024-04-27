@@ -43,10 +43,19 @@ void block_allocator_push_block(block_header_t **list, block_header_t *block)
 {
     block->next = block->previous = NULL; // make sure the links aren't present
 
-    if (*list) // link next block if the list has any blocks
-        block->next = *list;
+    if (*list) // if the list exists
+    {
+        // point to the last block
+        block_header_t *current = *list;
+        while (current->next)
+            current = current->next;
 
-    *list = block; // make this block the head (start)
+        // add the block to the last block
+        block->previous = current->next;
+        current->next = block;
+    }
+    else
+        *list = block; // make the list the block itself
 }
 
 void block_allocator_remove_block_from_list(block_header_t *block)
@@ -200,8 +209,6 @@ void *block_allocate(size_t size)
 
 void block_deallocate(void *block)
 {
-    return;
-    // fixme: this is broken
     uint64_t block_virtual_address = (uint64_t)block;
     block_header_t *header = (block_header_t *)((uint64_t)block - sizeof(block_header_t));
 
