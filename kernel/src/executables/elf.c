@@ -89,18 +89,22 @@ bool elf_load_from(vfs_fs_node_t *node)
         }
     }
 
+    // create a small stack for it
+    uint64_t stack_base = base_address - PAGE;                                                                             // we want it to be just under the executable
+    arch_table_manager_map(page_table, stack_base, (uint64_t)page_allocate(1), TABLE_ENTRY_USER | TABLE_ENTRY_READ_WRITE); // fixme: make this non-executable
+
     // create a task for it
     scheduler_task_t *new_task = task_scheduler_create(node->path);
 
 #ifdef ARCH_x86_64
     new_task->state.cr3 = (uint64_t)page_table - kernel_hhdm_offset; // cr3 has to be a physical address
-    new_task->state.rip = (uint64_t)elf_header.e_entry;
-    new_task->state.rflags = 0x202; // enable interrupts
-    new_task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
+    new_task->state.rip = (uint64_t)elf_header.e_entry;              // point to the designated entry point
+    new_task->state.rflags = 0x202;                                  // enable interrupts
+    new_task->state.rsp = stack_base + PAGE;                         // point to the stack (on x86_64 the stack grows down)
 
-    // point to kernel-space segements
-    new_task->state.cs = 8 * 2 | 0;
-    new_task->state.ss = 8 * 1 | 0;
+    // point to userspace segements
+    new_task->state.cs = 8 * 4 | 3;
+    new_task->state.ss = 8 * 3 | 3;
 #endif
 
     new_task->empty = false;
