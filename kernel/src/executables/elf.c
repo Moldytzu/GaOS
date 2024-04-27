@@ -6,6 +6,7 @@
 #include <memory/physical/block_allocator.h>
 #include <memory/physical/page_allocator.h>
 #include <arch/arch.h>
+#include <schedulers/task/task.h>
 
 bool elf_load_from(vfs_fs_node_t *node)
 {
@@ -20,7 +21,7 @@ bool elf_load_from(vfs_fs_node_t *node)
         goto fail;
     }
 
-    if (elf_header.e_ident[4] != 2)
+    if (elf_header.e_ident[4] != ELFDATA2MSB)
     {
         log_error("failed to load executable with unsupported object size");
         goto fail;
@@ -52,7 +53,7 @@ bool elf_load_from(vfs_fs_node_t *node)
             base_address = program_header.p_vaddr;
     }
 
-    log_info("base of %s is 0x%p", node->path, base_address);
+    log_info("base of %s is %p", node->path, base_address);
 
     // read each program header in memory while mapping in the addressing space
     arch_page_table_t *page_table = arch_table_manager_new();
@@ -88,13 +89,21 @@ bool elf_load_from(vfs_fs_node_t *node)
         }
     }
 
-    arch_table_manager_switch_to(page_table);
-    int (*entry)() = (int (*)())(void *)elf_header.e_entry;
+    // create a task for it
+    scheduler_task_t *new_task = task_scheduler_create(node->path);
 
-    log_info("%s returned %d", node->path, entry());
+#ifdef ARCH_x86_64
+    new_task->state.cr3 = (uint64_t)page_table - kernel_hhdm_offset; // cr3 has to be a physical address
+    new_task->state.rip = (uint64_t)elf_header.e_entry;
+    new_task->state.rflags = 0x202; // enable interrupts
+    new_task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
 
-    while (1)
-        ;
+    // point to kernel-space segements
+    new_task->state.cs = 8 * 2 | 0;
+    new_task->state.ss = 8 * 1 | 0;
+#endif
+
+    new_task->empty = false;
 
     node->fs->close(node); // close the node
     return true;
