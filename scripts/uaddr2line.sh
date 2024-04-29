@@ -1,0 +1,1 @@
+./toolchain/x86_64/kernel/bin/x86_64-elf-addr2line -f -p -e ./apps/$1/bin/$1.elf -a $2
