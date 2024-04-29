@@ -159,13 +159,13 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     arch_save_simd_state(&current->simd_state);
     memcpy(&current->state, state, sizeof(arch_cpu_state_t));
 
-    printk_serial("saved %d on %d\n", current->id, arch_get_id());
+    printk_serial("saved %s (%d) on %d\n", current->name, current->id, arch_get_id());
 
     // load new state
     spinlock_release(&context->running.lock);
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
 
-    printk_serial("loading %d on %d\n", next_task->id, arch_get_id());
+    printk_serial("loading %s (%d) on %d\n", next_task->name, next_task->id, arch_get_id());
     // debug_dump_queue();
 
     arch_restore_simd_state(&next_task->simd_state);
@@ -175,12 +175,15 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
 
 scheduler_task_t *task_scheduler_round_robin_create(const char *name)
 {
-    // todo: allocate and copy name
-    (void)name;
     scheduler_task_t *task = block_allocate(sizeof(scheduler_task_t));
-    task->name = "new task";
-    task->name_length = 8;
-    task->empty = true;
+
+    // allocate and copy name
+    size_t name_len = strlen((char *)name);
+    task->name = block_allocate(name_len);
+    task->name_length = name_len;
+    memcpy(task->name, name, name_len);
+
+    task->empty = true; // mark as an empty task (i.e. not tied to an executable)
 
     spinlock_acquire(&last_id_lock);
     task->id = ++last_id;
