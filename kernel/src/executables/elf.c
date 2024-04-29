@@ -91,7 +91,7 @@ bool elf_load_from(vfs_fs_node_t *node)
 
     // create a small stack for it
     uint64_t stack_base = base_address - PAGE; // we want it to be just under the executable
-    arch_table_manager_map(page_table, stack_base, (uint64_t)page_allocate(1), TABLE_ENTRY_USER | TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_NO_EXECUTE);
+    arch_table_manager_map(page_table, stack_base, (uint64_t)page_allocate(1) - kernel_hhdm_offset, TABLE_ENTRY_USER | TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_NO_EXECUTE);
 
     // create a task for it
     scheduler_task_t *new_task = task_scheduler_create(node->path);
