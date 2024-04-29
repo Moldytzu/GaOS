@@ -8,6 +8,7 @@
 #include <arch/x86_64/timers/hpet.h>
 #include <arch/x86_64/timers/tsc.h>
 #include <arch/x86_64/timers/xapic.h>
+#include <arch/x86_64/syscall/syscall.h>
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
 
@@ -24,6 +25,7 @@ void arch_init(void)
     arch_xapic_init();
     arch_hpet_init();
     arch_tsc_init();
+    arch_syscall_init();
 }
 
 void arch_late_init(void)

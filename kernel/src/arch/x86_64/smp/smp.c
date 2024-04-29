@@ -3,6 +3,7 @@
 
 #include <arch/arch.h>
 #include <arch/x86_64/timers/xapic.h>
+#include <arch/x86_64/syscall/syscall.h>
 #include <acpi/acpi.h>
 #include <misc/libc.h>
 #include <boot/limine.h>
@@ -28,6 +29,7 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
     arch_xapic_init();
     arch_xapic_timer_init();
     arch_idt_load(&arch_global_idtr);
+    arch_syscall_init();
 
     spinlock_release(&arch_smp_bootstrap_lock); // release the lock to indicate that we're ready
 
