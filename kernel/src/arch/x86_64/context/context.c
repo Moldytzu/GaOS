@@ -28,6 +28,7 @@ arch_cpu_context_t *arch_context_install(void)
         panic("arch context too big");
 
     arch_cpu_context_t *context = page_allocate(1);
+    context->syscall_stack_top = (uint64_t)page_allocate(1) + PAGE;
     wrmsr(MSR_GS_BASE, (uint64_t)context); // kernel context
     wrmsr(MSR_GS_KERNEL_BASE, 0);          // scheduler context
 

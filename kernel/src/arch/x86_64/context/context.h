@@ -5,6 +5,8 @@
 typedef struct align_addr(16)
 {
     uint64_t context_type;
+    uint64_t syscall_stack_top;
+    uint64_t old_user_stack;
 
     // cpu identification
     uint64_t cpu_id;
