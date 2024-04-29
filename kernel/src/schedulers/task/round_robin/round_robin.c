@@ -159,14 +159,14 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     arch_save_simd_state(&current->simd_state);
     memcpy(&current->state, state, sizeof(arch_cpu_state_t));
 
-    printk_serial("saved %s (%d) on %d\n", current->name, current->id, arch_get_id());
+    // printk_serial("saved %s (%d) on %d\n", current->name, current->id, arch_get_id());
 
     // load new state
     spinlock_release(&context->running.lock);
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
 
-    printk_serial("loading %s (%d) on %d\n", next_task->name, next_task->id, arch_get_id());
-    // debug_dump_queue();
+    // printk_serial("loading %s (%d) on %d\n", next_task->name, next_task->id, arch_get_id());
+    //  debug_dump_queue();
 
     arch_restore_simd_state(&next_task->simd_state);
     clock_preemption_timer.schedule_one_shot();

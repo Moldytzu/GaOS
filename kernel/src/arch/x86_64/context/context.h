@@ -4,12 +4,15 @@
 
 typedef struct align_addr(16)
 {
+    uint64_t context_type;
+
     // cpu identification
     uint64_t cpu_id;
     bool is_bsp;
 
     // internal tables
     gdt_info_t *gdt;
+    void *scheduler_context;
 }
 arch_cpu_context_t;
 
