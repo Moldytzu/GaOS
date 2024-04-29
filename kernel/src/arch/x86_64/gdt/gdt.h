@@ -49,8 +49,8 @@ pstruct
 {
     gdtr_t gdtr;
     gdt_segment_t null align_addr(16);
-    gdt_segment_t kernel_data;
     gdt_segment_t kernel_code;
+    gdt_segment_t kernel_data;
     gdt_segment_t user_data;
     gdt_segment_t user_code;
     gdt_system_segment_t tss_segment;

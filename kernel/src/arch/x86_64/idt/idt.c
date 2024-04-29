@@ -65,7 +65,7 @@ void arch_interrupts_map_vector(uint64_t vector, void *handler)
     gate->offset2 = (uint64_t)handler >> 16;
     gate->offset3 = (uint64_t)handler >> 32;
 
-    gate->segment_selector = 8 * 2; // kernel code
+    gate->segment_selector = 8 * 1; // kernel code
     gate->ist = 1;                  // set the ist
     gate->attributes = 0xEE;        // set gate type to 64-bit interrupt, dpl to 3 and present bit
 }

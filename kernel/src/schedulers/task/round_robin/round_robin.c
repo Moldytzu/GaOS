@@ -133,8 +133,8 @@ void task_scheduler_round_robin_install_context(void)
     task->state.rsp = (uint64_t)page_allocate(1) + PAGE;
 
     // point to kernel-space segements
-    task->state.cs = 8 * 2 | 0;
-    task->state.ss = 8 * 1 | 0;
+    task->state.cs = 8 * 1 | 0;
+    task->state.ss = 8 * 2 | 0;
 #endif
 
     task_scheduler_round_robin_push_to_queue(&new_context->running, task); // add it in the list
