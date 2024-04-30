@@ -4,7 +4,7 @@ uint64_t _syscall(uint64_t number, uint64_t param1, uint64_t param2, uint64_t pa
 
 int _start()
 {
-    _syscall(1, 2, 3, 4, 5, 6);
+    _syscall(0, 1, 2, 3, 4, 5);
     while (1)
         ;
     return 0;

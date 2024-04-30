@@ -11,13 +11,6 @@
 
 extern void arch_syscall_entry(void);
 
-uint64_t arch_syscall_handler(uint64_t param1, uint64_t param2, uint64_t param3, uint64_t number, uint64_t param4, uint64_t param5)
-{
-    log_info("number %d: %p %p %p %p %p", number, param1, param2, param3, param4, param5);
-
-    return 1;
-}
-
 void arch_syscall_init(void)
 {
     // enable sysret/syscall

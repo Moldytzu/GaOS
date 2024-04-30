@@ -3,13 +3,16 @@ bits 64
 section .text
 
 global arch_syscall_entry
-extern arch_syscall_handler
+extern syscall_handlers, syscall_count
 
 arch_syscall_entry:
-    ; first, swap the stack to a known one
+    ; check if the requested syscall is in bounds
+    cmp rdi, [syscall_count]
+    jae .out_of_bounds       ; it's out of bounds
 
-    mov r10, gs:0x0 ; read context type
-    cmp r10, 0      ; if it equals to cpu
+    ; first, swap the stack to a known one
+    mov rax, gs:0x0 ; read context type
+    cmp rax, 0      ; if it equals to cpu
     je .swap_stack  ; swap the stack directly
     swapgs          ; else, swap the context first
 
@@ -22,12 +25,22 @@ arch_syscall_entry:
     push r11
     push rcx
 
-    mov rcx, rax
-    call arch_syscall_handler
+    ; prepare the parameter registers
+    ; parameter   : num  1   2   3   4  5
+    ; sysv abi    : rdi rsi rdx rcx r8 r9
+    ; syscall abi : rdi rsi rdx r10 r8 r9
+    mov rcx, r10
+
+    ; here rdi holds the syscall number
+    mov rax, rdi
+    lea r11, syscall_handlers ; get the address of the handlers
+    shl rax, 3                ; calculate the offset in bytes by multiplying by 8 (sizeof(uint64_t))
+    call [r11 + rax]          ; call the pointed function (base + offset)
 
     pop rcx
     pop r11
 
     mov rsp, gs:0x10 ; restore the userspace stack
 
+.out_of_bounds:
     o64 sysret

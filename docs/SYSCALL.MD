@@ -5,11 +5,11 @@
 
 | Register | Description |
 |----------|-------------|
-| rax | Syscall number |
+| rdi | Syscall number |
 | rax | Return value |
-| rdi | First parameter |
-| rsi | Second parameter |
-| rdx | Third parameter |
+| rsi | First parameter |
+| rdx | Second parameter |
+| r10 | Third parameter |
 | r8 | Fourth parameter |
 | r9 | Fifth parameter |
 
