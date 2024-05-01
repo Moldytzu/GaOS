@@ -32,5 +32,5 @@ void arch_syscall_init(void)
 
     wrmsr(IA32_STAR, 0x0013000800000000);            // write cs/ss pairs for userspace and kernel
     wrmsr(IA32_LSTAR, (uint64_t)arch_syscall_entry); // write the syscall handler entry point
-    wrmsr(IA32_FMASK, 0xFFFFFFFFFFFFFFFD);           // mask all flags while keeping bit 1 (reserved) set
+    wrmsr(IA32_FMASK, 0xFFFFFFFD);                   // mask all flags while keeping bit 1 (reserved) set
 }
