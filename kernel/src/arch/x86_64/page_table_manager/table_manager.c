@@ -16,10 +16,10 @@ ifunc void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
 
 ifunc uint64_t arch_table_manager_get_address(uint64_t *entry)
 {
-    return ((*entry >> 12) & 0xFFFFFFFFFF) << 12;
+    return *entry & ~0xFFF0000000000FFF;
 }
 
-ifunc arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_layer_t *layer, uint64_t index, uint64_t flags)
+ifunc arch_page_table_layer_t *arch_table_manager_allocate_next_layer(arch_page_table_layer_t *layer, uint64_t index, uint64_t flags)
 {
     uint64_t *entry = &layer->entries[index]; // index next layer's entry
 
@@ -39,6 +39,16 @@ ifunc arch_page_table_layer_t *arch_table_manager_next_layer(arch_page_table_lay
     return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
 }
 
+ifunc arch_page_table_layer_t *arch_table_manager_get_next_layer(arch_page_table_layer_t *layer, uint64_t index)
+{
+    uint64_t *entry = &layer->entries[index]; // index next layer's entry
+
+    if (!(*entry & TABLE_ENTRY_PRESENT)) // if it doesn't exist then return NULL
+        return NULL;
+
+    return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
+}
+
 void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags)
 {
     // generate indices
@@ -48,14 +58,43 @@ void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, 
     uint64_t pml1_index = (virtual_address & (0x1FFULL << 21)) >> 21;
     uint64_t p_index = (virtual_address & (0x1FFULL << 12)) >> 12;
 
-    // traverse the page table
-    arch_page_table_layer_t *pml3 = arch_table_manager_next_layer(table, pml3_index, flags);
-    arch_page_table_layer_t *pml2 = arch_table_manager_next_layer(pml3, pml2_index, flags);
-    arch_page_table_layer_t *pml1 = arch_table_manager_next_layer(pml2, pml1_index, flags);
+    // traverse the page table while allocating if needed
+    arch_page_table_layer_t *pml3 = arch_table_manager_allocate_next_layer(table, pml3_index, flags);
+    arch_page_table_layer_t *pml2 = arch_table_manager_allocate_next_layer(pml3, pml2_index, flags);
+    arch_page_table_layer_t *pml1 = arch_table_manager_allocate_next_layer(pml2, pml1_index, flags);
 
     uint64_t *entry = &pml1->entries[p_index];
     *entry |= flags | TABLE_ENTRY_PRESENT;
     arch_table_manager_set_address(entry, physical_address);
+}
+
+uint64_t arch_table_manager_translate_to_physical(arch_page_table_t *table, uint64_t virtual_address)
+{
+    // generate indices
+    // uint64_t pml4 = (virtual_address & (0x1FFULL << 48)) >> 48; // for future use (5 level paging)
+    uint64_t pml3_index = (virtual_address & (0x1FFULL << 39)) >> 39;
+    uint64_t pml2_index = (virtual_address & (0x1FFULL << 30)) >> 30;
+    uint64_t pml1_index = (virtual_address & (0x1FFULL << 21)) >> 21;
+    uint64_t p_index = (virtual_address & (0x1FFULL << 12)) >> 12;
+
+    // traverse the page table while checking if the layer is allocated
+    arch_page_table_layer_t *pml3 = arch_table_manager_get_next_layer(table, pml3_index);
+    if (pml3 == NULL)
+        return 0;
+
+    arch_page_table_layer_t *pml2 = arch_table_manager_get_next_layer(pml3, pml2_index);
+    if (pml2 == NULL)
+        return 0;
+
+    arch_page_table_layer_t *pml1 = arch_table_manager_get_next_layer(pml2, pml1_index);
+    if (pml1 == NULL)
+        return 0;
+
+    uint64_t *entry = &pml1->entries[p_index];
+    if (*entry & TABLE_ENTRY_PRESENT)
+        return arch_table_manager_get_address(entry);
+    else
+        return 0;
 }
 
 arch_page_table_t *arch_table_manager_new(void)
