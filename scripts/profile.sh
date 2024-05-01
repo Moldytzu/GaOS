@@ -26,8 +26,8 @@ done
 ) &
 
 tail -f "$SOCKET" | qemu-system-"$ARCH" $CMDLINE -monitor stdio \
-    | grep -o '[RE]IP=[0-9a-f]*' \
-    | sed 's/[RE]IP=//g' \
+    | grep -o 'RIP=[0-9a-f]*' \
+    | sed 's/RIP=//g' \
     | sort | uniq -c | sort -nr >"$OUTFILE"
 
 kill $(cat "$SUBSHELL")
