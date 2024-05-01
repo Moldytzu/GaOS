@@ -15,6 +15,6 @@
 
 ### Syscall Table
 
-| Syscall name | rax | rdi | rsi | rdx | r8 | r9 |
+| Syscall name | rdi | rsi | rdx | r10 | r8 | r9 |
 |--------------|-----|-----|-----|-----|----|----|
 | write        |  0  | uint64_t fd | char *buffer | size_t size | - | - |
