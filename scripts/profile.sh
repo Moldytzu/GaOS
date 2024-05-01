@@ -4,7 +4,7 @@
 set -e
 
 ARCH="x86_64"
-INTERVAL="0.0001"
+INTERVAL="0.001"
 INITIALWAIT="0.1"
 CMDLINE="-M q35 -cpu core2duo -m 2G -boot c -hda disk.hdd -no-reboot"
 KERNEL="kernel/bin/kernel.elf"
@@ -41,7 +41,7 @@ for p in $(cat "$OUTFILE"); do
     fi
 
     if ! [ -z "$KERNEL" ]; then
-        ~/cross_compiler/bin/x86_64-elf-addr2line -e "$KERNEL" "0x$p" | tr -d '\n'
+        ./toolchain/x86_64/kernel/bin/x86_64-elf-addr2line -f -p -e "$KERNEL" "0x$p" | tr -d '\n'
         echo " (0x$p)"
     else
         echo "(0x$p)"
