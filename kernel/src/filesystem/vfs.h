@@ -6,6 +6,8 @@ struct vfs_fs_node
     char *path;
     size_t path_length;
 
+    bool is_device;
+
     struct vfs_fs_ops *fs;
 };
 
@@ -18,6 +20,7 @@ struct vfs_fs_ops
 
     struct vfs_fs_node *(*open)(struct vfs_fs_ops *fs, const char *path);
     void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
+    void *(*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void (*close)(struct vfs_fs_node *node);
 };
 
@@ -39,3 +42,6 @@ typedef struct vfs_mount_point vfs_mount_point_t;
 void vfs_init(void);
 void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs);
 vfs_fs_node_t *vfs_open(const char *path);
+void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
+void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
+void vfs_close(vfs_fs_node_t *node);

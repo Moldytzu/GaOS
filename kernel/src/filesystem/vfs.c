@@ -1,5 +1,6 @@
 #define MODULE "vfs"
 #include <misc/logger.h>
+#include <misc/panic.h>
 
 #include <filesystem/vfs.h>
 #include <memory/physical/block_allocator.h>
@@ -85,7 +86,41 @@ vfs_fs_node_t *vfs_open(const char *path)
 
     spinlock_release(&mount_lock);
 
+    if (!mount->fs->open)
+        panic("%s has no open callback", mount->fs->name);
+
     return mount->fs->open(mount->fs, path + fsname_len + 1 /*skip /<filesystem name>*/);
+}
+
+void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+{
+    if (!node->fs->read)
+    {
+        log_error("%s has no read callback", node->fs->name);
+        return buffer;
+    }
+
+    return node->fs->read(node, buffer, size, offset);
+}
+
+void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+{
+    if (!node->fs->write)
+    {
+        log_error("%s has no write callback", node->fs->name);
+        return buffer;
+    }
+
+    return node->fs->write(node, buffer, size, offset);
+}
+
+void vfs_close(vfs_fs_node_t *node)
+{
+    if (!node->fs->close)
+    {
+        panic("%s has no close callback", node->fs->name);
+        return;
+    }
 }
 
 void vfs_print_debug(void)

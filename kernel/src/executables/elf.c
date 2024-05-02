@@ -12,7 +12,7 @@ bool elf_load_from(vfs_fs_node_t *node)
 {
     // read the elf header
     Elf64_Ehdr elf_header;
-    node->fs->read(node, &elf_header, sizeof(Elf64_Ehdr), 0);
+    vfs_read(node, &elf_header, sizeof(Elf64_Ehdr), 0);
 
     // validate the header
     if (memcmp(elf_header.e_ident, ELFMAG, 4) != 0)
@@ -44,7 +44,7 @@ bool elf_load_from(vfs_fs_node_t *node)
     Elf64_Phdr program_header;
     for (int i = 0; i < elf_header.e_phnum; i++)
     {
-        node->fs->read(node, &program_header, sizeof(Elf64_Phdr), elf_header.e_phoff + sizeof(Elf64_Phdr) * i);
+        vfs_read(node, &program_header, sizeof(Elf64_Phdr), elf_header.e_phoff + sizeof(Elf64_Phdr) * i);
 
         if (program_header.p_type != PT_LOAD)
             continue;
@@ -65,7 +65,7 @@ bool elf_load_from(vfs_fs_node_t *node)
     // read the program headers
     for (int i = 0; i < elf_header.e_phnum; i++)
     {
-        node->fs->read(node, &program_header, sizeof(Elf64_Phdr), elf_header.e_phoff + sizeof(Elf64_Phdr) * i);
+        vfs_read(node, &program_header, sizeof(Elf64_Phdr), elf_header.e_phoff + sizeof(Elf64_Phdr) * i);
 
         if (program_header.p_type != PT_LOAD)
             continue;
@@ -85,7 +85,7 @@ bool elf_load_from(vfs_fs_node_t *node)
             load_size = abs(load_size);
             load_size = min(load_size, PAGE); // clamp the value to page size
 
-            node->fs->read(node, page, load_size, program_header.p_offset + i);
+            vfs_read(node, page, load_size, program_header.p_offset + i);
         }
     }
 
@@ -109,10 +109,10 @@ bool elf_load_from(vfs_fs_node_t *node)
 
     new_task->empty = false;
 
-    node->fs->close(node); // close the node
+    vfs_close(node); // close the node
     return true;
 
 fail:
-    node->fs->close(node); // close the node
+    vfs_close(node); // close the node
     return false;
 }
