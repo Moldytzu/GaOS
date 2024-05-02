@@ -11,6 +11,7 @@
 #include <arch/arch.h>
 
 // devices
+#include <devices/manager.h>
 #include <devices/serial/serial.h>
 #include <devices/framebuffer/framebuffer.h>
 #include <devices/timers/timers.h>
@@ -47,6 +48,7 @@ void _start(void)
     log_info("bootstraped %d processors", arch_bootstrap_ap()); // boot up application processors
     arch_late_init();                                           // initialise last arch stage
     vfs_init();                                                 // initialise the virtual filesystem
+    device_manager_init();                                      // initialise the device manager
     ustar_init();                                               // initialise the initrd
     task_scheduler_init();                                      // initialise the task scheduler
 
