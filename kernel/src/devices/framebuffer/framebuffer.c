@@ -35,7 +35,8 @@ spinlock_t framebuffer_spinlock;
 
 bool framebuffer_generate_structure_from_limine(framebuffer_t *f)
 {
-    if (kernel_framebuffer_request.response && kernel_framebuffer_request.response->framebuffer_count == 0) // check if we have a framebuffer
+    // check if we have a framebuffer
+    if (kernel_framebuffer_request.response == NULL || kernel_framebuffer_request.response->framebuffer_count < 1)
         return false;
 
     // translate limine's framebuffer structure to our format
@@ -51,6 +52,9 @@ bool framebuffer_generate_structure_from_limine(framebuffer_t *f)
 
 void framebuffer_plot_character(char c, size_t x, size_t y, uint32_t colour)
 {
+    if (!framebuffer_available)
+        return;
+
     uint8_t *character = font_glyphs + c * font->glyph_size; // first byte of the glyph
     uint8_t line_pitch = font->glyph_size / font->height;    // bytes per line
 
@@ -70,6 +74,9 @@ void framebuffer_plot_character(char c, size_t x, size_t y, uint32_t colour)
 
 void framebuffer_write_character(char c)
 {
+    if (!framebuffer_available)
+        return;
+
     spinlock_acquire(&framebuffer_spinlock);
 
     // handle end of the line

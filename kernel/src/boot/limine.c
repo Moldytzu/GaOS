@@ -70,8 +70,5 @@ void limine_init(void)
     if (LIMINE_BASE_REVISION_SUPPORTED == false) // check if the bootloader supports what we request
         halt();
 
-    if (kernel_framebuffer_request.response == NULL || kernel_framebuffer_request.response->framebuffer_count < 1) // make sure we have a framebuffer
-        halt();
-
     kernel_hhdm_offset = kernel_hhdm_request.response->offset;
 }
