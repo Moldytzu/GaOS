@@ -70,7 +70,7 @@ static void log_warn(const char *fmt, ...)
     {
         // print the prefix
         main_cursor.colour = PREFIX_COLOUR;
-        printk_serial("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
+        printk("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
 
         // print the format
         main_cursor.colour = WARN_COLOUR;
@@ -84,7 +84,7 @@ static void log_warn(const char *fmt, ...)
 
     /// serial
     // print the prefix
-    printk_serial("%s: ", MODULE);
+    printk_serial("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
 
     // print the format
     va_start(list, fmt);
