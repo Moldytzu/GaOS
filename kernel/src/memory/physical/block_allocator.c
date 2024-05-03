@@ -51,7 +51,7 @@ void block_allocator_push_block(block_header_t **list, block_header_t *block)
             current = current->next;
 
         // add the block to the last block
-        block->previous = current->next;
+        block->previous = current;
         current->next = block;
     }
     else
