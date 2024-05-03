@@ -2,25 +2,7 @@
 #include <misc/logger.h>
 
 #include <devices/manager.h>
-#include <filesystem/vfs.h>
 #include <memory/physical/block_allocator.h>
-
-struct device
-{
-    char *name;
-    size_t name_length;
-
-    void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
-    void *(*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
-
-    struct device *parent;
-    struct device *child;
-
-    struct device *next;
-    struct device *prev;
-};
-
-typedef struct device device_t;
 
 typedef struct
 {
@@ -33,13 +15,14 @@ device_t *device_list = NULL;
 
 void list_devices(void)
 {
+    char *type_string[] = {"other", "serial", "framebuffer", "timer", "hmi"};
     for (device_t *dev = device_list; dev; dev = dev->next)
     {
-        printk_serial("device: %s\n", dev->name);
+        printk_serial("device: %s is %s\n", dev->name, type_string[dev->type]);
     }
 }
 
-device_t *device_create_at(char *path, void *read, void *write)
+device_t *device_create_at(char *path, device_type_t type, void *read, void *write)
 {
     log_info("adding device %s", path);
 
@@ -50,6 +33,7 @@ device_t *device_create_at(char *path, void *read, void *write)
     dev->name_length = path_len;
     dev->read = read;
     dev->write = write;
+    dev->type = type;
     memcpy(dev->name, path, path_len);
 
     // add it in the list
@@ -66,6 +50,23 @@ device_t *device_create_at(char *path, void *read, void *write)
     list_devices();
 
     return dev;
+}
+
+char *device_get_by_type(device_type_t type, char *path, size_t path_len, uint64_t index)
+{
+    uint64_t c = 0;
+
+    for (device_t *dev = device_list; dev; dev = dev->next)
+    {
+        if (dev->type == type && c++ == index)
+        {
+            memcpy(path, dev->name, min(strlen(dev->name) + 1, path_len - 1)); // safe memcpy
+            path[path_len - 1] = 0;                                            // null terminate
+            return path;                                                       // return the path on success
+        }
+    }
+
+    return NULL; // return NULL on failure
 }
 
 vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path)
