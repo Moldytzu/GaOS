@@ -18,6 +18,11 @@ void serial_send_string(char *string)
     uart16550_send_string(string);
 }
 
+void serial_create_device(void)
+{
+    uart16550_create_device();
+}
+
 #else
 #pragma message "This architecture doesn't support serial"
 
@@ -33,5 +38,9 @@ void serial_send_byte(uint8_t byte)
 void serial_send_string(char *string)
 {
     (void)string;
+}
+
+void serial_create_device(void)
+{
 }
 #endif

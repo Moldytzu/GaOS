@@ -58,3 +58,23 @@ void uart16550_send_string(char *string)
     while (*string)
         uart16550_send_byte(*string++);
 }
+
+void *uart16550_read(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+{
+    (void)node, (void)buffer, (void)size, (void)offset;
+    return NULL;
+}
+
+void *uart16550_write(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+{
+    (void)node;
+    char *c = buffer + offset;
+    for (size_t i = 0; i <= size; i++)
+        uart16550_send_byte(c[i]);
+    return buffer + offset;
+}
+
+void uart16550_create_device(void)
+{
+    device_create_at("/uart0", serial, uart16550_read, uart16550_write);
+}

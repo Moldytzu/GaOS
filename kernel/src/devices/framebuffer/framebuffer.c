@@ -146,3 +146,23 @@ void framebuffer_init(void)
 
     log_info("initialised");
 }
+
+void *framebuffer_read(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+{
+    (void)node;
+    return memcpy(buffer, (void *)((uint64_t)main_framebuffer.base + offset), size);
+}
+
+void *framebuffer_write(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+{
+    (void)node;
+    return memcpy((void *)((uint64_t)main_framebuffer.base + offset), buffer, size);
+}
+
+void framebuffer_create_device(void)
+{
+    if (!framebuffer_available)
+        return;
+
+    device_create_at("/fb0", framebuffer, framebuffer_read, framebuffer_write);
+}

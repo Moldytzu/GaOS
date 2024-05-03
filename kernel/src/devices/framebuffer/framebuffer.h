@@ -1,5 +1,6 @@
 #pragma once
 #include <misc/libc.h>
+#include <devices/manager.h>
 
 typedef struct
 {
@@ -23,6 +24,7 @@ extern cursor_t main_cursor;
 void framebuffer_init(void);
 void framebuffer_write_string(char *string);
 void framebuffer_write_character(char c);
+void framebuffer_create_device(void);
 
 ifunc void framebuffer_plot_pixel(size_t x, size_t y, uint32_t colour)
 {

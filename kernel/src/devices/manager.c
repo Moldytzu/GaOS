@@ -2,6 +2,8 @@
 #include <misc/logger.h>
 
 #include <devices/manager.h>
+#include <devices/serial/serial.h>
+#include <devices/timers/timers.h>
 #include <memory/physical/block_allocator.h>
 
 typedef struct
@@ -145,5 +147,7 @@ void device_manager_init(void)
     devfs.read = devfs_read;
     vfs_mount_fs("dev", &devfs);
 
-    // todo: do device detection
+    // populate using detected devices
+    framebuffer_create_device();
+    serial_create_device();
 }

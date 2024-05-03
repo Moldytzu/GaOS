@@ -9,6 +9,7 @@ typedef enum
     framebuffer,
     timer,
     hmi, // human machine interface
+    module,
 } device_type_t;
 
 struct device
