@@ -33,6 +33,7 @@ CFLAGS += \
     -fno-pic \
     -fpie \
     -march=nocona \
+    -mgeneral-regs-only \
     -mno-red-zone \
     -Wno-unused-function \
     -Wno-frame-address
