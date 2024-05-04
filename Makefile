@@ -9,7 +9,7 @@ export OUTPUT_ARCH
 export TOOLCHAIN_BASE
 export BASE
 
-QEMU_FLAGS = -m 2G -serial mon:stdio -smp 2
+QEMU_FLAGS = -parallel none -serial mon:stdio -smp 2 -m 2G
 QEMU_LOG = -D qemu.out -d int -no-reboot -no-shutdown
 QEMU_ACCELERATED = 
 QEMU_DEBUG = $(QEMU_LOG) -smp 1 -s -S
