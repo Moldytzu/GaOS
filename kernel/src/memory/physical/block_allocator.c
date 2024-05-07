@@ -221,3 +221,29 @@ void block_deallocate(void *block)
 
     spinlock_release(&block_allocator_lock);
 }
+
+void block_allocate_dump_usage(void)
+{
+    spinlock_acquire(&block_allocator_lock);
+    size_t used = 0, used_blocks = 0;
+    size_t free = 0, free_blocks = 0;
+
+    block_header_t *list = block_free_list_start;
+    while (list)
+    {
+        free += list->size;
+        free_blocks++;
+        list = list->next;
+    }
+
+    list = block_busy_list_start;
+    while (list)
+    {
+        used += list->size;
+        used_blocks++;
+        list = list->next;
+    }
+
+    log_info("%db used (%d blocks) %db free (%d blocks)", used, used_blocks, free, free_blocks);
+    spinlock_release(&block_allocator_lock);
+}
