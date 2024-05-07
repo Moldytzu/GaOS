@@ -94,6 +94,9 @@ vfs_fs_node_t *vfs_open(const char *path)
 
 void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
+    if (!node)
+        panic("kernel bug: null vfs node");
+
     if (!node->fs->read)
     {
         log_error("%s has no read callback", node->fs->name);
@@ -105,6 +108,9 @@ void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 
 void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
+    if (!node)
+        panic("kernel bug: null vfs node");
+
     if (!node->fs->write)
     {
         log_error("%s has no write callback", node->fs->name);
@@ -116,6 +122,9 @@ void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 
 void vfs_close(vfs_fs_node_t *node)
 {
+    if (!node)
+        panic("kernel bug: null vfs node");
+
     if (!node->fs->close)
     {
         panic("%s has no close callback", node->fs->name);
