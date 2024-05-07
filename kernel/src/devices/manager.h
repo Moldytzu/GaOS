@@ -5,6 +5,7 @@
 typedef enum
 {
     other,
+    reserved,
     serial,
     framebuffer,
     timer,
