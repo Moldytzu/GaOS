@@ -5,6 +5,7 @@
 #include <devices/serial/serial.h>
 #include <devices/timers/timers.h>
 #include <memory/physical/block_allocator.h>
+#include <acpi/acpi.h>
 
 typedef struct
 {
@@ -17,7 +18,7 @@ device_t *device_list = NULL;
 
 void list_devices_layer(device_t *list, int depth)
 {
-    char *type_string[] = {"other", "serial", "framebuffer", "timer", "hmi"};
+    char *type_string[] = {"other", "reserved", "serial", "framebuffer", "timer", "hmi", "module", "acpi_table"};
     for (device_t *dev = list; dev; dev = dev->next)
     {
         for (int i = 0; i < depth; i++)
@@ -36,10 +37,10 @@ void list_devices(void)
     list_devices_layer(device_list, 0);
 }
 
-device_t *allocate_device(char *path, device_type_t type, void *read, void *write)
+device_t *allocate_device(const char *path, device_type_t type, void *read, void *write)
 {
     device_t *dev = block_allocate(sizeof(device_t));
-    size_t path_len = strlen(path);
+    size_t path_len = strlen((char *)path);
     dev->name = block_allocate(path_len);
     dev->name_length = path_len;
     dev->read = read;
@@ -99,7 +100,7 @@ char *device_generate_path_of(device_t *device, char *path, size_t path_len)
     return path;
 }
 
-device_t *device_create_at(char *path, device_type_t type, void *read, void *write)
+device_t *device_create_at(const char *path, device_type_t type, void *read, void *write)
 {
     // the basic idea of this algorithm is to split the given path in a hierachy of directories starting from the root (the top layer)
     // then, for each directory name, search in the list of the current level
@@ -109,7 +110,7 @@ device_t *device_create_at(char *path, device_type_t type, void *read, void *wri
 
     log_info("adding device %s", path);
 
-    char *path_orig = path;       // original path pointer
+    const char *path_orig = path; // original path pointer
     size_t total_path_offset = 0; // counter to all the offsets (useful when determining the parent directory)
 
     // skip '/' if needed
@@ -177,17 +178,14 @@ device_t *device_create_at(char *path, device_type_t type, void *read, void *wri
         {
             // stop here
             bool create_as_dir = false;
-            if (path[strlen(path) - 1] == '/')
+            if (path[strlen((char *)path) - 1] == '/')
                 create_as_dir = true;
-
-            if (create_as_dir)
-                path[strlen(path) - 1] = 0; // remove the delimiter if the path is a directory
 
             // get last device in this list while checking for duplicates
             device_t *last = NULL, *current = list;
             while (current)
             {
-                if (strncmp(current->name, path, strlen(path)) == 0)
+                if (strncmp(current->name, path, strlen((char *)path)) == 0)
                 {
                     // oops.., already exists
                     log_error("failed to add %s because it already exists", path_orig);
@@ -204,8 +202,12 @@ device_t *device_create_at(char *path, device_type_t type, void *read, void *wri
             last->next->parent = last->parent;
             last = last->next;
 
-            if (create_as_dir) // create the child list if this is a directory
-                last->child = allocate_dummy();
+            if (create_as_dir)
+            {
+                last->child = allocate_dummy(); // create the child list if this is a directory
+                last->name_length--;            // remove last delimiter
+                last->name[strlen((char *)last->name) - 1] = 0;
+            }
 
             return last;
         }
@@ -371,6 +373,7 @@ void device_manager_init(void)
     // populate using detected devices
     framebuffer_create_device();
     serial_create_device();
+    acpi_create_device();
 
     list_devices();
 }

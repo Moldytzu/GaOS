@@ -11,6 +11,7 @@ typedef enum
     timer,
     hmi, // human machine interface
     module,
+    acpi_table,
 } device_type_t;
 
 struct device
@@ -32,5 +33,5 @@ struct device
 typedef struct device device_t;
 
 void device_manager_init(void);
-device_t *device_create_at(char *path, device_type_t type, void *read, void *write);
+device_t *device_create_at(const char *path, device_type_t type, void *read, void *write);
 char *device_get_by_type(device_type_t type, char *path, size_t path_len, uint64_t index);
