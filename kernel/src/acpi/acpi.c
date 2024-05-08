@@ -3,6 +3,8 @@
 
 #include <acpi/acpi.h>
 #include <boot/limine.h>
+#include <devices/manager.h>
+#include <memory/physical/page_allocator.h>
 
 pstruct
 {
@@ -79,4 +81,50 @@ void acpi_init(void)
         sdt = (acpi_sdt_header_t *)((uint64_t)sdp->rsdt + kernel_hhdm_offset);
     else // acpi 2.0+
         sdt = (acpi_sdt_header_t *)(sdp->xsdt + kernel_hhdm_offset);
+}
+
+void *acpi_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+{
+    (void)node, (void)size, (void)offset;
+    return buffer;
+}
+
+void *acpi_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+{
+    (void)node, (void)size, (void)offset;
+    return buffer;
+}
+
+void acpi_create_device(void)
+{
+    // create the root
+    char *path = page_allocate(1);
+    strcpy(path, "/acpi/");
+    device_create_at(path, reserved, NULL, NULL);
+
+    // scan all tables and add them in the namespace
+    if (sdp->revision == 0)
+    {
+        size_t entries = (sdt->length - sizeof(acpi_sdt_header_t)) / sizeof(uint32_t);
+        uint32_t *headers = (uint32_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
+
+        for (size_t i = 0; i < entries; i++)
+        {
+            acpi_sdt_header_t *header = (acpi_sdt_header_t *)((uint64_t)headers[i] + kernel_hhdm_offset);
+            memcpy(path + 6, header->signature, 4);
+            device_create_at(path, acpi_table, acpi_read, acpi_write);
+        }
+    }
+    else
+    {
+        size_t entries = (sdt->length - sizeof(acpi_sdt_header_t)) / sizeof(uint64_t);
+        uint64_t *headers = (uint64_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
+
+        for (size_t i = 0; i < entries; i++)
+        {
+            acpi_sdt_header_t *header = (acpi_sdt_header_t *)(headers[i] + kernel_hhdm_offset);
+            memcpy(path + 6, header->signature, 4);
+            device_create_at(path, acpi_table, acpi_read, acpi_write);
+        }
+    }
 }
