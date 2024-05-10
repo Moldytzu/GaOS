@@ -1,5 +1,6 @@
 #define MODULE "main"
 #include <misc/logger.h>
+#include <misc/panic.h>
 
 #include <misc/libc.h>
 #include <boot/limine.h>
@@ -53,7 +54,10 @@ void _start()
     task_scheduler_init();                                      // initialise the task scheduler
 
     // load an executable from the initrd
-    vfs_fs_node_t *hello_node = vfs_open("/initrd/hello.elf");
+    vfs_fs_node_t *hello_node = vfs_open("/initrd/hello.elf", O_RDONLY);
+    if (is_error(hello_node))
+        panic("failed to open hello.elf from initrd: %d", -error_of(hello_node));
+
     elf_load_from(hello_node);
 
     arch_bootstrap_ap_scheduler(); // let the application processors use the schedulers
