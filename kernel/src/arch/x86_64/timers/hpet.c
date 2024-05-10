@@ -38,7 +38,7 @@ ifunc uint64_t arch_hpet_read(uint64_t offset)
     return *((volatile uint64_t *)(arch_hpet_header->base_address.address + offset));
 }
 
-uint64_t arch_hpet_read_nanoseconds(void)
+uint64_t arch_hpet_read_nanoseconds()
 {
     return arch_hpet_read(HPET_OFFSET_MAIN_COUNTER) * arch_hpet_ticks_to_nanoseconds;
 }
@@ -59,7 +59,7 @@ static clock_time_source_t arch_hpet_timer = {
     .one_shot_capable = false,
 };
 
-void arch_hpet_init(void)
+void arch_hpet_init()
 {
     arch_hpet_header = (acpi_hpet_t *)acpi_get_table("HPET");
 

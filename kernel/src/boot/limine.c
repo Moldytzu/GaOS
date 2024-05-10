@@ -62,10 +62,10 @@ struct limine_file *limine_get_module(const char *path)
 
     log_error("failed to get module %s", path);
 
-    return NULL;
+    return nullptr;
 }
 
-void limine_init(void)
+void limine_init()
 {
     if (LIMINE_BASE_REVISION_SUPPORTED == false) // check if the bootloader supports what we request
         halt();

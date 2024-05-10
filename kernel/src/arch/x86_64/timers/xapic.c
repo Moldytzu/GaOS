@@ -12,7 +12,7 @@
 uint32_t ticks_per_scheduling_burst;
 uint16_t xapic_vector;
 
-void arch_xapic_timer_schedule_one_shot(void)
+void arch_xapic_timer_schedule_one_shot()
 {
     arch_xapic_eoi();
     arch_xapic_write(XAPIC_REG_TIMER_INIT_COUNT, ticks_per_scheduling_burst); // set count to the calibrated ticks
@@ -31,9 +31,9 @@ noreturn void arch_xapic_isr_handler(arch_cpu_state_t *state)
     task_scheduler_reschedule(state);
 }
 
-extern void arch_xapic_isr_handler_entry(void);
+extern void arch_xapic_isr_handler_entry();
 
-void arch_xapic_timer_init(void)
+void arch_xapic_timer_init()
 {
     if (!clock_system_timer.sleep_nanoseconds)
         panic("no system timer available for APIC timer calibration");

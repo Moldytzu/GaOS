@@ -17,12 +17,12 @@ uint32_t arch_xapic_read(uint64_t offset)
     return *((volatile uint32_t *)(XAPIC_BASE + offset + kernel_hhdm_offset));
 }
 
-uint64_t arch_get_id(void)
+uint64_t arch_get_id()
 {
     return arch_xapic_read(XAPIC_REG_ID) >> 24;
 }
 
-void arch_xapic_init(void)
+void arch_xapic_init()
 {
     if ((rdmsr(MSR_APIC_BASE) & 0xFFFFF000) != (uint64_t)XAPIC_BASE)
         panic("Out of spec xapic address. %p != %p", rdmsr(MSR_APIC_BASE) & 0xFFFFF000, (uint64_t)XAPIC_BASE);
@@ -58,7 +58,7 @@ void arch_xapic_init(void)
     context->cpu_id = arch_get_id();
 }
 
-void arch_kill_ap(void)
+void arch_kill_ap()
 {
     // kill other application processors if online
     if (!arch_aps_online)

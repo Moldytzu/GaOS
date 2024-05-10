@@ -45,7 +45,7 @@ struct scheduler_context
 typedef struct scheduler_context scheduler_context_t;
 
 scheduler_task_t *task_scheduler_round_robin_create(const char *name);
-void task_scheduler_round_robin_init(void);
-void task_scheduler_round_robin_install_context(void);
+void task_scheduler_round_robin_init();
+void task_scheduler_round_robin_install_context();
 noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state);
-noreturn void task_scheduler_round_robin_enable(void);
+noreturn void task_scheduler_round_robin_enable();

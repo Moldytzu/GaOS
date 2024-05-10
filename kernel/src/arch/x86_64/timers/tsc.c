@@ -5,7 +5,7 @@
 #include <arch/arch.h>
 #include <clock/clock.h>
 
-uint64_t arch_tsc_read_nanoseconds(void);
+uint64_t arch_tsc_read_nanoseconds();
 void arch_tsc_sleep_nanoseconds(uint64_t nanoseconds);
 
 uint64_t arch_tsc_offset = 0;
@@ -19,14 +19,14 @@ static clock_time_source_t arch_tsc_timer = {
     .one_shot_capable = false,
 };
 
-uint64_t rdtsc(void)
+uint64_t rdtsc()
 {
     uint64_t low, high;
     iasm("rdtsc" : "=a"(low), "=d"(high));
     return (high << 32) | low;
 }
 
-uint64_t arch_tsc_read_nanoseconds(void)
+uint64_t arch_tsc_read_nanoseconds()
 {
     return (rdtsc() - arch_tsc_offset) / (arch_tsc_timer.ticks_per_second / 1000000000ULL /*seconds to nanoseconds*/);
 }
@@ -38,7 +38,7 @@ void arch_tsc_sleep_nanoseconds(uint64_t nanoseconds)
         arch_hint_spinlock();
 }
 
-void arch_tsc_init(void)
+void arch_tsc_init()
 {
     if (!clock_system_timer.sleep_nanoseconds)
         return;
@@ -72,7 +72,7 @@ void arch_tsc_init(void)
         log_warn("unreliable tsc detected");
 }
 
-void arch_tsc_reset(void)
+void arch_tsc_reset()
 {
     // fixme: do this on each cpu independently
     arch_tsc_offset = rdtsc();

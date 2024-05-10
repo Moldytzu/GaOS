@@ -25,7 +25,7 @@ page_allocator_pool_t allocator_pools[128];
 size_t allocator_pool_index = 0;
 spinlock_t page_allocator_lock;
 
-static void page_allocator_create_pools_limine(void)
+static void page_allocator_create_pools_limine()
 {
     memory_map_entries = kernel_memmap_request.response->entries;
     memory_map_entries_count = kernel_memmap_request.response->entry_count;
@@ -60,7 +60,7 @@ static void page_allocator_create_pools_limine(void)
     }
 }
 
-void page_allocator_init(void)
+void page_allocator_init()
 {
     page_allocator_create_pools_limine();
 
@@ -170,7 +170,7 @@ void *page_allocate(size_t pages)
 
     panic("failed to allocate %d pages (%d KB)", pages, required_bytes / 1024);
 
-    return NULL;
+    return nullptr;
 }
 
 void page_deallocate(void *base, size_t pages)

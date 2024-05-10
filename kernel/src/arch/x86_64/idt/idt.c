@@ -22,7 +22,7 @@ uint16_t interrupts_vector_base = 0x20;
 arch_idtr_t arch_global_idtr;
 extern void *arch_isr_handlers[]; // array of handlers
 
-static uint64_t __attribute__((noinline)) arch_read_cr2(void)
+static uint64_t __attribute__((noinline)) arch_read_cr2()
 {
     uint64_t value = 0;
     iasm("mov %%cr2, %0" ::"r"(value));
@@ -70,7 +70,7 @@ void arch_interrupts_map_vector(uint64_t vector, void *handler)
     gate->attributes = 0xEE;        // set gate type to 64-bit interrupt, dpl to 3 and present bit
 }
 
-void arch_interrupts_init(void)
+void arch_interrupts_init()
 {
     arch_global_idtr.offset = (uint64_t)page_allocate(1);
     arch_global_idtr.size = 0xFF * sizeof(arch_idt_gate_descriptor_t) - 1;
@@ -83,7 +83,7 @@ void arch_interrupts_init(void)
     arch_interrupts_enable();
 }
 
-uint16_t arch_interrupts_reserve_kernel_vector(void)
+uint16_t arch_interrupts_reserve_kernel_vector()
 {
     return interrupts_vector_base++;
 }

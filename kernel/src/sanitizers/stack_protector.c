@@ -3,7 +3,7 @@
 
 uint64_t __stack_chk_guard = 0xDEADBEEFF00DCACA;
 
-noreturn void __stack_chk_fail(void)
+noreturn void __stack_chk_fail()
 {
     panic("Stack smashing detected.");
 }

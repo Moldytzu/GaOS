@@ -18,8 +18,8 @@ typedef struct align_addr(16)
 }
 arch_cpu_context_t;
 
-arch_cpu_context_t *arch_context_install(void);
+arch_cpu_context_t *arch_context_install();
 void *arch_install_scheduler_context(void *context);
 
-arch_cpu_context_t *arch_get_cpu_context(void);
-void *arch_get_scheduler_context(void);
+arch_cpu_context_t *arch_get_cpu_context();
+void *arch_get_scheduler_context();

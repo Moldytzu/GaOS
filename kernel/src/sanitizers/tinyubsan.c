@@ -136,7 +136,7 @@ extern "C"
     {
         if (!ptr)
         {
-            tu_print_location("use of NULL pointer", data->location);
+            tu_print_location("use of nullptr", data->location);
         }
 
         else if (ptr & ((1 << data->log_alignment) - 1))

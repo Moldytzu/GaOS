@@ -5,7 +5,7 @@
 
 int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size)
 {
-    (void)num, (void)fd;
+    used(num), used(fd);
     scheduler_task_t *caller = GET_CALLER_TASK();
     arch_page_table_t *caller_pt = GET_PAGE_TABLE(caller);
 

@@ -32,7 +32,7 @@
 #include <schedulers/task/task.h>
 
 // this is the entry point of the kernel
-void _start(void)
+void _start()
 {
     arch_simd_enable();                                         // enable simd on this platform
     serial_init();                                              // initialise serial interface

@@ -9,7 +9,7 @@
 #include <clock/clock.h>
 #include <arch/arch.h>
 
-scheduler_context_t *last_context = NULL;
+scheduler_context_t *last_context = nullptr;
 spinlock_t last_context_lock;
 int last_id = 0;
 spinlock_t last_id_lock;
@@ -20,7 +20,7 @@ Operations with lists
 
 */
 
-void debug_dump_queue(void)
+void debug_dump_queue()
 {
     spinlock_acquire(&last_id_lock);
     scheduler_context_t *context = arch_get_scheduler_context();
@@ -47,8 +47,8 @@ scheduler_task_t *task_scheduler_round_robin_pop_from_queue(scheduler_task_queue
 
     scheduler_task_t *to_pop = queue->head; // grab our candidate off the queue
 
-    if (to_pop == NULL)
-        panic("Failed to pop a NULL task from %p of %d", queue, arch_get_id());
+    if (to_pop == nullptr)
+        panic("Failed to pop a nullptr task from %p of %d", queue, arch_get_id());
 
     if (queue->count > 1) // if it's possible to move it in the back (i.e. there are more than one), do it
     {
@@ -93,13 +93,13 @@ Context installation
 
 */
 
-noreturn void _idle_task(void)
+noreturn void _idle_task()
 {
     while (1)
         arch_hint_spinlock();
 }
 
-void task_scheduler_round_robin_install_context(void)
+void task_scheduler_round_robin_install_context()
 {
     log_info("installing scheduler for %d", arch_get_id());
     // allocate a scheduler context
@@ -215,7 +215,7 @@ Initialisation/Enabling
 
 */
 
-noreturn void task_scheduler_round_robin_enable(void)
+noreturn void task_scheduler_round_robin_enable()
 {
     scheduler_context_t *context = (scheduler_context_t *)arch_get_scheduler_context();
     scheduler_task_t *task = task_scheduler_round_robin_pop_from_queue(&context->running);
@@ -225,7 +225,7 @@ noreturn void task_scheduler_round_robin_enable(void)
     arch_switch_state(&task->state);            // switch to the task
 }
 
-void task_scheduler_round_robin_init(void)
+void task_scheduler_round_robin_init()
 {
     task_scheduler_round_robin_install_context();
 }

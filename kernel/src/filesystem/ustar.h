@@ -1,3 +1,3 @@
 #pragma once
 
-void ustar_init(void);
+void ustar_init();

@@ -8,11 +8,14 @@
 #include <config.h>
 #include <lock/spinlock.h>
 
+// fixme: as soon as GCC supports C++-style attributes for C23, use them here
+
 #define iasm asm volatile
 #define ifunc static inline __attribute__((always_inline))
 #define bitsof(type) (sizeof(type) * 8)
 #define pstruct typedef struct __attribute__((packed))
 #define align_addr(al) __attribute__((aligned(al)))
+#define used(x) (void)x
 
 void *memcpy(void *dest, const void *src, size_t n);
 char *strcpy(char *dest, char *src);
@@ -29,7 +32,7 @@ void vprintk_serial(const char *fmt, va_list list);
 void printk(const char *fmt, ...);
 void printk_serial(const char *fmt, ...);
 
-noreturn void halt(void);
+noreturn void halt();
 
 ifunc void zero64(uint64_t *s, size_t n)
 {

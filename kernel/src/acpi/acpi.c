@@ -38,7 +38,7 @@ acpi_sdt_header_t *acpi_get_table_xsdt(char *signature)
 
     log_error("failed to get SDT %s", signature);
 
-    return NULL;
+    return nullptr;
 }
 
 acpi_sdt_header_t *acpi_get_table_rsdt(char *signature)
@@ -55,7 +55,7 @@ acpi_sdt_header_t *acpi_get_table_rsdt(char *signature)
 
     log_error("failed to get SDT %s", signature);
 
-    return NULL;
+    return nullptr;
 }
 
 acpi_sdt_header_t *acpi_get_table(char *signature)
@@ -68,7 +68,7 @@ acpi_sdt_header_t *acpi_get_table(char *signature)
 
 uint8_t acpi_revision;
 
-void acpi_init(void)
+void acpi_init()
 {
     sdp = (acpi_xsdp_t *)kernel_rsdp_request.response->address;
 
@@ -85,22 +85,22 @@ void acpi_init(void)
 
 void *acpi_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
-    (void)node, (void)size, (void)offset;
+    used(node), used(size), used(offset);
     return buffer;
 }
 
 void *acpi_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
-    (void)node, (void)size, (void)offset;
+    used(node), used(size), used(offset);
     return buffer;
 }
 
-void acpi_create_device(void)
+void acpi_create_device()
 {
     // create the root
     char *path = page_allocate(1);
     strcpy(path, "/acpi/");
-    device_create_at(path, reserved, NULL, NULL);
+    device_create_at(path, reserved, nullptr, nullptr);
 
     // scan all tables and add them in the namespace
     if (sdp->revision == 0)

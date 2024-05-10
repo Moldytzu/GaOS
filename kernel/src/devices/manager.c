@@ -14,7 +14,7 @@ typedef struct
 } device_node_t;
 
 vfs_fs_ops_t devfs;
-device_t *device_list = NULL;
+device_t *device_list = nullptr;
 
 void list_devices_layer(device_t *list, int depth)
 {
@@ -31,7 +31,7 @@ void list_devices_layer(device_t *list, int depth)
     }
 }
 
-void list_devices(void)
+void list_devices()
 {
     printk_serial("listing devices:\n");
     list_devices_layer(device_list, 0);
@@ -51,9 +51,9 @@ device_t *allocate_device(const char *path, device_type_t type, void *read, void
     return dev;
 }
 
-device_t *allocate_dummy(void)
+device_t *allocate_dummy()
 {
-    return allocate_device(".", reserved, NULL, NULL);
+    return allocate_device(".", reserved, nullptr, nullptr);
 }
 
 char *device_generate_path_of(device_t *device, char *path, size_t path_len)
@@ -168,9 +168,9 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
                 char *parent = block_allocate(total_path_offset);
                 memcpy(parent, path_orig, total_path_offset - 1 /*skips '/'*/);
 
-                device_t *new = device_create_at(parent, reserved, NULL, NULL); // create the parent directory
-                list = new->child = allocate_dummy();                           // create the child list
-                new->child->parent = new;                                       // set the child accordingly
+                device_t *new = device_create_at(parent, reserved, nullptr, nullptr); // create the parent directory
+                list = new->child = allocate_dummy();                                 // create the child list
+                new->child->parent = new;                                             // set the child accordingly
                 block_deallocate(parent);
             }
         }
@@ -182,14 +182,14 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
                 create_as_dir = true;
 
             // get last device in this list while checking for duplicates
-            device_t *last = NULL, *current = list;
+            device_t *last = nullptr, *current = list;
             while (current)
             {
                 if (strncmp(current->name, path, strlen((char *)path)) == 0)
                 {
                     // oops.., already exists
                     log_error("failed to add %s because it already exists", path_orig);
-                    return NULL;
+                    return nullptr;
                 }
 
                 if (current)
@@ -213,7 +213,7 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 char *device_get_by_type_recursive(device_t *list, device_type_t type, char *path, size_t path_len, uint64_t *index, size_t depth)
@@ -230,7 +230,7 @@ char *device_get_by_type_recursive(device_t *list, device_type_t type, char *pat
                 return ret;                                                                               // return the path
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 char *device_get_by_type(device_type_t type, char *path, size_t path_len, uint64_t index)
@@ -319,7 +319,7 @@ vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path)
     }
 
     log_error("failed to open device %s", path_orig);
-    return NULL;
+    return nullptr;
 }
 
 void devfs_close(vfs_fs_node_t *node)
@@ -356,7 +356,7 @@ void *devfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     return dev_node->device->write(node, buffer, size, offset);
 }
 
-void device_manager_init(void)
+void device_manager_init()
 {
     // mount filesystem
     devfs.name = "devfs";

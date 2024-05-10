@@ -12,12 +12,12 @@
 #include <memory/physical/page_allocator.h>
 #include <boot/limine.h>
 
-void arch_early_init(void)
+void arch_early_init()
 {
     arch_tsc_reset();
 }
 
-void arch_init(void)
+void arch_init()
 {
     arch_load_gdt();
     arch_interrupts_init();
@@ -28,7 +28,7 @@ void arch_init(void)
     arch_syscall_init();
 }
 
-void arch_late_init(void)
+void arch_late_init()
 {
     arch_xapic_timer_init();
 }

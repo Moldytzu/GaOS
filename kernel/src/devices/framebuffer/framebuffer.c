@@ -114,7 +114,7 @@ void framebuffer_write_string(char *string)
         framebuffer_write_character(*string++);
 }
 
-void framebuffer_init(void)
+void framebuffer_init()
 {
     // generate the framebuffer structure
     if (!framebuffer_generate_structure_from_limine(&main_framebuffer))
@@ -149,17 +149,17 @@ void framebuffer_init(void)
 
 void *framebuffer_read(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
 {
-    (void)node;
+    used(node);
     return memcpy(buffer, (void *)((uint64_t)main_framebuffer.base + offset), size);
 }
 
 void *framebuffer_write(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
 {
-    (void)node;
+    used(node);
     return memcpy((void *)((uint64_t)main_framebuffer.base + offset), buffer, size);
 }
 
-void framebuffer_create_device(void)
+void framebuffer_create_device()
 {
     if (!framebuffer_available)
         return;

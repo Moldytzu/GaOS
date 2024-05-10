@@ -17,8 +17,8 @@ struct block_header
 
 typedef struct block_header block_header_t; // create a type for the block header structure
 
-block_header_t *block_free_list_start = NULL;
-block_header_t *block_busy_list_start = NULL;
+block_header_t *block_free_list_start = nullptr;
+block_header_t *block_busy_list_start = nullptr;
 
 uint64_t block_allocator_virtual_base = 0;
 uint64_t block_allocator_current_virtual_address = 0;
@@ -41,7 +41,7 @@ void *block_allocator_allocate_block(size_t pages)
 
 void block_allocator_push_block(block_header_t **list, block_header_t *block)
 {
-    block->next = block->previous = NULL; // make sure the links aren't present
+    block->next = block->previous = nullptr; // make sure the links aren't present
 
     if (*list) // if the list exists
     {
@@ -77,7 +77,7 @@ void block_allocator_remove_block_from_list(block_header_t *block)
 
 block_header_t *block_allocator_create_free_block(size_t pages)
 {
-    if (block_free_list_start == NULL)
+    if (block_free_list_start == nullptr)
     {
         // there isn't a start
         // we have to allocate one
@@ -100,8 +100,8 @@ block_header_t *block_allocator_create_free_block(size_t pages)
 
 void block_allocator_move_to_free_list(block_header_t *block)
 {
-    if (block->previous == NULL && block->next == NULL)
-        block_busy_list_start = NULL;
+    if (block->previous == nullptr && block->next == nullptr)
+        block_busy_list_start = nullptr;
 
     block_allocator_remove_block_from_list(block);
     block_allocator_push_block(&block_free_list_start, block);
@@ -109,8 +109,8 @@ void block_allocator_move_to_free_list(block_header_t *block)
 
 void block_allocator_move_to_busy_list(block_header_t *block)
 {
-    if (block->previous == NULL && block->next == NULL)
-        block_free_list_start = NULL;
+    if (block->previous == nullptr && block->next == nullptr)
+        block_free_list_start = nullptr;
 
     block_allocator_remove_block_from_list(block);
     block_allocator_push_block(&block_busy_list_start, block);
@@ -127,13 +127,13 @@ void block_allocator_dump_list(block_header_t *list_start)
     }
 }
 
-void block_allocator_dump_free_list(void)
+void block_allocator_dump_free_list()
 {
     printk_serial("dumping free list\n");
     block_allocator_dump_list(block_free_list_start);
 }
 
-void block_allocator_dump_busy_list(void)
+void block_allocator_dump_busy_list()
 {
     printk_serial("dumping busy list\n");
     block_allocator_dump_list(block_busy_list_start);
@@ -141,7 +141,7 @@ void block_allocator_dump_busy_list(void)
 
 extern struct limine_memmap_entry **memory_map_entries; // page_allocator.c
 extern size_t memory_map_entries_count;
-void block_allocator_find_lowest_free_virtual_address_limine(void)
+void block_allocator_find_lowest_free_virtual_address_limine()
 {
     // we want to find the highest address that's mapped
     // it's guranteed that the whole memory map is mapped
@@ -154,7 +154,7 @@ void block_allocator_find_lowest_free_virtual_address_limine(void)
     block_allocator_virtual_base = block_allocator_current_virtual_address = highest_entry->base + highest_entry->length + kernel_hhdm_offset;
 }
 
-void block_allocator_init(void)
+void block_allocator_init()
 {
     block_allocator_find_lowest_free_virtual_address_limine();
     log_info("using virtual base %p", block_allocator_virtual_base);
@@ -170,7 +170,7 @@ void *block_allocate(size_t size)
 
     spinlock_acquire(&block_allocator_lock);
 
-    if (block_free_list_start == NULL)                      // no blocks available
+    if (block_free_list_start == nullptr)                   // no blocks available
         block_allocator_create_free_block(size / PAGE + 1); // create one that fits our needs
 
     // find first block that fits our size
@@ -222,7 +222,7 @@ void block_deallocate(void *block)
     spinlock_release(&block_allocator_lock);
 }
 
-void block_allocate_dump_usage(void)
+void block_allocate_dump_usage()
 {
     spinlock_acquire(&block_allocator_lock);
     size_t used = 0, used_blocks = 0;

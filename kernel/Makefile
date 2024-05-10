@@ -24,7 +24,7 @@ CFLAGS += \
     -Waggregate-return \
     -Wstrict-prototypes \
     -fno-omit-frame-pointer \
-    -std=gnu11 \
+    -std=gnu2x \
     -ffreestanding \
     -fno-stack-protector \
     -fstack-protector-all \

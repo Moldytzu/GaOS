@@ -80,7 +80,7 @@ ustar_header_t *ustar_open_header(const char *path)
     }
 
     log_error("failed to open header with path %s", path);
-    return NULL;
+    return nullptr;
 }
 
 vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path)
@@ -88,8 +88,8 @@ vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path)
     ustar_node_t *node = block_allocate(sizeof(ustar_node_t));
     ustar_header_t *header = ustar_open_header(path);
 
-    if (header == NULL)
-        return NULL;
+    if (header == nullptr)
+        return nullptr;
 
     // fill in vfs header with path
     size_t path_len = strlen((char *)path);
@@ -112,7 +112,7 @@ void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     if (offset >= node_size) // invalid offset
     {
         log_error("invalid offset %d when reading %s", offset, node->path);
-        return NULL;
+        return nullptr;
     }
 
     if (offset + size >= node_size) // properly map size to fit the file
@@ -135,7 +135,7 @@ void ustar_close(vfs_fs_node_t *node)
     block_deallocate(ustar_node);
 }
 
-void ustar_debug_print(void)
+void ustar_debug_print()
 {
     ustar_header_t *header = (ustar_header_t *)((uint64_t)initrd + TAR_HEADER_SIZE);
 
@@ -162,7 +162,7 @@ void ustar_debug_print(void)
 
 vfs_fs_ops_t ustar;
 
-void ustar_init(void)
+void ustar_init()
 {
     // todo: we should create a device namespace
     // that can be called to get the required module
@@ -170,7 +170,7 @@ void ustar_init(void)
 
     // open initrd file
     struct limine_file *initrd_file = limine_get_module("/initrd.tar");
-    if (initrd_file == NULL)
+    if (initrd_file == nullptr)
         return;
     initrd = initrd_file->address;
 

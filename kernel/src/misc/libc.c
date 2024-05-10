@@ -251,7 +251,7 @@ void vprintk_serial(const char *fmt, va_list list)
     spinlock_release(&printk_lock);
 }
 
-noreturn void halt(void)
+noreturn void halt()
 {
     iasm("cli");
     iasm("hlt");

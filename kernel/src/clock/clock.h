@@ -7,11 +7,11 @@ typedef struct
 
     bool time_keeping_capable; // if possible to read nanoseconds
     uint64_t ticks_per_second; // higher is better in terms of resolution
-    uint64_t (*read_nanoseconds)(void);
+    uint64_t (*read_nanoseconds)();
     void (*sleep_nanoseconds)(uint64_t);
 
     bool one_shot_capable;
-    void (*schedule_one_shot)(void); // this will program a one shot interrupt that will make preemption possible
+    void (*schedule_one_shot)(); // this will program a one shot interrupt that will make preemption possible
 } clock_time_source_t;
 
 extern clock_time_source_t clock_system_timer;

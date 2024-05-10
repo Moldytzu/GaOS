@@ -21,7 +21,7 @@ CFLAGS += \
     -Wall \
     -Wextra \
     -Werror \
-    -std=gnu11 \
+    -std=gnu2x \
     -ffreestanding \
     -fno-stack-protector \
     -fno-stack-check \
@@ -80,7 +80,6 @@ bin/$(APP): linker.ld $(OBJ)
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c
 	@ mkdir -p "$$(dirname $@)"
-	@ echo $(CC)
 	@ $(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 	@ echo -e '\tCC $<'
 

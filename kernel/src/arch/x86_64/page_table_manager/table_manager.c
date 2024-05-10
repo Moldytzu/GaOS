@@ -43,8 +43,8 @@ ifunc arch_page_table_layer_t *arch_table_manager_get_next_layer(arch_page_table
 {
     uint64_t *entry = &layer->entries[index]; // index next layer's entry
 
-    if (!(*entry & TABLE_ENTRY_PRESENT)) // if it doesn't exist then return NULL
-        return NULL;
+    if (!(*entry & TABLE_ENTRY_PRESENT)) // if it doesn't exist then return nullptr
+        return nullptr;
 
     return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
 }
@@ -79,15 +79,15 @@ uint64_t arch_table_manager_translate_to_physical(arch_page_table_t *table, uint
 
     // traverse the page table while checking if the layer is allocated
     arch_page_table_layer_t *pml3 = arch_table_manager_get_next_layer(table, pml3_index);
-    if (pml3 == NULL)
+    if (pml3 == nullptr)
         return 0;
 
     arch_page_table_layer_t *pml2 = arch_table_manager_get_next_layer(pml3, pml2_index);
-    if (pml2 == NULL)
+    if (pml2 == nullptr)
         return 0;
 
     arch_page_table_layer_t *pml1 = arch_table_manager_get_next_layer(pml2, pml1_index);
-    if (pml1 == NULL)
+    if (pml1 == nullptr)
         return 0;
 
     uint64_t *entry = &pml1->entries[p_index];
@@ -97,12 +97,12 @@ uint64_t arch_table_manager_translate_to_physical(arch_page_table_t *table, uint
         return 0;
 }
 
-arch_page_table_t *arch_table_manager_new(void)
+arch_page_table_t *arch_table_manager_new()
 {
     return page_allocate(1);
 }
 
-void arch_table_manager_create_bootstrap_table_limine(void)
+void arch_table_manager_create_bootstrap_table_limine()
 {
     arch_bootstrap_page_table = arch_table_manager_new();
 
@@ -136,7 +136,7 @@ void arch_table_manager_create_bootstrap_table_limine(void)
     }
 }
 
-void arch_table_manager_init(void)
+void arch_table_manager_init()
 {
     arch_table_manager_create_bootstrap_table_limine();
     arch_table_manager_switch_to(arch_bootstrap_page_table);

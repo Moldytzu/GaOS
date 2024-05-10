@@ -9,9 +9,9 @@
 #define IA32_FMASK 0xC0000084
 #define IA32_EFER 0xC0000080
 
-extern void arch_syscall_entry(void);
+extern void arch_syscall_entry();
 
-void arch_syscall_init(void)
+void arch_syscall_init()
 {
     // enable sysret/syscall
     wrmsr(IA32_EFER, rdmsr(IA32_EFER) | 1);

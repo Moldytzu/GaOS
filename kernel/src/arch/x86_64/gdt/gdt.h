@@ -58,4 +58,4 @@ pstruct
 }
 gdt_info_t;
 
-void arch_load_gdt(void);
+void arch_load_gdt();

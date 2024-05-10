@@ -8,21 +8,21 @@
 #define MSR_GS_KERNEL_BASE 0xC0000102
 #define CONTEXT_TYPE_CPU 0
 
-void *arch_get_current_context(void)
+void *arch_get_current_context()
 {
     return (void *)rdmsr(MSR_GS_BASE);
 }
 
-arch_cpu_context_t *arch_get_cpu_context(void)
+arch_cpu_context_t *arch_get_cpu_context()
 {
     arch_cpu_context_t *context = arch_get_current_context();
-    if (context == NULL || context->context_type != CONTEXT_TYPE_CPU)
+    if (context == nullptr || context->context_type != CONTEXT_TYPE_CPU)
         iasm("swapgs");
 
     return arch_get_current_context();
 }
 
-arch_cpu_context_t *arch_context_install(void)
+arch_cpu_context_t *arch_context_install()
 {
     if (sizeof(arch_cpu_context_t) > PAGE)
         panic("arch context too big");
@@ -42,7 +42,7 @@ void *arch_install_scheduler_context(void *context)
     return context;
 }
 
-void *arch_get_scheduler_context(void)
+void *arch_get_scheduler_context()
 {
     return arch_get_cpu_context()->scheduler_context;
 }

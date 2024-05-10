@@ -21,10 +21,10 @@ extern bool framebuffer_available;
 extern framebuffer_t main_framebuffer;
 extern cursor_t main_cursor;
 
-void framebuffer_init(void);
+void framebuffer_init();
 void framebuffer_write_string(char *string);
 void framebuffer_write_character(char c);
-void framebuffer_create_device(void);
+void framebuffer_create_device();
 
 ifunc void framebuffer_plot_pixel(size_t x, size_t y, uint32_t colour)
 {

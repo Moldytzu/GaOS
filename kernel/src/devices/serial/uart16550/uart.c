@@ -15,7 +15,7 @@
 #define COM_PORT_MODEM_STATUS (COM_PORT_BASE + 6)
 #define COM_PORT_SCRATCH_REGISTER (COM_PORT_BASE + 7)
 
-void uart16550_init(void)
+void uart16550_init()
 {
     // set baud rate divisor to 1 (115200 baud)
     uint16_t divisor = 1;
@@ -37,7 +37,7 @@ void uart16550_init(void)
     log_info("initialised");
 }
 
-static bool uart16550_can_send(void)
+static bool uart16550_can_send()
 {
     return arch_pio_read8(COM_PORT_LINE_STATUS) & 0b100000; // check if transmission buffer is empty
 }
@@ -61,20 +61,20 @@ void uart16550_send_string(char *string)
 
 void *uart16550_read(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
 {
-    (void)node, (void)buffer, (void)size, (void)offset;
-    return NULL;
+    used(node), used(buffer), used(size), used(offset);
+    return nullptr;
 }
 
 void *uart16550_write(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
 {
-    (void)node;
+    used(node);
     char *c = buffer + offset;
     for (size_t i = 0; i <= size; i++)
         uart16550_send_byte(c[i]);
     return buffer + offset;
 }
 
-void uart16550_create_device(void)
+void uart16550_create_device()
 {
     device_create_at("/uart0", serial, uart16550_read, uart16550_write);
 }
