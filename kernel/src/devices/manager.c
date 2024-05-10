@@ -6,6 +6,7 @@
 #include <devices/timers/timers.h>
 #include <memory/physical/block_allocator.h>
 #include <acpi/acpi.h>
+#include <boot/limine.h>
 
 typedef struct
 {
@@ -128,6 +129,14 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
         size_t dir_len;
         for (dir_len = 0; path[dir_len] != '/' && path[dir_len] != 0; dir_len++)
             ;
+
+        if (dir_len == 0) // probably hit a double delimiter
+        {
+            // skip it and try again
+            path++;
+            total_path_offset++;
+            continue;
+        }
 
         if (path[dir_len] == '/' && path[dir_len + 1] != 0) // there is another layer deep
         {
@@ -255,6 +264,13 @@ vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
         size_t dir_len;
         for (dir_len = 0; path[dir_len] != '/' && path[dir_len] != 0; dir_len++)
             ;
+
+        if (dir_len == 0) // probably hit a double delimiter
+        {
+            // skip it and try again
+            path++;
+            continue;
+        }
 
         if (path[dir_len] == '/' && path[dir_len + 1] != 0) // there is another layer deep
         {
@@ -386,6 +402,7 @@ void device_manager_init()
     framebuffer_create_device();
     serial_create_device();
     acpi_create_device();
+    limine_create_device();
 
     list_devices();
 }
