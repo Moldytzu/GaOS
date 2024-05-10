@@ -241,7 +241,6 @@ char *device_get_by_type(device_type_t type, char *path, size_t path_len, uint64
 
 vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode)
 {
-    used(mode);
     char *path_orig = (char *)path; // original path pointer
 
     // skip '/' if needed
@@ -303,6 +302,18 @@ vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
             if (!dev)  // if not found,
                 break; // handle the error
 
+            if ((mode & O_RDONLY) && !dev->read)
+            {
+                log_error("failed to open unreadable device %s", path_orig);
+                return error_ptr(-EACCES);
+            }
+
+            if ((mode & O_WRONLY) && !dev->write)
+            {
+                log_error("failed to open unwritable device %s", path_orig);
+                return error_ptr(-EACCES);
+            }
+
             device_node_t *node = block_allocate(sizeof(device_node_t));
 
             // fill in the standard vfs header
@@ -320,7 +331,7 @@ vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
     }
 
     log_error("failed to open device %s", path_orig);
-    return nullptr;
+    return error_ptr(-ENOENT);
 }
 
 void devfs_close(vfs_fs_node_t *node)
