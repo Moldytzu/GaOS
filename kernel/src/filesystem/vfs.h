@@ -1,6 +1,20 @@
 #pragma once
 #include <misc/libc.h>
 
+// POSIX oflags
+#define O_RDONLY (1 << 0)
+#define O_WRONLY (1 << 1)
+#define O_RDWR (O_RDONLY | O_WRONLY)
+#define O_APPEND (1 << 2)
+#define O_CREAT (1 << 3)
+#define O_DSYNC (1 << 4)
+#define O_EXCL (1 << 5)
+#define O_NOCTTY (1 << 6)
+#define O_NONBLOCK (1 << 7)
+#define O_RSYNC (1 << 8)
+#define O_SYNC (1 << 9)
+#define O_TRUNC (1 << 10)
+
 struct vfs_fs_node
 {
     char *path;
@@ -18,7 +32,7 @@ struct vfs_fs_ops
     char *name;
     size_t name_length;
 
-    struct vfs_fs_node *(*open)(struct vfs_fs_ops *fs, const char *path);
+    struct vfs_fs_node *(*open)(struct vfs_fs_ops *fs, const char *path, uint64_t mode);
     void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void *(*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void (*close)(struct vfs_fs_node *node);
@@ -41,7 +55,7 @@ typedef struct vfs_mount_point vfs_mount_point_t;
 
 void vfs_init();
 void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs);
-vfs_fs_node_t *vfs_open(const char *path);
+vfs_fs_node_t *vfs_open(const char *path, uint64_t mode);
 void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
 void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
 void vfs_close(vfs_fs_node_t *node);

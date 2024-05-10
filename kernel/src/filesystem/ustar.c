@@ -83,8 +83,9 @@ ustar_header_t *ustar_open_header(const char *path)
     return nullptr;
 }
 
-vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path)
+vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode)
 {
+    used(mode);
     ustar_node_t *node = block_allocate(sizeof(ustar_node_t));
     ustar_header_t *header = ustar_open_header(path);
 

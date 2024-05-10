@@ -41,26 +41,26 @@ void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
     log_info("mounting %s on /%s", fs->name, name);
 }
 
-vfs_fs_node_t *vfs_open(const char *path)
+vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
 {
     spinlock_acquire(&mount_lock);
 
     if (path == nullptr)
     {
         log_error("attempt to open nullptr"); // todo: print caller's address
-        return nullptr;
+        return (void *)-ENOENT;
     }
 
     size_t path_len = strlen((char *)path);
 
     // structure of a path is
     // /<filesystem name>/path/to/files
-    // anything that isn't like this is invalid and should return nullptr
+    // anything that isn't like this is invalid and should return an error
 
     if (*path != '/')
     {
         log_error("failed to open \"%s\" with unknown root", path);
-        return nullptr;
+        return (void *)-ENOENT;
     }
 
     // get the name of the filesystem targeted in the path
@@ -81,7 +81,7 @@ vfs_fs_node_t *vfs_open(const char *path)
     if (!mount) // invalid filesystem
     {
         log_error("failed to open \"%s\" with unknown filesystem", path);
-        return nullptr;
+        return (void *)-ENOENT;
     }
 
     spinlock_release(&mount_lock);
@@ -89,7 +89,7 @@ vfs_fs_node_t *vfs_open(const char *path)
     if (!mount->fs->open)
         panic("%s has no open callback", mount->fs->name);
 
-    return mount->fs->open(mount->fs, path + fsname_len + 1 /*skip /<filesystem name>*/);
+    return mount->fs->open(mount->fs, path + fsname_len + 1 /*skip /<filesystem name>*/, mode);
 }
 
 void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)

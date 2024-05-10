@@ -239,8 +239,9 @@ char *device_get_by_type(device_type_t type, char *path, size_t path_len, uint64
     return device_get_by_type_recursive(device_list, type, path, path_len, &index, 0);
 }
 
-vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path)
+vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode)
 {
+    used(mode);
     char *path_orig = (char *)path; // original path pointer
 
     // skip '/' if needed
