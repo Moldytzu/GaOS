@@ -1,7 +1,10 @@
 #define MODULE "limine"
 #include <misc/logger.h>
+#include <arch/arch.h>
 
-#include <boot/limine.h> // kernel interface
+#include <devices/manager.h>
+#include <boot/limine.h>
+#include <memory/physical/page_allocator.h>
 
 LIMINE_BASE_REVISION(1) // set latest revision
 
@@ -33,7 +36,7 @@ volatile struct limine_kernel_address_request kernel_kernel_address_request = {
 volatile struct limine_stack_size_request kernel_stack_size_request = {
     .id = LIMINE_STACK_SIZE_REQUEST,
     .revision = 0,
-    .stack_size = 0x1000, /*a page*/
+    .stack_size = PAGE,
 };
 
 volatile struct limine_smp_request kernel_smp_request = {
@@ -50,10 +53,10 @@ uint64_t kernel_hhdm_offset;
 
 struct limine_file *limine_get_module(const char *path)
 {
-    int count = module_request.response->module_count;
+    size_t count = module_request.response->module_count;
     struct limine_file **modules = module_request.response->modules;
 
-    for (int i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++)
     {
         struct limine_file *file = modules[i];
         if (strncmp(file->path, path, strlen((char *)path)) == 0)
@@ -71,4 +74,23 @@ void limine_init()
         halt();
 
     kernel_hhdm_offset = kernel_hhdm_request.response->offset;
+}
+
+void limine_create_device()
+{
+    // create the root
+    char *path = page_allocate(1);
+    strcpy(path, "/boot/modules/");
+    device_create_at(path, reserved, nullptr, nullptr);
+
+    // create a device for each module
+    int count = module_request.response->module_count;
+    struct limine_file **modules = module_request.response->modules;
+
+    for (int i = 0; i < count; i++)
+    {
+        struct limine_file *file = modules[i];
+        strcpy(path + 14, file->path);
+        device_create_at(path, module, nullptr, nullptr);
+    }
 }
