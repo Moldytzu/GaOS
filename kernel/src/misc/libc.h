@@ -146,6 +146,7 @@
 #define EMAXLEVEL 255 // maximum error level
 #define error_of(x) ((int64_t)(x))
 #define is_error(x) (error_of(x) < 0 && error_of(x) >= -EMAXLEVEL)
+#define error_ptr(x) ((void *)(x))
 
 // fixme: as soon as GCC supports C++-style attributes for C23, use them here
 
