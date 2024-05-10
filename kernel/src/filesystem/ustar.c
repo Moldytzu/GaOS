@@ -85,12 +85,14 @@ ustar_header_t *ustar_open_header(const char *path)
 
 vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode)
 {
-    used(mode);
+    if (mode & O_WRONLY)
+        return error_ptr(-EACCES);
+
     ustar_node_t *node = block_allocate(sizeof(ustar_node_t));
     ustar_header_t *header = ustar_open_header(path);
 
     if (header == nullptr)
-        return nullptr;
+        return error_ptr(-ENOENT);
 
     // fill in vfs header with path
     size_t path_len = strlen((char *)path);
@@ -113,7 +115,7 @@ void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     if (offset >= node_size) // invalid offset
     {
         log_error("invalid offset %d when reading %s", offset, node->path);
-        return nullptr;
+        return error_ptr(-EINVAL);
     }
 
     if (offset + size >= node_size) // properly map size to fit the file
