@@ -127,4 +127,6 @@ void acpi_create_device()
             device_create_at(path, acpi_table, acpi_read, acpi_write);
         }
     }
+
+    page_deallocate(path, 1);
 }
