@@ -83,7 +83,10 @@ void limine_create_device()
     strcpy(path, "/boot/modules/");
     device_create_at(path, reserved, nullptr, nullptr);
 
-    // create a device for each module
+    // create a device for each module if there exist any
+    if (!module_request.response)
+        return;
+
     int count = module_request.response->module_count;
     struct limine_file **modules = module_request.response->modules;
 
