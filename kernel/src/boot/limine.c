@@ -59,7 +59,12 @@ struct limine_file *limine_get_module(const char *path)
     for (size_t i = 0; i < count; i++)
     {
         struct limine_file *file = modules[i];
-        if (strncmp(file->path, path, strlen((char *)path)) == 0)
+        char *fpath = file->path;
+
+        if (*path != '/') // if the given path doesn't start with a delimiter
+            fpath++;      // do not compare with it
+
+        if (strncmp(fpath, path, strlen((char *)path)) == 0)
             return file;
     }
 
