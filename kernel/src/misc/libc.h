@@ -148,13 +148,11 @@
 #define is_error(x) (error_of(x) < 0 && error_of(x) >= -EMAXLEVEL)
 #define error_ptr(x) ((void *)(x))
 
-// fixme: as soon as GCC supports C++-style attributes for C23, use them here
-
 #define iasm asm volatile
-#define ifunc static inline __attribute__((always_inline))
+#define ifunc [[gnu::always_inline]] static inline
 #define bitsof(type) (sizeof(type) * 8)
-#define pstruct typedef struct __attribute__((packed))
-#define align_addr(al) __attribute__((aligned(al)))
+#define pstruct typedef struct [[gnu::packed]]
+#define align_addr(al) [[gnu::aligned(al)]]
 #define used(x) (void)x
 
 void *memcpy(void *dest, const void *src, size_t n);
