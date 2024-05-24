@@ -59,3 +59,5 @@ vfs_fs_node_t *vfs_open(const char *path, uint64_t mode);
 void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
 void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
 void vfs_close(vfs_fs_node_t *node);
+void vfs_dirname(const char *path, char *dirname, size_t max_len);
+void vfs_basename(const char *path, char *basename, size_t max_len);

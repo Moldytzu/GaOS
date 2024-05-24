@@ -150,3 +150,35 @@ void vfs_init()
 {
     mount_points = block_allocate(sizeof(vfs_mount_point_t));
 }
+
+void vfs_dirname(const char *path, char *dirname, size_t max_len)
+{
+    // get parent directory of path
+    size_t max_offset = strlen((char *)path);
+
+    if (path[max_offset] == '/') // skip if this is a folder
+        max_offset--;
+
+    while (path[max_offset] != '/' && max_offset != 0) // decrease max_offset until it points to a directory
+        max_offset--;
+
+    memcpy(dirname, path, min(max_len, max_offset));
+}
+
+void vfs_basename(const char *path, char *basename, size_t max_len)
+{
+    // get basename of path
+    size_t max_offset = strlen((char *)path);
+    size_t base_offset = max_offset;
+
+    if (path[base_offset] == '/') // skip if this is a folder
+        base_offset--;
+
+    while (path[base_offset] != '/' && base_offset != 0) // decrease max_offset until it points to a directory
+        base_offset--;
+
+    if (path[base_offset] == '/') // skip the delimiter
+        base_offset++;
+
+    memcpy(basename, path + base_offset, min(max_len, max_offset - base_offset));
+}
