@@ -6,7 +6,7 @@
 #include <memory/physical/page_allocator.h>
 #include <memory/physical/block_allocator.h>
 #include <arch/arch.h>
-
+#include <devices/manager.h>
 #include <boot/limine.h>
 
 #define TAR_BLOCK_SIZE 512
@@ -167,12 +167,35 @@ vfs_fs_ops_t ustar;
 
 void ustar_init()
 {
-    // todo: we should create a device namespace
-    // that can be called to get the required module
-    // to use as initrd
+    // todo: make it possible to override this using cmdline
 
-    // open initrd file
-    struct limine_file *initrd_file = limine_get_module("/initrd.tar");
+    // get first module that is a tarball
+    char *path = page_allocate(1);
+    int i = 0;
+    bool status;
+    do
+    {
+        status = device_get_by_type(module, path, 4096, i++);
+    } while (status && memcmp(path + strlen(path) - 4, ".tar", 4) != 0);
+
+    if (!status)
+    {
+        log_error("failed to detect an initrd");
+        return;
+    }
+
+    // get its basename (the actual module filename)
+    char *basename = page_allocate(1);
+    vfs_basename(path, basename, PAGE);
+
+    // open the initrd file
+    struct limine_file *initrd_file = limine_get_module(basename);
+
+    // clean up path allocations
+    page_deallocate(path, 1);
+    page_deallocate(basename, 1);
+
+    // get the base address
     if (initrd_file == nullptr)
         return;
     initrd = initrd_file->address;
