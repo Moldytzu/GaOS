@@ -20,6 +20,8 @@ arch_cpu_context_t;
 
 arch_cpu_context_t *arch_context_install();
 void *arch_install_scheduler_context(void *context);
+void *arch_install_task_context(void *context);
 
 arch_cpu_context_t *arch_get_cpu_context();
 void *arch_get_scheduler_context();
+void *arch_get_task_context();
