@@ -5,6 +5,9 @@
 struct scheduler_task
 {
     uint64_t id;
+    uint64_t syscall_stack_top;
+    uint64_t userspace_stack_top;
+
     char *name;
     size_t name_length;
 

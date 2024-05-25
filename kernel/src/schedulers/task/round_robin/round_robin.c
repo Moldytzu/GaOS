@@ -164,6 +164,7 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     // load new state
     spinlock_release(&context->running.lock);
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
+    arch_install_task_context(next_task);
 
     // printk_serial("loading %s (%d) on %d\n", next_task->name, next_task->id, arch_get_id());
     //  debug_dump_queue();
@@ -182,6 +183,9 @@ scheduler_task_t *task_scheduler_round_robin_create(const char *name)
     task->name = block_allocate(name_len);
     task->name_length = name_len;
     memcpy(task->name, name, name_len);
+
+    // allocate a syscall stack
+    task->syscall_stack_top = (uint64_t)page_allocate(1) + PAGE;
 
     task->empty = true; // mark as an empty task (i.e. not tied to an executable)
 
