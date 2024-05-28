@@ -111,7 +111,10 @@ void framebuffer_write_character(char c)
 void framebuffer_write_string(char *string)
 {
     while (*string)
-        framebuffer_write_character(*string++);
+    {
+        framebuffer_write_character(*string);
+        string++;
+    }
 }
 
 void framebuffer_init()

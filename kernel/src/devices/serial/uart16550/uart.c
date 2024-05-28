@@ -56,7 +56,10 @@ void uart16550_send_byte(uint8_t byte)
 void uart16550_send_string(char *string)
 {
     while (*string)
-        uart16550_send_byte(*string++);
+    {
+        uart16550_send_byte(*string);
+        string++;
+    }
 }
 
 void *uart16550_read(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
