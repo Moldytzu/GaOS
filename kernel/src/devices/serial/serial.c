@@ -32,12 +32,12 @@ void serial_init()
 
 void serial_send_byte(uint8_t byte)
 {
-    ()byte;
+    (void)byte;
 }
 
 void serial_send_string(char *string)
 {
-    ()string;
+    (void)string;
 }
 
 void serial_create_device()
