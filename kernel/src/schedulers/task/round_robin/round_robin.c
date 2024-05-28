@@ -162,6 +162,7 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     // printk_serial("saved %s (%d) on %d\n", current->name, current->id, arch_get_id());
 
     // load new state
+    // fixme: check for empty flag
     spinlock_release(&context->running.lock);
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
     arch_install_task_context(next_task);
@@ -211,6 +212,24 @@ scheduler_task_t *task_scheduler_round_robin_create(const char *name)
     task_scheduler_round_robin_push_to_queue(&free_context->running, task); // push it tot the queue
 
     return task;
+}
+
+scheduler_task_t *task_scheduler_round_robin_create_kernel(const char *name, void *task)
+{
+    scheduler_task_t *new_task = task_scheduler_round_robin_create(name);
+
+#ifdef ARCH_x86_64
+    new_task->state.cr3 = (uint64_t)arch_bootstrap_page_table - kernel_hhdm_offset; // cr3 has to be a physical address
+    new_task->state.rip = (uint64_t)task;                                           // point to the designated entry point
+    new_task->state.rflags = 0x202;                                                 // enable interrupts
+    new_task->state.rsp = (uint64_t)page_allocate(1) + PAGE;                        // point to the stack (on x86_64 the stack grows down)
+
+    // point to kernel-space segements
+    new_task->state.cs = 8 * 1 | 0;
+    new_task->state.ss = 8 * 2 | 0;
+#endif
+
+    return new_task;
 }
 
 /*
