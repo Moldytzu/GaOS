@@ -24,3 +24,8 @@ ifunc void arch_interrupts_disable()
 {
     iasm("cli");
 }
+
+ifunc void arch_interrupts_wait()
+{
+    iasm("hlt");
+}
