@@ -32,7 +32,7 @@ CFLAGS += \
     -fno-lto \
     -fno-pic \
     -fpie \
-    -march=nocona \
+    -march=x86-64 \
     -mgeneral-regs-only \
     -mno-red-zone \
     -Wno-unused-function \
