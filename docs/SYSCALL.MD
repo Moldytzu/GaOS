@@ -15,6 +15,7 @@
 
 ### Syscall Table
 
-| Syscall name | rdi | rsi | rdx | r10 | r8 | r9 |
-|--------------|-----|-----|-----|-----|----|----|
-| write        |  0  | uint64_t fd | char *buffer | size_t size | - | - |
+| Syscall name | rdi | rsi | rdx | r10 | r8 | r9 | rax | description |
+|--------------|-----|-----|-----|-----|----|----|-----|-------------|
+| write |  0  | uint64_t fd | char *buffer | size_t size | - | - | error code | Write (size) bytes from buffer to (fd). |
+| open |  1  | char *filename | uint64_t mode | - | - | - | error code or fd | Open file (filename) with (mode). |
