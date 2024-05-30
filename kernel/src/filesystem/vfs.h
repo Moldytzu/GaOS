@@ -1,5 +1,6 @@
 #pragma once
 #include <misc/libc.h>
+#include <io/queue.h>
 
 // POSIX oflags
 #define O_RDONLY (1 << 0)
@@ -36,6 +37,9 @@ struct vfs_fs_ops
     void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void *(*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void (*close)(struct vfs_fs_node *node);
+    void (*async_task_register)(struct vfs_fs_node *node, io_task_t *task);
+    void (*async_task_update)(struct vfs_fs_node *node, io_task_t *task);
+    void (*async_task_unregister)(struct vfs_fs_node *node, io_task_t *task);
 };
 
 typedef struct vfs_fs_ops vfs_fs_ops_t;
@@ -58,6 +62,9 @@ void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs);
 vfs_fs_node_t *vfs_open(const char *path, uint64_t mode);
 void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
 void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
+bool vfs_async_task_register(struct vfs_fs_node *node, io_task_t *task);
+void vfs_async_task_update(struct vfs_fs_node *node, io_task_t *task);
+void vfs_async_task_unregister(struct vfs_fs_node *node, io_task_t *task);
 void vfs_close(vfs_fs_node_t *node);
 void vfs_dirname(const char *path, char *dirname, size_t max_len);
 void vfs_basename(const char *path, char *basename, size_t max_len);

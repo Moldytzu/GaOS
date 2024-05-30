@@ -132,6 +132,41 @@ void vfs_close(vfs_fs_node_t *node)
     }
 }
 
+bool vfs_async_task_register(struct vfs_fs_node *node, io_task_t *task)
+{
+    if (!node->fs->async_task_register || !node->fs->async_task_unregister || !node->fs->async_task_update)
+    {
+        log_error("%s does not support async i/o", node->fs->name);
+        return false;
+    }
+
+    node->fs->async_task_register(node, task);
+
+    return true;
+}
+
+void vfs_async_task_update(struct vfs_fs_node *node, io_task_t *task)
+{
+    if (!node->fs->async_task_register || !node->fs->async_task_unregister || !node->fs->async_task_update)
+    {
+        log_error("%s does not support async i/o", node->fs->name);
+        return;
+    }
+
+    node->fs->async_task_update(node, task);
+}
+
+void vfs_async_task_unregister(struct vfs_fs_node *node, io_task_t *task)
+{
+    if (!node->fs->async_task_register || !node->fs->async_task_unregister || !node->fs->async_task_update)
+    {
+        log_error("%s does not support async i/o", node->fs->name);
+        return;
+    }
+
+    node->fs->async_task_unregister(node, task);
+}
+
 void vfs_print_debug()
 {
     spinlock_acquire(&mount_lock);

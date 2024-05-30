@@ -18,6 +18,9 @@
 #include <devices/timers/timers.h>
 #include <clock/clock.h>
 
+// io
+#include <io/queue.h>
+
 // filesystem
 #include <filesystem/vfs.h>
 #include <filesystem/ustar.h>
@@ -52,6 +55,7 @@ void _start()
     device_manager_init();                                      // initialise the device manager
     ustar_init();                                               // initialise the initrd
     task_scheduler_init();                                      // initialise the task scheduler
+    io_queue_init();                                            // initialise the i/o queuer
 
     // load an executable from the initrd
     vfs_fs_node_t *hello_node = vfs_open("/initrd/hello.elf", O_RDONLY);
