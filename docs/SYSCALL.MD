@@ -19,3 +19,4 @@
 |--------------|-----|-----|-----|-----|----|----|-----|-------------|
 | write |  0  | uint64_t fd | char *buffer | size_t size | - | - | error code | Write (size) bytes from buffer to (fd). |
 | open |  1  | char *filename | uint64_t mode | - | - | - | error code or fd | Open file (filename) with (mode). |
+| close | 2 | uint64_t fd | - | - | - | - | error code | Closes file (fd). |

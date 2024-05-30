@@ -1,4 +1,4 @@
-#define MODULE "sys_write"
+#define MODULE "sys_open"
 #include <misc/logger.h>
 
 #include <syscalls/helpers.h>
