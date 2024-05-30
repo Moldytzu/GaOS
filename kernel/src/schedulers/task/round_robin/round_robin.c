@@ -194,6 +194,12 @@ scheduler_task_t *task_scheduler_round_robin_create(const char *name)
     task->id = ++last_id;
     spinlock_release(&last_id_lock);
 
+    // allocate the file descriptor translation
+    task->fd_allocated_pages = 1;
+    task->fd_count = 3; // stdin, stdout, stderr
+    task->fd_translation = page_allocate(1);
+    task->fd_max = PAGE / sizeof(vfs_fs_node_t *);
+
     // find the least busy core
     size_t min = UINT64_MAX;
     scheduler_context_t *free_context = arch_get_scheduler_context(), *current_context = last_context;

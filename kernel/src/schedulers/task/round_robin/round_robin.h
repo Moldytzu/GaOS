@@ -1,6 +1,7 @@
 #pragma once
 #include <misc/libc.h>
 #include <arch/arch.h>
+#include <filesystem/vfs.h>
 
 struct scheduler_task
 {
@@ -8,14 +9,22 @@ struct scheduler_task
     uint64_t syscall_stack_top;
     uint64_t userspace_stack_top;
 
+    // metadata
     char *name;
     size_t name_length;
+    bool empty;
 
+    // cpu state
     arch_cpu_state_t state;
     arch_simd_state_t simd_state;
 
-    bool empty;
+    // file descriptors
+    size_t fd_count;
+    size_t fd_max;
+    vfs_fs_node_t **fd_translation;
+    size_t fd_allocated_pages;
 
+    // list
     struct scheduler_task_queue *parent_queue;
 
     struct scheduler_task *next;
