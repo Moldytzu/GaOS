@@ -40,11 +40,20 @@ static void page_allocator_create_pools_limine()
         if (entry->type != LIMINE_MEMMAP_USABLE)
             continue;
 
+#ifdef ARCH_x86_64
+        // x86 quirk, ignore ram <1MB
+        if (entry->base + entry->length <= 1 * 1024 * 1024)
+            continue;
+
+        if (entry->base <= 1 * 1024 * 1024 && entry->base + entry->length >= 1 * 1024 * 1024) // clamp entry base to 1MB if it makes sense
+            entry->base = 1024 * 1024;
+#endif
+
         page_allocator_pool_t *pool = &allocator_pools[allocator_pool_index++];
 
         // determine the required bytes for the bitmap
         size_t required_bitmap_bytes = entry->length / PAGE / bitsof(uint8_t);
-        if (required_bitmap_bytes % PAGE) // align to a page's lenght
+        if (required_bitmap_bytes % PAGE) // align to a page's length
             required_bitmap_bytes += PAGE - required_bitmap_bytes % PAGE;
 
         // write the metadata
