@@ -15,6 +15,21 @@
 #define COM_PORT_MODEM_STATUS (COM_PORT_BASE + 6)
 #define COM_PORT_SCRATCH_REGISTER (COM_PORT_BASE + 7)
 
+bool uart16650_present = false;
+
+bool uart16650_detect()
+{
+    arch_pio_write8(COM_PORT_MODEM_CONTROL, arch_pio_read8(COM_PORT_MODEM_CONTROL) | 0b10000); // set loop back bit
+    arch_pio_write8(COM_PORT_DATA, 'X');                                                       // send a byte
+
+    if (arch_pio_read8(COM_PORT_DATA) != 'X') // read it back and check
+        return false;
+
+    arch_pio_write8(COM_PORT_MODEM_CONTROL, arch_pio_read8(COM_PORT_MODEM_CONTROL) & ~0b10000); // reset loop back bit
+
+    return true;
+}
+
 void uart16550_init()
 {
     // set baud rate divisor to 1 (115200 baud)
@@ -34,6 +49,12 @@ void uart16550_init()
     // enable fifo
     arch_pio_write8(COM_PORT_FIFO_CONTROL, 0b110001); // set thresold to 14 bytes
 
+    // after initialisation test for functionality in loopback mode
+    if (!uart16650_detect())
+        return;
+
+    uart16650_present = true;
+
     log_info("initialised");
 }
 
@@ -44,6 +65,9 @@ static bool uart16550_can_send()
 
 void uart16550_send_byte(uint8_t byte)
 {
+    if (!uart16650_present)
+        return;
+
     if (byte == '\n')              // GaOS uses LF encoding, while most serial terminals use CRLF
         uart16550_send_byte('\r'); // we want to emulate this behaviour
 
@@ -55,6 +79,9 @@ void uart16550_send_byte(uint8_t byte)
 
 void uart16550_send_string(char *string)
 {
+    if (!uart16650_present)
+        return;
+
     while (*string)
     {
         uart16550_send_byte(*string);
@@ -79,5 +106,8 @@ void *uart16550_write(struct vfs_fs_node *node, void *buffer, size_t size, size_
 
 void uart16550_create_device()
 {
+    if (!uart16650_present)
+        return;
+
     device_create_at("/uart0", serial, uart16550_read, uart16550_write);
 }
