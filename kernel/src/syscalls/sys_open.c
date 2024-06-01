@@ -5,7 +5,7 @@
 
 int64_t sys_open(uint64_t num, char *filename, uint64_t mode)
 {
-    used(num), used(filename), used(mode);
+    used(num);
 
     scheduler_task_t *caller = GET_CALLER_TASK();
     arch_page_table_t *caller_pt = GET_PAGE_TABLE(caller);
@@ -23,6 +23,7 @@ int64_t sys_open(uint64_t num, char *filename, uint64_t mode)
         return error_of(node);
 
     // push the node on the translation table
+    // fixme: check for holes
     size_t fd = caller->fd_count++;
 
     if (caller->fd_count > caller->fd_max)

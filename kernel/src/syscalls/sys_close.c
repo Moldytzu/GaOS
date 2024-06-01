@@ -16,6 +16,7 @@ int64_t sys_close(uint64_t num, uint64_t fd)
     vfs_fs_node_t *node = caller->fd_translation[fd];
     vfs_close(node);
     caller->fd_count--;
+    caller->fd_translation[fd] = 0;
 
     return 0;
 }
