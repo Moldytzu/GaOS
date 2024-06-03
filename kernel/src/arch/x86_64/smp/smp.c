@@ -18,7 +18,8 @@ bool arch_is_bsp()
     return arch_get_id() == arch_bsp_id;
 }
 
-spinlock_t arch_smp_bootstrap_lock, arch_smp_enable_scheduler_lock;
+spinlock_t arch_smp_bootstrap_lock, arch_smp_enable_scheduler_lock, arch_smp_completion_lock;
+size_t arch_complete = 0;
 void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
 {
     used(smp_info);
@@ -36,6 +37,11 @@ void arch_bootstrap_entry_limine(struct limine_smp_info *smp_info)
     spinlock_wait_for(&arch_smp_enable_scheduler_lock); // wait for the scheduler to be enabled
 
     task_scheduler_install_context();
+
+    spinlock_acquire(&arch_smp_completion_lock);
+    arch_complete++;
+    spinlock_release(&arch_smp_completion_lock);
+
     task_scheduler_enable();
 
     halt();
@@ -72,4 +78,8 @@ int arch_bootstrap_ap()
 void arch_bootstrap_ap_scheduler()
 {
     spinlock_release(&arch_smp_enable_scheduler_lock);
+
+    // wait for completion
+    while (arch_complete != arch_processor_count - 1)
+        arch_hint_spinlock();
 }
