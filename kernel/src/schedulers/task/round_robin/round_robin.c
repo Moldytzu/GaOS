@@ -96,7 +96,10 @@ Context installation
 noreturn void _idle_task()
 {
     while (1)
+    {
+        arch_interrupts_wait();
         arch_hint_spinlock();
+    }
 }
 
 void task_scheduler_round_robin_install_context()
