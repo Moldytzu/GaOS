@@ -18,7 +18,7 @@ GDB_FLAGS ?= -tui -q -x gdb.script
 # architecture-specific flags
 ifeq ($(OUTPUT_ARCH),x86_64)
 	QEMU_FLAGS += -M q35,smm=off
-	QEMU_ACCELERATED += --enable-kvm -cpu host
+	QEMU_ACCELERATED += --enable-kvm -cpu host -smp $(shell nproc)
 endif
 
 # apps
