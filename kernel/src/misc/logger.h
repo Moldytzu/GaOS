@@ -13,8 +13,11 @@
 #define WARN_COLOUR 0xD07000
 #define ERROR_COLOUR 0xFF2020
 
+extern spinlock_t logger_spinlock;
+
 static void log_info(const char *fmt, ...)
 {
+    spinlock_acquire(&logger_spinlock);
     va_list list;
 
     // read nanoseconds from system timer
@@ -52,10 +55,12 @@ static void log_info(const char *fmt, ...)
 
     // new line
     printk_serial("\n");
+    spinlock_release(&logger_spinlock);
 }
 
 static void log_warn(const char *fmt, ...)
 {
+    spinlock_acquire(&logger_spinlock);
     va_list list;
 
     // read nanoseconds from system timer
@@ -93,10 +98,12 @@ static void log_warn(const char *fmt, ...)
 
     // new line
     printk_serial("\n");
+    spinlock_release(&logger_spinlock);
 }
 
 static void log_error(const char *fmt, ...)
 {
+    spinlock_acquire(&logger_spinlock);
     va_list list;
 
     // read nanoseconds from system timer
@@ -135,4 +142,5 @@ static void log_error(const char *fmt, ...)
 
     // new line
     printk_serial("\n");
+    spinlock_release(&logger_spinlock);
 }
