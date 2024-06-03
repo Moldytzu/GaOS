@@ -6,6 +6,7 @@ global arch_syscall_entry
 extern syscall_handlers, syscall_count
 
 arch_syscall_entry:
+    ; here the interrupts are disabled
     ; check if the requested syscall is in bounds
     cmp rdi, [syscall_count]
     jae .out_of_bounds
@@ -33,7 +34,10 @@ arch_syscall_entry:
 
     ; here rdi holds the syscall number
     lea r11, syscall_handlers ; get the address of the handlers
-    call [r11 + rdi * 8]      ; call the pointed function (base + offset * sizeof(uint64_t))
+    
+    sti                  ; enable interrupts      
+    call [r11 + rdi * 8] ; call the pointed function (base + offset * sizeof(uint64_t))
+    cli                  ; disable interrupts
 
     ; check again the context type
     mov rcx, gs:0x0          ; read context type

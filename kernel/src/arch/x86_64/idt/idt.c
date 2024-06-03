@@ -52,7 +52,7 @@ void arch_isr_handler(arch_cpu_state_t *state, uint64_t interrupt_number)
     else
     {
         // handle interrupt
-        log_info("Interrupt %x at %p in %s", interrupt_number, state->rip, state->cs == 0x10 ? "kernel-mode" : "user-mode");
+        log_info("Interrupt %x at %p in %s", interrupt_number, state->rip, state->cs == 0x08 ? "kernel-mode" : "user-mode");
     }
 }
 
