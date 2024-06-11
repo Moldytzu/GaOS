@@ -10,7 +10,7 @@ int64_t sys_close(uint64_t num, uint64_t fd)
     scheduler_task_t *caller = GET_CALLER_TASK();
 
     // sanitize fd
-    if (fd >= caller->fd_count || fd < 3)
+    if (fd < 3 || fd >= caller->fd_max || caller->fd_translation[fd] == nullptr)
         return -EINVAL;
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
