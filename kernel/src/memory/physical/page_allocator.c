@@ -218,3 +218,11 @@ void page_deallocate(void *base, size_t pages)
 
     spinlock_release(&page_allocator_lock);
 }
+
+void *page_reallocate(void *base, size_t old_pages, size_t new_pages)
+{
+    void *new_base = page_allocate(new_pages);
+    memcpy(new_base, base, old_pages * PAGE);
+    page_deallocate(base, old_pages);
+    return new_base;
+}
