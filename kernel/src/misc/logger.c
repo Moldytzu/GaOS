@@ -3,7 +3,7 @@
 
 spinlock_t logger_spinlock;
 
-void _log(uint32_t colour, const char *fmt, ...)
+void _log(uint32_t colour, const char *module, const char *fmt, ...)
 {
     spinlock_acquire(&logger_spinlock);
     va_list list;
@@ -20,7 +20,7 @@ void _log(uint32_t colour, const char *fmt, ...)
     {
         // print the prefix
         main_cursor.colour = PREFIX_COLOUR;
-        printk("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
+        printk("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, module);
 
         // print the format
         main_cursor.colour = colour;
@@ -34,7 +34,7 @@ void _log(uint32_t colour, const char *fmt, ...)
 
     /// serial
     // print the prefix
-    printk_serial("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, MODULE);
+    printk_serial("[%d.%d%d%d] %s: ", miliseconds / 1000, miliseconds % 1000 / 100, miliseconds % 100 / 10, miliseconds % 10, module);
 
     // print the format
     va_start(list, fmt);

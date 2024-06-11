@@ -13,8 +13,8 @@
 #define WARN_COLOUR 0xD07000
 #define ERROR_COLOUR 0xFF2020
 
-void _log(uint32_t colour, const char *fmt, ...);
+void _log(uint32_t colour, const char *module, const char *fmt, ...);
 
-#define log_info(fmt, ...) _log(INFO_COLOUR, (fmt), ##__VA_ARGS__)
-#define log_warn(fmt, ...) _log(WARN_COLOUR, (fmt), ##__VA_ARGS__)
-#define log_error(fmt, ...) _log(ERROR_COLOUR, (fmt), ##__VA_ARGS__)
+#define log_info(fmt, ...) _log(INFO_COLOUR, MODULE, (fmt), ##__VA_ARGS__)
+#define log_warn(fmt, ...) _log(WARN_COLOUR, MODULE, (fmt), ##__VA_ARGS__)
+#define log_error(fmt, ...) _log(ERROR_COLOUR, MODULE, (fmt), ##__VA_ARGS__)
