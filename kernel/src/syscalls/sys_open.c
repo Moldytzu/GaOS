@@ -1,7 +1,9 @@
 #define MODULE "sys_open"
 #include <misc/logger.h>
+#include <misc/panic.h>
 
 #include <syscalls/helpers.h>
+#include <memory/physical/page_allocator.h>
 
 int64_t sys_open(uint64_t num, char *filename, uint64_t mode)
 {
@@ -23,15 +25,23 @@ int64_t sys_open(uint64_t num, char *filename, uint64_t mode)
         return error_of(node);
 
     // push the node on the translation table
-    // fixme: check for holes
-    size_t fd = caller->fd_count++;
+try_again:
+    size_t fd = 3;
+    while (caller->fd_translation[fd] != nullptr && fd <= caller->fd_max)
+        fd++;
 
-    if (caller->fd_count > caller->fd_max)
+    if (fd == caller->fd_max)
     {
-        // todo: reallocate
+        size_t old_pages = caller->fd_allocated_pages;
+        size_t new_pages = ++caller->fd_allocated_pages;
+        caller->fd_translation = page_reallocate(caller->fd_translation, old_pages, new_pages);
+        caller->fd_allocated_pages++;
+        caller->fd_max += PAGE / sizeof(vfs_fs_node_t *);
+        goto try_again;
     }
 
     caller->fd_translation[fd] = node;
+    caller->fd_count++;
 
     return fd;
 }
