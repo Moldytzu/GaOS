@@ -62,7 +62,10 @@ struct limine_file *limine_get_module(const char *path)
         char *fpath = file->path;
 
         if (*path != '/') // if the given path doesn't start with a delimiter
-            fpath++;      // do not compare with it
+        {
+            while (*fpath && *fpath == '/') // ignore it
+                fpath++;
+        }
 
         if (strncmp(fpath, path, strlen((char *)path)) == 0)
             return file;
