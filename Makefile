@@ -1,6 +1,7 @@
 override IMAGE_NAME := disk
-OUTPUT_ARCH = x86_64
-CORES = $(shell nproc)
+override IMAGE_MOUNT_PATH := /mnt/GaOS
+override OUTPUT_ARCH = x86_64
+override CORES = $(shell nproc)
 BASE = $(shell pwd)
 TOOLCHAIN_BASE = $(shell pwd)/toolchain/$(OUTPUT_ARCH)/
 
@@ -17,7 +18,7 @@ GDB_FLAGS ?= -tui -q -x gdb.script
 
 # architecture-specific flags
 ifeq ($(OUTPUT_ARCH),x86_64)
-	QEMU_FLAGS += -M q35,smm=off
+	QEMU_FLAGS += -M q35
 	QEMU_ACCELERATED += --enable-kvm -cpu host -smp $(shell nproc)
 endif
 
@@ -74,6 +75,13 @@ install_hdd: $(IMAGE_NAME).hdd kernel $(APPS)
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT
 	mcopy -i $(IMAGE_NAME).hdd@@1M root/initrd.tar kernel/bin/kernel.elf limine.cfg limine/limine-bios.sys ::/
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
+
+mount_hdd: $(IMAGE_NAME).hdd
+	mkdir -p $(IMAGE_MOUNT_PATH)_boot/
+	mount -o loop,offset=1048576 ./$(IMAGE_NAME).hdd $(IMAGE_MOUNT_PATH)_boot/
+
+umount_hdd:
+	umount $(IMAGE_MOUNT_PATH)_boot/
 
 .PHONY: clean
 clean:
