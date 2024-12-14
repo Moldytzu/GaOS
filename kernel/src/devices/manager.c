@@ -109,6 +109,12 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
     // else, try again, but with the path set to the wanted directory
     // when we arrive to the deepest directory or file, create a device in the list we found
 
+    /// allocate a new string to put the sanatised path in
+    char *sanatised_path = block_allocate(strlen((char *)path) + 1);
+    strcpy(sanatised_path, (char *)path);
+    vfs_sanatise_path(sanatised_path);
+    path = (const char *)sanatised_path;
+
     log_info("adding device %s", path);
 
     const char *path_orig = path; // original path pointer
@@ -198,6 +204,7 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
                 {
                     // oops.., already exists
                     log_error("failed to add %s because it already exists", path_orig);
+                    block_deallocate((void *)path_orig); // deallocate copy
                     return nullptr;
                 }
 
@@ -218,10 +225,12 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
                 last->name[strlen((char *)last->name) - 1] = 0;
             }
 
+            block_deallocate((void *)path_orig); // deallocate copy
             return last;
         }
     }
 
+    block_deallocate((void *)path_orig); // deallocate copy
     return nullptr;
 }
 
