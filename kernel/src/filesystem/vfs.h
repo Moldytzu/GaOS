@@ -68,3 +68,4 @@ void vfs_async_task_unregister(struct vfs_fs_node *node, io_task_t *task);
 void vfs_close(vfs_fs_node_t *node);
 void vfs_dirname(const char *path, char *dirname, size_t max_len);
 void vfs_basename(const char *path, char *basename, size_t max_len);
+size_t vfs_sanatise_path(char *path);

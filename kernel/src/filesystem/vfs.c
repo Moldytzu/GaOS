@@ -217,3 +217,26 @@ void vfs_basename(const char *path, char *basename, size_t max_len)
 
     memcpy(basename, path + base_offset, min(max_len, max_offset - base_offset));
 }
+
+size_t vfs_sanatise_path(char *path)
+{
+    // clean up path from excesive delimiters, returns the new string length
+
+    if (*path == 0) // don't bother with empty paths
+        return 0;
+
+    int index = 1; // comparisons are made -1 from index, thus we have to start from 1
+    while (path[index] != 0)
+    {
+        if (path[index - 1] == '/' && path[index] == '/') // double delimiters
+        {
+            /// remove the character at [index] and shift left the whole string
+            for (int i = index; path[i] != 0; i++)
+                path[i] = path[i + 1];
+        }
+        else
+            index++;
+    }
+
+    return index;
+}
