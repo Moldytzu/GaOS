@@ -7,9 +7,11 @@
 #include <arch/arch.h>
 
 #define BLOCK_MINIMUM_ALLOCATION 16
+#define BLOCK_SIGNATURE 0x7B3CC1F2D2FACAE0
 
 struct block_header
 {
+    uint64_t signature;
     size_t size;
     struct block_header *next;
     struct block_header *previous align_addr(16); // ensure alignment
@@ -91,6 +93,7 @@ block_header_t *block_allocator_create_free_block(size_t pages)
         // create a new block
         block_header_t *new_block = block_allocator_allocate_block(pages);
         new_block->size = pages * PAGE - sizeof(block_header_t);
+        new_block->signature = BLOCK_SIGNATURE;
 
         block_allocator_push_block(&block_free_list_start, new_block); // push it on the list
 
@@ -195,6 +198,7 @@ void *block_allocate(size_t size)
         new_block->size = new_block_size;                                                                                       // set the size
         new_block->next = current_block->next;                                                                                  // link it in the list
         new_block->previous = current_block;                                                                                    //
+        new_block->signature = BLOCK_SIGNATURE;                                                                                 // set the signature
         current_block->next = new_block;                                                                                        // make the block refer to the newly created block
     }
 
@@ -211,6 +215,11 @@ void block_deallocate(void *block)
 {
     uint64_t block_virtual_address = (uint64_t)block;
     block_header_t *header = (block_header_t *)((uint64_t)block - sizeof(block_header_t));
+    if (header->signature != BLOCK_SIGNATURE)
+    {
+        log_error("bogus deallocation of %p", header); // todo: print caller instruction pointer
+        return;
+    }
 
     spinlock_acquire(&block_allocator_lock);
 
