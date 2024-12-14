@@ -204,13 +204,10 @@ void vfs_basename(const char *path, char *basename, size_t max_len)
     size_t max_offset = strlen((char *)path);
     size_t base_offset = max_offset;
 
-    if (path[base_offset] == '/') // skip if this is a folder
+    while (base_offset != 0 && path[base_offset] != '/') // count down until we encounter the first character or a delimiter
         base_offset--;
 
-    while (path[base_offset] != '/' && base_offset != 0) // decrease max_offset until it points to a directory
-        base_offset--;
-
-    if (path[base_offset] == '/') // skip the delimiter
+    if (path[base_offset] == '/')
         base_offset++;
 
     memcpy(basename, path + base_offset, min(max_len, max_offset - base_offset));
