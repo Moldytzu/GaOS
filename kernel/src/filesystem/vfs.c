@@ -43,8 +43,6 @@ void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
 
 vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
 {
-    spinlock_acquire(&mount_lock);
-
     if (path == nullptr)
     {
         log_error("attempt to open nullptr"); // todo: print caller's address
@@ -69,6 +67,7 @@ vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
         ;
     fsname_len--; // ignore last /
 
+    spinlock_acquire(&mount_lock);
     vfs_mount_point_t *mount = mount_points->next; // get first mount point
     while (mount)
     {
@@ -77,14 +76,13 @@ vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
 
         mount = mount->next; // else, continue comparing
     }
+    spinlock_release(&mount_lock);
 
     if (!mount) // invalid filesystem
     {
         log_error("failed to open \"%s\" with unknown filesystem", path);
         return (void *)-ENOENT;
     }
-
-    spinlock_release(&mount_lock);
 
     if (!mount->fs->open)
         panic("%s has no open callback", mount->fs->name);
