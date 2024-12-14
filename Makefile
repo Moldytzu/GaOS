@@ -52,7 +52,7 @@ ovmf:
 	cd ovmf && curl -Lo OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
 
 limine:
-	git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
+	git clone https://github.com/limine-bootloader/limine.git --branch=v8.x-binary --depth=1
 	$(MAKE) -C limine -j$(CORES)
 
 .PHONY: kernel
@@ -73,7 +73,7 @@ install_hdd: $(IMAGE_NAME).hdd kernel $(APPS)
 	cd $(BASE)/root/initrd/ && tar -cf ../initrd.tar .
 	mformat -i $(IMAGE_NAME).hdd@@1M
 	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT
-	mcopy -i $(IMAGE_NAME).hdd@@1M root/initrd.tar kernel/bin/kernel.elf limine.cfg limine/limine-bios.sys ::/
+	mcopy -i $(IMAGE_NAME).hdd@@1M root/initrd.tar kernel/bin/kernel.elf limine.conf limine/limine-bios.sys ::/
 	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
 
 mount_hdd: $(IMAGE_NAME).hdd
