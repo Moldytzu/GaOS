@@ -14,6 +14,7 @@ extern void arch_idt_load(arch_idtr_t *);
 void arch_interrupts_init();
 void arch_interrupts_map_vector(uint64_t vector, void *handler);
 uint16_t arch_interrupts_reserve_kernel_vector();
+bool arch_interrupts_enabled();
 
 ifunc void arch_interrupts_enable()
 {

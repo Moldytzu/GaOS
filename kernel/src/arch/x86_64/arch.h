@@ -18,12 +18,12 @@ extern uint64_t arch_trampoline_base;
 
 ifunc void arch_hint_spinlock()
 {
-    iasm("pause" ::: "memory");
+    iasm("pause" :: : "memory");
 }
 
 ifunc void arch_hint_serialize()
 {
-    iasm("mfence" ::: "memory");
+    iasm("mfence" :: : "memory");
 }
 
 void arch_early_init();

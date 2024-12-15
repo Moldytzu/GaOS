@@ -3,11 +3,19 @@ bits 64
 section .text
 
 extern arch_isr_handlers, arch_isr_handler
-global arch_idt_load
+global arch_idt_load, arch_interrupts_enabled
 
 arch_idt_load: ; rdi = idtr
     lidt [rdi]
     ret
+
+arch_interrupts_enabled:
+    pushfq  ; push on stack the flags
+    pop rax ; load them in rax
+    
+    and rax, 0x200 ; and with the interrupt enable flag mask
+    shr rax, 9     ; shift right to have the result in the first bit
+    ret 
 
 ; ISRs
 %macro PUSH_REG 0
