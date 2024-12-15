@@ -16,6 +16,7 @@ void arch_xapic_timer_schedule_one_shot()
 {
     arch_xapic_eoi();
     arch_xapic_write(XAPIC_REG_TIMER_INIT_COUNT, ticks_per_scheduling_burst); // set count to the calibrated ticks
+    arch_hint_serialize();
 }
 
 static clock_time_source_t arch_xapic_timer = {
@@ -48,6 +49,7 @@ void arch_xapic_timer_init()
     arch_xapic_write(XAPIC_REG_TIMER_DIVISOR, 0b0011);        // divide by 16
     arch_xapic_write(XAPIC_REG_LVT_TIMER, xapic_vector);      // oneshot mode
     arch_xapic_write(XAPIC_REG_TIMER_INIT_COUNT, 0xFFFFFFFF); // initialise with max, making it to overflow
+    arch_hint_serialize();
 
     clock_system_timer.sleep_nanoseconds(1000000000 /*one sec in nanos*/ / SCHEDULER_DESIRED_FREQUENCY);
 
@@ -55,6 +57,7 @@ void arch_xapic_timer_init()
     arch_xapic_timer.ticks_per_second = ticks_per_scheduling_burst * 1000 / SCHEDULER_DESIRED_FREQUENCY;
 
     arch_xapic_write(XAPIC_REG_TIMER_INIT_COUNT, 0); // reset
+    arch_hint_serialize();
 
     arch_interrupts_enable();
 
