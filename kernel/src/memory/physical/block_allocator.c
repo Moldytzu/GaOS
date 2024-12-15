@@ -47,17 +47,14 @@ void block_allocator_push_block(block_header_t **list, block_header_t *block)
 
     if (*list) // if the list exists
     {
-        // point to the last block
-        block_header_t *current = *list;
-        while (current->next)
-            current = current->next;
-
-        // add the block to the last block
-        block->previous = current;
-        current->next = block;
+        // put the block right at the start of the linked list
+        block_header_t *list_start = *list;
+        block->previous = list_start->previous;
+        block->next = list_start;
+        list_start->previous = block;
     }
-    else
-        *list = block; // make the list the block itself
+
+    *list = block; // make the list start the block
 }
 
 void block_allocator_remove_block_from_list(block_header_t *block)
@@ -160,6 +157,7 @@ void block_allocator_find_lowest_free_virtual_address_limine()
 void block_allocator_init()
 {
     block_allocator_find_lowest_free_virtual_address_limine();
+    block_allocator_create_free_block(1);
     log_info("using virtual base %p", block_allocator_virtual_base);
 }
 
@@ -172,9 +170,6 @@ void *block_allocate(size_t size)
         size += 16 - size % 16;
 
     spinlock_acquire(&block_allocator_lock);
-
-    if (block_free_list_start == nullptr)                   // no blocks available
-        block_allocator_create_free_block(size / PAGE + 1); // create one that fits our needs
 
     // find first block that fits our size
     block_header_t *current_block = block_free_list_start;
