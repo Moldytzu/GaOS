@@ -30,12 +30,12 @@ uint64_t arch_hpet_ticks_to_nanoseconds;
 
 ifunc void arch_hpet_write(uint64_t offset, uint64_t data)
 {
-    *((volatile uint64_t *)(arch_hpet_header->base_address.address + offset)) = data;
+    *((volatile uint64_t *)(kernel_hhdm_offset + arch_hpet_header->base_address.address + offset)) = data;
 }
 
 ifunc uint64_t arch_hpet_read(uint64_t offset)
 {
-    return *((volatile uint64_t *)(arch_hpet_header->base_address.address + offset));
+    return *((volatile uint64_t *)(kernel_hhdm_offset + arch_hpet_header->base_address.address + offset));
 }
 
 uint64_t arch_hpet_read_nanoseconds()
@@ -69,7 +69,7 @@ void arch_hpet_init()
     if (arch_hpet_header->base_address.address_space != ACPI_ADDRESS_SPACE_SYSTEM_MEMORY) // unsupported address space
         return;
 
-    arch_table_manager_map(arch_bootstrap_page_table, arch_hpet_header->base_address.address, arch_hpet_header->base_address.address, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the base
+    arch_table_manager_map(arch_bootstrap_page_table, arch_hpet_header->base_address.address + kernel_hhdm_offset, arch_hpet_header->base_address.address, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the base
 
     uint32_t ticks_to_femtoseconds = arch_hpet_read(HPET_OFFSET_GENERAL_CAPABILITIES) >> 32;
     uint32_t ticks_per_second = 1000000000000000 /*femtosecond to second*/ / ticks_to_femtoseconds; // read the capabilites to calculate the frequency
