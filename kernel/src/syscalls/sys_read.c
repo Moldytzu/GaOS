@@ -7,18 +7,17 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t fi
 {
     used(num);
     scheduler_task_t *caller = GET_CALLER_TASK();
-    arch_page_table_t *caller_pt = GET_PAGE_TABLE(caller);
 
     // todo: use fd
 
-    // sanitize address
-    if (IS_HIGHER_HALF_ADDRESS(buffer) || !IS_MAPPED(buffer, caller_pt)) // userspace pointers are lower half and mapped
+    // verify pointer
+    if (!IS_USER_MEMORY(buffer, caller))
     {
-        log_error("failed to write invalid pointer %p from %s", buffer, caller->name);
+        log_error("failed to read invalid pointer %p from %s", buffer, caller->name);
         return -EPERM;
     }
 
-    // sanitize fd
+    // verify fd
     if (fd >= caller->fd_count || fd < 3)
         return -EINVAL;
 

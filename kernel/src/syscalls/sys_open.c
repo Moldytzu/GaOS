@@ -10,10 +10,9 @@ int64_t sys_open(uint64_t num, char *filename, uint64_t mode)
     used(num);
 
     scheduler_task_t *caller = GET_CALLER_TASK();
-    arch_page_table_t *caller_pt = GET_PAGE_TABLE(caller);
 
-    // sanitize address
-    if (IS_HIGHER_HALF_ADDRESS(filename) || !IS_MAPPED(filename, caller_pt)) // userspace pointers are lower half and mapped
+    // verify pointer
+    if (!IS_USER_MEMORY(filename, caller))
     {
         log_error("failed to open invalid pointer %p from %s", filename, caller->name);
         return -EPERM;

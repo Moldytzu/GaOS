@@ -7,12 +7,11 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t f
 {
     used(num), used(fd), used(file_offset);
     scheduler_task_t *caller = GET_CALLER_TASK();
-    arch_page_table_t *caller_pt = GET_PAGE_TABLE(caller);
 
     // todo: use fd
 
     // sanitize address
-    if (IS_HIGHER_HALF_ADDRESS(buffer) || !IS_MAPPED(buffer, caller_pt)) // userspace pointers are lower half and mapped
+    if (!IS_USER_MEMORY(buffer, caller))
     {
         log_error("failed to write invalid pointer %p from %s", buffer, caller->name);
         return -EPERM;

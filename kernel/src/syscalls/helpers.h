@@ -7,3 +7,4 @@
 #define GET_PAGE_TABLE(task) ((arch_page_table_t *)(task->state.cr3 + kernel_hhdm_offset))
 #define IS_MAPPED(x, page_table) (arch_table_manager_translate_to_physical(page_table, (uint64_t)(x)) != 0)
 #define IS_HIGHER_HALF_ADDRESS(x) ((uint64_t)x >= kernel_hhdm_offset)
+#define IS_USER_MEMORY(address, task) (!IS_HIGHER_HALF_ADDRESS((address)) && IS_MAPPED((address), GET_PAGE_TABLE(task)))
