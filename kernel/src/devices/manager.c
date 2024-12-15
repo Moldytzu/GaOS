@@ -4,6 +4,7 @@
 #include <devices/manager.h>
 #include <devices/serial/serial.h>
 #include <devices/timers/timers.h>
+#include <devices/console.h>
 #include <memory/physical/block_allocator.h>
 #include <acpi/acpi.h>
 #include <boot/limine.h>
@@ -412,6 +413,7 @@ void device_manager_init()
     serial_create_device();
     acpi_create_device();
     limine_create_device();
+    console_create_device();
 
     list_devices();
 }
