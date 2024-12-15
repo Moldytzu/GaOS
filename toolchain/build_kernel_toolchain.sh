@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export BINUTILS_VERSION=2.42
-export GCC_VERSION=14.1.0
+export BINUTILS_VERSION=2.43.1
+export GCC_VERSION=14.2.0
 
 export TARGET_NAME=$1
 export TARGET=$TARGET_NAME-elf
