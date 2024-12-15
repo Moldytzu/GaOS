@@ -99,7 +99,7 @@ void *uart16550_write(struct vfs_fs_node *node, void *buffer, size_t size, size_
 {
     used(node);
     char *c = buffer + offset;
-    for (size_t i = 0; i <= size; i++)
+    for (size_t i = 0; i < size; i++)
         uart16550_send_byte(c[i]);
     return buffer + offset;
 }
