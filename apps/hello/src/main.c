@@ -6,6 +6,10 @@
 #define SYS_CLOSE 2
 #define SYS_READ 3
 
+#define STDIN 0
+#define STDOUT 1
+#define STDERR 2
+
 int64_t _syscall(uint64_t number, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5);
 
 int64_t sys_write(uint64_t fd, char *buffer, size_t size, size_t file_offset)
@@ -61,7 +65,7 @@ void test_read()
 
 int _start()
 {
-    sys_write(0, "Hello, Gallium!", 15, 0); // write a message
+    sys_write(STDOUT, "Hello, Gallium!", 15, 0); // write a message
 
     test_open_close();
     test_read();
