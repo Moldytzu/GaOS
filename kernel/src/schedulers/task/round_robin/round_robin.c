@@ -203,6 +203,11 @@ scheduler_task_t *task_scheduler_round_robin_create(const char *name)
     task->fd_translation = page_allocate(1);
     task->fd_max = PAGE / sizeof(vfs_fs_node_t *);
 
+    // open the console as the stdin, stdout and stderr
+    task->fd_translation[0] = vfs_open("/dev/console", 0);
+    task->fd_translation[1] = vfs_open("/dev/console", 0);
+    task->fd_translation[2] = vfs_open("/dev/console", 0);
+
     // find the least busy core
     size_t min = UINT64_MAX;
     scheduler_context_t *free_context = arch_get_scheduler_context(), *current_context = last_context;
