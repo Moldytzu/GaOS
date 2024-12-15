@@ -27,10 +27,11 @@ void arch_xapic_init()
     if ((rdmsr(MSR_APIC_BASE) & 0xFFFFF000) != (uint64_t)XAPIC_BASE)
         panic("Out of spec xapic address. %p != %p", rdmsr(MSR_APIC_BASE) & 0xFFFFF000, (uint64_t)XAPIC_BASE);
 
-    // mask the PIC if any
-    arch_pio_write8(0x20, 0b11111111);
-    arch_pio_write8(0xA0, 0b11111111);
+    // mask the PIC
+    arch_pio_write8(0x21, 0b11111111);
+    arch_pio_write8(0xA1, 0b11111111);
 
+    // map the registers in memory
     arch_table_manager_map(arch_bootstrap_page_table, XAPIC_BASE + kernel_hhdm_offset, XAPIC_BASE, TABLE_ENTRY_READ_WRITE | TABLE_ENTRY_CACHE_DISABLE); // map the base
 
     // reset important registers to a known state before enabling the apic (not required by any spec)
@@ -43,7 +44,7 @@ void arch_xapic_init()
     // enable the LAPIC in XAPIC mode (11.4.3 Volume 3 Intel SDM)
     uint64_t base = rdmsr(MSR_APIC_BASE) | 0b100000000000; // set global enable flag
 
-    if (arch_is_bsp())  // set the bsp flag
+    if (arch_is_bsp()) // set the bsp flag if necessary
         base |= (uint32_t)0b100000000;
 
     wrmsr(MSR_APIC_BASE, base); // write back the base
