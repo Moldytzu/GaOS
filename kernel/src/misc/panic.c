@@ -3,8 +3,6 @@
 #include <devices/framebuffer/framebuffer.h>
 #include <arch/arch.h>
 
-#define STACK_TRACE_WALK(x) (__builtin_extract_return_addr(__builtin_return_address(x)))
-
 // displays the address if possible
 #define PRINT_TRACE_IF_POSSIBLE(x)                           \
     if ((uint64_t)STACK_TRACE_WALK(x) <= 0xFFFFFFFF80000000) \

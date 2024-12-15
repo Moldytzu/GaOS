@@ -148,6 +148,8 @@
 #define is_error(x) (error_of(x) < 0 && error_of(x) >= -EMAXLEVEL)
 #define error_ptr(x) ((void *)(x))
 
+#define STACK_TRACE_WALK(depth) (__builtin_extract_return_addr(__builtin_return_address(depth)))
+
 #define iasm asm volatile
 #define ifunc [[gnu::always_inline]] static inline
 #define bitsof(type) (sizeof(type) * 8)
@@ -166,9 +168,14 @@ size_t strlen(char *str);
 void strrev(char *str);
 
 void vprintk(const char *fmt, va_list list);
-void vprintk_serial(const char *fmt, va_list list);
+void vprintk_unsafe(const char *fmt, va_list list);
 void printk(const char *fmt, ...);
+void printk_unsafe(const char *fmt, ...);
+
+void vprintk_serial(const char *fmt, va_list list);
+void vprintk_serial_unsafe(const char *fmt, va_list list);
 void printk_serial(const char *fmt, ...);
+void printk_serial_unsafe(const char *fmt, ...);
 
 noreturn void halt();
 

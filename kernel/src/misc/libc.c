@@ -166,12 +166,29 @@ void printk_serial(const char *fmt, ...)
     va_end(list);
 }
 
+void printk_unsafe(const char *fmt, ...)
+{
+    if (!framebuffer_available)
+        return;
+
+    va_list list;
+    va_start(list, fmt);
+    vprintk_unsafe(fmt, list);
+    va_end(list);
+}
+
+void printk_serial_unsafe(const char *fmt, ...)
+{
+    va_list list;
+    va_start(list, fmt);
+    vprintk_serial_unsafe(fmt, list);
+    va_end(list);
+}
+
 spinlock_t printk_lock;
 
-void vprintk(const char *fmt, va_list list)
+void vprintk_unsafe(const char *fmt, va_list list)
 {
-    spinlock_acquire(&printk_lock);
-
     char conversion_buffer[32];
     for (size_t i = 0; fmt[i]; i++)
     {
@@ -205,14 +222,17 @@ void vprintk(const char *fmt, va_list list)
 
         i++;
     }
+}
 
+void vprintk(const char *fmt, va_list list)
+{
+    spinlock_acquire(&printk_lock);
+    vprintk_unsafe(fmt, list);
     spinlock_release(&printk_lock);
 }
 
-void vprintk_serial(const char *fmt, va_list list)
+void vprintk_serial_unsafe(const char *fmt, va_list list)
 {
-    spinlock_acquire(&printk_lock);
-
     char conversion_buffer[32];
 
     for (size_t i = 0; fmt[i]; i++)
@@ -247,7 +267,12 @@ void vprintk_serial(const char *fmt, va_list list)
 
         i++;
     }
+}
 
+void vprintk_serial(const char *fmt, va_list list)
+{
+    spinlock_acquire(&printk_lock);
+    vprintk_serial_unsafe(fmt, list);
     spinlock_release(&printk_lock);
 }
 
