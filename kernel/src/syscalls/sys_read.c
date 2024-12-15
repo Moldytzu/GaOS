@@ -18,7 +18,7 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t fi
     }
 
     // verify fd
-    if (fd >= caller->fd_count || fd < 3)
+    if (fd >= caller->fd_count)
         return -EINVAL;
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
