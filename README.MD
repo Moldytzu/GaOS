@@ -1,6 +1,7 @@
 # Gallium Operating System (GaOS)
 
 An operating system targeting (for the moment) x86_64 hardware.
+It aims to follow some of the UNIX philosophy and some of the POSIX standard while being unique and easy to develop for.
 See [roadmap here](docs/ROADMAP.MD).
 
 ## Font
