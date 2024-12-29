@@ -5,21 +5,23 @@
 #include <syscalls/helpers.h>
 #include <memory/physical/page_allocator.h>
 
-int64_t sys_open(uint64_t num, char *filename, uint64_t mode)
+// https://pubs.opengroup.org/onlinepubs/9699919799/functions/open.html
+
+int64_t sys_open(uint64_t num, char *path, uint64_t oflag)
 {
     used(num);
 
     scheduler_task_t *caller = GET_CALLER_TASK();
 
     // verify pointer
-    if (!IS_USER_MEMORY(filename, caller))
+    if (!IS_USER_MEMORY(path, caller))
     {
-        log_error("failed to open invalid pointer %p from %s", filename, caller->name);
+        log_error("failed to open invalid pointer %p from %s", path, caller->name);
         return -EPERM;
     }
 
     // open the node while propagating the errors
-    vfs_fs_node_t *node = vfs_open(filename, mode);
+    vfs_fs_node_t *node = vfs_open(path, oflag);
     if (is_error(node))
         return error_of(node);
 
