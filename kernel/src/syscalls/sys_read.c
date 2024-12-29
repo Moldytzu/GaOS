@@ -3,12 +3,14 @@
 
 #include <syscalls/helpers.h>
 
+// https://pubs.opengroup.org/onlinepubs/9699919799/functions/read.html
+
 int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t file_offset)
 {
+    // fixme: this is pread
+
     used(num);
     scheduler_task_t *caller = GET_CALLER_TASK();
-
-    // todo: use fd
 
     // verify pointer
     if (!IS_USER_MEMORY(buffer, caller))
@@ -19,10 +21,8 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t fi
 
     // verify fd
     if (fd >= caller->fd_count)
-        return -EINVAL;
+        return -EBADF;
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
-    vfs_read(node, buffer, size, file_offset); // todo: use io async and block thread
-
-    return 0;
+    return error_of(vfs_read(node, buffer, size, file_offset));
 }
