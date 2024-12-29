@@ -3,12 +3,14 @@
 
 #include <syscalls/helpers.h>
 
-int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t file_offset)
-{
-    used(num), used(fd), used(file_offset);
-    scheduler_task_t *caller = GET_CALLER_TASK();
+// https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
 
-    // todo: use fd
+int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t offset)
+{
+    // fixme: this is pwrite
+
+    used(num), used(offset);
+    scheduler_task_t *caller = GET_CALLER_TASK();
 
     // sanitize address
     if (!IS_USER_MEMORY(buffer, caller))
@@ -22,7 +24,7 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t f
         return -EINVAL;
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
-    vfs_write(node, buffer, size, file_offset); // todo: use io async and block thread
+    vfs_write(node, buffer, size, offset); // todo: use io async and block thread
 
     return 0;
 }
