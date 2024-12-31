@@ -5,10 +5,8 @@
 
 // https://pubs.opengroup.org/onlinepubs/9699919799/functions/read.html
 
-int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t file_offset)
+int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size)
 {
-    // fixme: this is pread
-
     used(num);
     scheduler_task_t *caller = GET_CALLER_TASK();
 
@@ -24,5 +22,16 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t fi
         return -EBADF;
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
-    return error_of(vfs_read(node, buffer, size, file_offset));
+
+    // make sure the size doesn't overflow the fd
+    if (node->seek_position + size > node->max_seek_position)
+        size = node->max_seek_position - node->seek_position;
+
+    int64_t status = error_of(vfs_read(node, buffer, size, node->seek_position));
+
+    // if the operation is sucessful increase the seek position
+    if (status == 0)
+        node->seek_position += size;
+
+    return status;
 }

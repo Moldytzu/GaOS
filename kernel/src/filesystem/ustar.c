@@ -99,6 +99,7 @@ vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
     node->vfs_header.path_length = path_len;
     node->vfs_header.path = block_allocate(path_len);
     node->vfs_header.fs = fs;
+    node->vfs_header.max_seek_position = parse_size_of(header);
     memcpy(node->vfs_header.path, path, path_len);
 
     node->ustar_header = header; // save ustar header for later
@@ -121,11 +122,11 @@ void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     if (offset + size >= node_size) // properly map size to fit the file
         size = node_size - offset;
 
-    log_info("reading %d bytes from %s + %d offset", size, node->path, offset);
+    // log_info("reading %d bytes from %s + %d offset", size, node->path, offset);
 
     void *contents = (void *)((uint64_t)ustar_node->ustar_header + TAR_HEADER_SIZE);
-
-    return memcpy(buffer, (void *)((uint64_t)contents + offset), size);
+    memcpy(buffer, (void *)((uint64_t)contents + offset), size);
+    return 0;
 }
 
 void ustar_close(vfs_fs_node_t *node)

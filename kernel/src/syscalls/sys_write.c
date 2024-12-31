@@ -5,11 +5,9 @@
 
 // https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
 
-int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t offset)
+int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size)
 {
-    // fixme: this is pwrite
-
-    used(num), used(offset);
+    used(num);
     scheduler_task_t *caller = GET_CALLER_TASK();
 
     // sanitize address
@@ -24,7 +22,11 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size, size_t o
         return -EINVAL;
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
-    vfs_write(node, buffer, size, offset); // todo: use io async and block thread
+    int64_t status = error_of(vfs_write(node, buffer, size, node->seek_position));
 
-    return 0;
+    // if the operation is sucessful increase the seek position
+    if (status == 0)
+        node->seek_position += size;
+
+    return status;
 }

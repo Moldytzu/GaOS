@@ -21,6 +21,9 @@ struct vfs_fs_node
     char *path;
     size_t path_length;
 
+    size_t seek_position;
+    size_t max_seek_position;
+
     bool is_device;
 
     struct vfs_fs_ops *fs;
