@@ -57,12 +57,12 @@ void _start()
     task_scheduler_init();                                      // initialise the task scheduler
     io_queue_init();                                            // initialise the i/o queuer
 
-    // load an executable from the initrd
-    vfs_fs_node_t *hello_node = vfs_open("/initrd/hello.elf", O_RDONLY);
-    if (is_error(hello_node))
-        panic("failed to open hello.elf from initrd: %d", -error_of(hello_node));
+    // load the init system from vfs
+    vfs_fs_node_t *init_node = vfs_open("/initrd/init.elf", O_RDONLY);
+    if (is_error(init_node))
+        panic("failed to open init.elf from initrd: %d", -error_of(init_node));
 
-    elf_load_from(hello_node);
+    elf_load_from(init_node);
 
     arch_bootstrap_ap_scheduler(); // let the application processors use the schedulers
     task_scheduler_enable();       // enable the task scheduler

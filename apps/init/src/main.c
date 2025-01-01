@@ -46,10 +46,10 @@ void test_open_close()
 
     // should print "34445"
     open_read_fd("/initrd/test.txt");
-    sys_close(open_read_fd("/initrd/hello.elf"));
+    sys_close(open_read_fd("/initrd/init.elf"));
     sys_close(open_read_fd("/initrd/test.txt"));
-    open_read_fd("/initrd/hello.elf");
-    open_read_fd("/initrd/hello.elf");
+    open_read_fd("/initrd/init.elf");
+    open_read_fd("/initrd/init.elf");
 
     sys_write(STDOUT, "\n", 1);
 }
