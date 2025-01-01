@@ -69,6 +69,11 @@ void test_read()
 
 int _start()
 {
+    // open stdin, stdout, stderr
+    sys_open("/dev/console", 0);
+    sys_open("/dev/console", 0);
+    sys_open("/dev/console", 0);
+
     sys_write(STDOUT, "Hello, Gallium!", 15); // write a message
 
     test_open_close();
