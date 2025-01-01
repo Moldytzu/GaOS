@@ -19,9 +19,13 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size)
 
     // verify fd
     if (fd >= caller->fd_count)
-        return -EINVAL;
+        return -EBADF;
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
+    if (node == nullptr)
+        return -EBADF;
+
+    // call the filesystem
     int64_t status = error_of(vfs_write(node, buffer, size, node->seek_position));
 
     // if the operation is sucessful increase the seek position

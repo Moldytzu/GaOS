@@ -23,10 +23,14 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size)
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
 
+    if (node == nullptr)
+        return -EBADF;
+
     // make sure the size doesn't overflow the fd
     if (node->seek_position + size > node->max_seek_position)
         size = node->max_seek_position - node->seek_position;
 
+    // call the filesystem
     int64_t status = error_of(vfs_read(node, buffer, size, node->seek_position));
 
     // if the operation is sucessful increase the seek position
