@@ -13,17 +13,23 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size)
     // sanitize address
     if (!IS_USER_MEMORY(buffer, caller))
     {
-        log_error("failed to write invalid pointer %p from %s", buffer, caller->name);
+        trace_error("failed to write invalid pointer %p from %s", buffer, caller->name);
         return -EPERM;
     }
 
     // verify fd
     if (fd >= caller->fd_count)
+    {
+        trace_error("fd %d of %s is invalid", fd, caller->name);
         return -EBADF;
+    }
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
     if (node == nullptr)
+    {
+        trace_error("fd %d of %s is invalid", fd, caller->name);
         return -EBADF;
+    }
 
     // call the filesystem
     int64_t status = error_of(vfs_write(node, buffer, size, node->seek_position));
