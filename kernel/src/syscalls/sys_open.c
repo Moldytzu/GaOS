@@ -27,7 +27,7 @@ int64_t sys_open(uint64_t num, char *path, uint64_t oflag)
 
     // push the node on the translation table
 try_again:
-    size_t fd = 3;
+    size_t fd = 0;
     while (caller->fd_translation[fd] != nullptr && fd <= caller->fd_max)
         fd++;
 
