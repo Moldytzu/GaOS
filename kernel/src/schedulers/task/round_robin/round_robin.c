@@ -165,9 +165,10 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     // printk_serial("saved %s (%d) on %d\n", current->name, current->id, arch_get_id());
 
     // load new state
-    // fixme: check for empty flag
     spinlock_release(&context->running.lock);
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
+    while (next_task->empty)
+        next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
     arch_install_task_context(next_task);
 
     // printk_serial("loading %s (%d) on %d\n", next_task->name, next_task->id, arch_get_id());
