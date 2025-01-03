@@ -199,7 +199,7 @@ scheduler_task_t *task_scheduler_round_robin_create(const char *name)
 
     // allocate the file descriptor translation
     task->fd_allocated_pages = 1;
-    task->fd_count = 3; // stdin, stdout, stderr
+    task->fd_count = 1; // stdin, stdout, stderr
     task->fd_translation = page_allocate(1);
     task->fd_max = PAGE / sizeof(vfs_fs_node_t *);
 
