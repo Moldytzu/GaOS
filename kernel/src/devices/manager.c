@@ -348,6 +348,7 @@ vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
             node->vfs_header.path = block_allocate(path_len);
             node->vfs_header.fs = fs;
             node->vfs_header.is_device = true;
+            node->vfs_header.mode = mode;
             memcpy(node->vfs_header.path, path_orig, path_len);
 
             node->device = dev;

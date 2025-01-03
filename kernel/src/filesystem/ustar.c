@@ -100,6 +100,7 @@ vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
     node->vfs_header.path = block_allocate(path_len);
     node->vfs_header.fs = fs;
     node->vfs_header.max_seek_position = parse_size_of(header);
+    node->vfs_header.mode = mode;
     memcpy(node->vfs_header.path, path, path_len);
 
     node->ustar_header = header; // save ustar header for later

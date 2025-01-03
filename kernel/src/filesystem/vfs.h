@@ -21,6 +21,7 @@ struct vfs_fs_node
     char *path;
     size_t path_length;
 
+    uint64_t mode;
     size_t seek_position;
     size_t max_seek_position;
 
