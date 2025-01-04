@@ -18,6 +18,7 @@ arch_sys_fork_entry:
     push rax
     push rax
     push rax
+    push rax
 
     ; push all registers on stack
     PUSH_REG
@@ -25,7 +26,7 @@ arch_sys_fork_entry:
     mov rdi, rsp
     call sys_fork
 
-    add rsp, 8 * 22 ; clean up the stack
+    add rsp, 8 * 23 ; clean up the stack
     ret
 
 arch_syscall_entry:
