@@ -21,3 +21,4 @@
 | open |  1  | char *filename | uint64_t mode | - | - | - | error code or fd | Open file (filename) with (mode). |
 | close | 2 | uint64_t fd | - | - | - | - | error code | Closes file (fd). |
 | read | 3 | uint64_t fd | char *buffer | size_t size | - | - | error code | Read (size) bytes from (fd) to (buffer). |
+| fork | 4 | - | - | - | - | - | error code or pid | Create a new process. The created process shall be an exact copy of the calling process. |

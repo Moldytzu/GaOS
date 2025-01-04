@@ -5,6 +5,7 @@
 #define SYS_OPEN 1
 #define SYS_CLOSE 2
 #define SYS_READ 3
+#define SYS_FORK 4
 
 #define STDIN 0
 #define STDOUT 1
@@ -30,6 +31,11 @@ int64_t sys_open(char *filename, uint64_t mode)
 int64_t sys_close(uint64_t fd)
 {
     return _syscall(SYS_CLOSE, fd, 0, 0, 0, 0);
+}
+
+int64_t sys_fork()
+{
+    return _syscall(SYS_FORK, 0, 0, 0, 0, 0);
 }
 
 int64_t open_read_fd(char *filename)
@@ -75,6 +81,17 @@ int _start()
     sys_open("/dev/console", 0);
 
     sys_write(STDOUT, "Hello, Gallium!", 15); // write a message
+
+    if (sys_fork() == 0)
+    {
+        while (1)
+            sys_write(STDOUT, "C", 1);
+    }
+    else
+    {
+        while (1)
+            sys_write(STDOUT, "P", 1);
+    }
 
     test_open_close();
     test_read();
