@@ -14,11 +14,6 @@ ifunc void arch_table_manager_set_address(uint64_t *entry, uint64_t address)
     *entry |= address;            // put the new address
 }
 
-ifunc uint64_t arch_table_manager_get_address(uint64_t *entry)
-{
-    return *entry & ~0xFFF0000000000FFF;
-}
-
 ifunc arch_page_table_layer_t *arch_table_manager_allocate_next_layer(arch_page_table_layer_t *layer, uint64_t index, uint64_t flags)
 {
     uint64_t *entry = &layer->entries[index]; // index next layer's entry
@@ -35,16 +30,6 @@ ifunc arch_page_table_layer_t *arch_table_manager_allocate_next_layer(arch_page_
     }
     else
         *entry |= flags;
-
-    return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
-}
-
-ifunc arch_page_table_layer_t *arch_table_manager_get_next_layer(arch_page_table_layer_t *layer, uint64_t index)
-{
-    uint64_t *entry = &layer->entries[index]; // index next layer's entry
-
-    if (!(*entry & TABLE_ENTRY_PRESENT)) // if it doesn't exist then return nullptr
-        return nullptr;
 
     return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
 }
