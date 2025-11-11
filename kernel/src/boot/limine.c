@@ -6,46 +6,46 @@
 #include <boot/limine.h>
 #include <memory/physical/page_allocator.h>
 
-LIMINE_BASE_REVISION(1) // set latest revision
+static const uint64_t ____base_revision[] = LIMINE_BASE_REVISION(4);
 
 volatile struct limine_framebuffer_request kernel_framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .id = LIMINE_FRAMEBUFFER_REQUEST_ID,
     .revision = 0,
 };
 
 volatile struct limine_rsdp_request kernel_rsdp_request = {
-    .id = LIMINE_RSDP_REQUEST,
+    .id = LIMINE_RSDP_REQUEST_ID,
     .revision = 0,
 };
 
 volatile struct limine_hhdm_request kernel_hhdm_request = {
-    .id = LIMINE_HHDM_REQUEST,
+    .id = LIMINE_HHDM_REQUEST_ID,
     .revision = 0,
 };
 
 volatile struct limine_memmap_request kernel_memmap_request = {
-    .id = LIMINE_MEMMAP_REQUEST,
+    .id = LIMINE_MEMMAP_REQUEST_ID,
     .revision = 0,
 };
 
-volatile struct limine_kernel_address_request kernel_kernel_address_request = {
-    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+volatile struct limine_executable_address_request kernel_executable_address_request = {
+    .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID,
     .revision = 0,
 };
 
 volatile struct limine_stack_size_request kernel_stack_size_request = {
-    .id = LIMINE_STACK_SIZE_REQUEST,
+    .id = LIMINE_STACK_SIZE_REQUEST_ID,
     .revision = 0,
     .stack_size = PAGE,
 };
 
-volatile struct limine_smp_request kernel_smp_request = {
-    .id = LIMINE_SMP_REQUEST,
+volatile struct limine_mp_request kernel_mp_request = {
+    .id = LIMINE_MP_REQUEST_ID,
     .revision = 0,
 };
 
 volatile struct limine_module_request module_request = {
-    .id = LIMINE_MODULE_REQUEST,
+    .id = LIMINE_MODULE_REQUEST_ID,
     .revision = 0,
 };
 
@@ -78,8 +78,7 @@ struct limine_file *limine_get_module(const char *path)
 
 void limine_init()
 {
-    if (LIMINE_BASE_REVISION_SUPPORTED == false) // check if the bootloader supports what we request
-        halt();
+    used(____base_revision);
 
     kernel_hhdm_offset = kernel_hhdm_request.response->offset;
 }

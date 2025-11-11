@@ -94,8 +94,8 @@ void arch_table_manager_create_bootstrap_table_limine()
     // map the memory map in hhdm
     struct limine_memmap_entry **memory_map_entries = kernel_memmap_request.response->entries;
     size_t memory_map_entries_count = kernel_memmap_request.response->entry_count;
-    uint64_t kernel_physical_base = kernel_kernel_address_request.response->physical_base;
-    uint64_t kernel_virtual_base = kernel_kernel_address_request.response->virtual_base;
+    uint64_t kernel_physical_base = kernel_executable_address_request.response->physical_base;
+    uint64_t kernel_virtual_base = kernel_executable_address_request.response->virtual_base;
 
     for (size_t i = 0; i < memory_map_entries_count; i++)
     {
@@ -108,7 +108,7 @@ void arch_table_manager_create_bootstrap_table_limine()
 
         uint64_t virtual_base = physical_base + kernel_hhdm_offset;
 
-        if (entry->type == LIMINE_MEMMAP_KERNEL_AND_MODULES)
+        if (entry->type == LIMINE_MEMMAP_EXECUTABLE_AND_MODULES)
         {
             for (size_t offset = 0; offset < entry->length; offset += PAGE)
                 arch_table_manager_map(arch_bootstrap_page_table, kernel_virtual_base + offset, kernel_physical_base + offset, TABLE_ENTRY_READ_WRITE);

@@ -53,8 +53,9 @@ ovmf:
 	cd ovmf && curl -Lo OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
 
 limine:
-	git clone https://github.com/limine-bootloader/limine.git --branch=v8.x-binary --depth=1
+	git clone https://github.com/limine-bootloader/limine.git --branch=v10.x-binary --depth=1
 	$(MAKE) -C limine -j$(CORES)
+	cp ./limine/limine.h ./kernel/src/
 
 .PHONY: kernel
 kernel:
@@ -67,19 +68,20 @@ $(APPS): FORCE
 
 $(IMAGE_NAME).hdd: limine
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
-	sgdisk $(IMAGE_NAME).hdd -n 1:2048 -t 1:ef00
+	sgdisk $(IMAGE_NAME).hdd -n 1:2048:4096 -t 1:21686148-6449-6E6F-744E-656564454649
+	sgdisk $(IMAGE_NAME).hdd -n 2:8192 -t 2:ef00
 	./limine/limine bios-install $(IMAGE_NAME).hdd
 
 install_hdd: $(IMAGE_NAME).hdd kernel $(APPS)
 	cd $(BASE)/root/initrd/ && tar -cf ../initrd.tar .
-	mformat -i $(IMAGE_NAME).hdd@@1M
-	mmd -i $(IMAGE_NAME).hdd@@1M ::/EFI ::/EFI/BOOT
-	mcopy -i $(IMAGE_NAME).hdd@@1M root/initrd.tar kernel/bin/kernel.elf limine.conf limine/limine-bios.sys ::/
-	mcopy -i $(IMAGE_NAME).hdd@@1M limine/BOOTX64.EFI ::/EFI/BOOT
+	mformat -i $(IMAGE_NAME).hdd@@4M
+	mmd -i $(IMAGE_NAME).hdd@@4M ::/EFI ::/EFI/BOOT
+	mcopy -i $(IMAGE_NAME).hdd@@4M root/initrd.tar kernel/bin/kernel.elf limine.conf limine/limine-bios.sys ::/
+	mcopy -i $(IMAGE_NAME).hdd@@4M limine/BOOTX64.EFI ::/EFI/BOOT
 
 mount_hdd: $(IMAGE_NAME).hdd
 	mkdir -p $(IMAGE_MOUNT_PATH)_boot/
-	mount -o loop,offset=1048576 ./$(IMAGE_NAME).hdd $(IMAGE_MOUNT_PATH)_boot/
+	mount -o loop,offset=4194304 ./$(IMAGE_NAME).hdd $(IMAGE_MOUNT_PATH)_boot/
 
 umount_hdd:
 	umount $(IMAGE_MOUNT_PATH)_boot/
