@@ -73,6 +73,22 @@ void test_read()
     sys_close(fd);
 }
 
+size_t strlen(const char *str)
+{
+    size_t i = 0;
+    while (*str)
+    {
+        str++;
+        i++;
+    }
+    return i;
+}
+
+void puts(const char *str)
+{
+    sys_write(STDOUT, (char *)str, strlen(str));
+}
+
 int _start()
 {
     // open stdin, stdout, stderr
@@ -85,16 +101,51 @@ int _start()
     if (sys_fork() == 0)
     {
         while (1)
-            sys_write(STDOUT, "C", 1);
+            puts("1");
     }
     else
     {
-        while (1)
-            sys_write(STDOUT, "P", 1);
+        puts("parent");
+        if (sys_fork() == 0)
+        {
+            while (1)
+                puts("2");
+        }
+        else
+        {
+            puts("parent");
+            if (sys_fork() == 0)
+            {
+                while (1)
+                    puts("3");
+            }
+            else
+            {
+                puts("parent");
+                if (sys_fork() == 0)
+                {
+                    while (1)
+                        puts("4");
+                }
+                else
+                {
+                    puts("parent");
+                    if (sys_fork() == 0)
+                    {
+                        while (1)
+                            puts("5");
+                    }
+                    else
+                    {
+                        puts("parent");
+                    }
+                }
+            }
+        }
     }
 
-    test_open_close();
-    test_read();
+    // test_open_close();
+    // test_read();
 
     while (1)
         ;
