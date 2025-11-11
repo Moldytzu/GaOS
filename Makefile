@@ -4,6 +4,7 @@ override OUTPUT_ARCH = x86_64
 override CORES = $(shell nproc)
 BASE = $(shell pwd)
 TOOLCHAIN_BASE = $(shell pwd)/toolchain/$(OUTPUT_ARCH)/
+DISK_SIZE_MB = 512 # minimum 64 MB
 
 # make the architecture available in all makefiles
 export OUTPUT_ARCH
@@ -67,9 +68,10 @@ $(APPS): FORCE
 	$(MAKE) -C $@ -j$(CORES)
 
 $(IMAGE_NAME).hdd: limine
-	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
+	dd if=/dev/zero bs=1M count=0 seek=$(DISK_SIZE_MB) of=$(IMAGE_NAME).hdd
 	sgdisk $(IMAGE_NAME).hdd -n 1:2048:4096 -t 1:21686148-6449-6E6F-744E-656564454649
-	sgdisk $(IMAGE_NAME).hdd -n 2:8192 -t 2:ef00
+	sgdisk $(IMAGE_NAME).hdd -n 2:8192:131038 -t 2:ef00
+	sgdisk $(IMAGE_NAME).hdd -n 3:133086
 	./limine/limine bios-install $(IMAGE_NAME).hdd
 
 install_hdd: $(IMAGE_NAME).hdd kernel $(APPS)
@@ -79,12 +81,19 @@ install_hdd: $(IMAGE_NAME).hdd kernel $(APPS)
 	mcopy -i $(IMAGE_NAME).hdd@@4M root/initrd.tar kernel/bin/kernel.elf limine.conf limine/limine-bios.sys ::/
 	mcopy -i $(IMAGE_NAME).hdd@@4M limine/BOOTX64.EFI ::/EFI/BOOT
 
-mount_hdd: $(IMAGE_NAME).hdd
+mount_boot: $(IMAGE_NAME).hdd
 	mkdir -p $(IMAGE_MOUNT_PATH)_boot/
+	mkdir -p $(IMAGE_MOUNT_PATH)_data/
 	mount -o loop,offset=4194304 ./$(IMAGE_NAME).hdd $(IMAGE_MOUNT_PATH)_boot/
+	mount -o loop,offset=68140032 ./$(IMAGE_NAME).hdd $(IMAGE_MOUNT_PATH)_data/
+
+mount_data: $(IMAGE_NAME).hdd
+	mkdir -p $(IMAGE_MOUNT_PATH)_data/
+	mount -o loop,offset=68140032 ./$(IMAGE_NAME).hdd $(IMAGE_MOUNT_PATH)_data/
 
 umount_hdd:
-	umount $(IMAGE_MOUNT_PATH)_boot/
+	-umount $(IMAGE_MOUNT_PATH)_boot/
+	-umount $(IMAGE_MOUNT_PATH)_data/
 
 .PHONY: clean
 clean:
