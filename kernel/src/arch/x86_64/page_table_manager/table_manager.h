@@ -37,6 +37,9 @@ ifunc arch_page_table_layer_t *arch_table_manager_get_next_layer(arch_page_table
 {
     uint64_t *entry = &layer->entries[index]; // index next layer's entry
 
+    if ((uint64_t)entry <= kernel_hhdm_offset) // invalid entry address
+        return nullptr;
+
     if (!(*entry & TABLE_ENTRY_PRESENT)) // if it doesn't exist then return nullptr
         return nullptr;
 
