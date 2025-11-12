@@ -50,8 +50,8 @@ void *arch_get_scheduler_context()
 
 void *arch_install_task_context(void *context)
 {
-    arch_get_cpu_context();                       // loads the CPU context in GS_BASE, thus leaving GS_KERNEL with the task
-    wrmsr(MSR_GS_KERNEL_BASE, (uint64_t)context); // load the context
+    arch_get_task_context();               // ensures we are in task context
+    wrmsr(MSR_GS_BASE, (uint64_t)context); // load the context
     return context;
 }
 
