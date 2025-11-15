@@ -11,6 +11,7 @@
 #define task_scheduler_create task_scheduler_round_robin_create
 #define task_scheduler_create_kernel task_scheduler_round_robin_create_kernel
 #define task_scheduler_yield task_scheduler_round_robin_yield
+#define task_scheduler_get_pid task_scheduler_round_robin_get_pid
 
 #else
 #error no task scheduler selected. check config.h

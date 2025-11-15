@@ -87,6 +87,54 @@ void task_scheduler_round_robin_push_to_queue(scheduler_task_queue_t *queue, sch
     spinlock_release(&queue->lock);
 }
 
+scheduler_task_t *task_scheduler_round_robin_get_pid(uint64_t pid)
+{
+    if (!pid)
+        return nullptr;
+
+    /// make sure we don't preempt while iterating
+    bool interrupts_were_enabled = arch_interrupts_enabled();
+    if (interrupts_were_enabled)
+        arch_interrupts_disable();
+
+    // iterate over all contexts
+    spinlock_acquire(&last_context_lock);
+    scheduler_context_t *current_context = last_context;
+    do
+    {
+        // iterate over all tasks in the context
+        spinlock_acquire(&current_context->running.lock);
+        scheduler_task_t *current_task = current_context->running.head;
+
+        do
+        {
+            if (current_task->id == pid)
+            {
+                spinlock_release(&current_context->running.lock);
+                spinlock_release(&last_context_lock);
+
+                if (interrupts_were_enabled)
+                    arch_interrupts_enable();
+
+                return current_task;
+            }
+
+            current_task = current_task->next;
+
+        } while (current_task && current_task != current_context->running.head);
+
+        spinlock_release(&current_context->running.lock);
+
+        current_context = current_context->previous; // we start with the last context, thus we have to iterate backwards
+    } while (current_context && current_context != last_context);
+
+    spinlock_release(&last_context_lock);
+
+    if (interrupts_were_enabled)
+        arch_interrupts_enable();
+    return nullptr;
+}
+
 /*
 
 Context installation

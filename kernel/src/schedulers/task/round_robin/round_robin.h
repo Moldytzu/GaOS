@@ -17,6 +17,7 @@ struct scheduler_task
     char *name;
     size_t name_length;
     bool empty;
+    uint64_t ppid;
 
     // file descriptors
     size_t fd_count;
@@ -63,4 +64,4 @@ void task_scheduler_round_robin_install_context();
 noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state);
 noreturn void task_scheduler_round_robin_enable();
 void task_scheduler_round_robin_yield();
-scheduler_task_t *task_scheduler_round_robin_get_child(scheduler_task_t *parent, uint64_t pid);
+scheduler_task_t *task_scheduler_round_robin_get_pid(uint64_t pid);

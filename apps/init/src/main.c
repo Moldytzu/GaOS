@@ -7,6 +7,7 @@
 #define SYS_READ 3
 #define SYS_FORK 4
 #define SYS_YIELD 5
+#define SYS_WAITPID 6
 
 #define STDIN 0
 #define STDOUT 1
@@ -42,6 +43,11 @@ int64_t sys_fork()
 void sys_yield()
 {
     _syscall(SYS_YIELD, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_waitpid(uint64_t pid, int *stat_loc, int options)
+{
+    return _syscall(SYS_WAITPID, pid, (uint64_t)stat_loc, options, 0, 0);
 }
 
 int64_t open_read_fd(char *filename)
@@ -108,43 +114,52 @@ int _start()
     if (sys_fork() == 0)
     {
         while (1)
-            puts("1");
+        {
+            for (int i = 1; i <= 6; i++)
+                if (sys_waitpid(i, 0, 0) == 1)
+                    puts("$");
+            puts("\n");
+        }
     }
     else
     {
-        puts("parent");
+        puts("1");
         if (sys_fork() == 0)
         {
             while (1)
-                puts("2");
+                ;
+            puts("2");
         }
         else
         {
-            puts("parent");
+            puts("2");
             if (sys_fork() == 0)
             {
                 while (1)
-                    puts("3");
+                    ;
+                puts("3");
             }
             else
             {
-                puts("parent");
+                puts("3");
                 if (sys_fork() == 0)
                 {
                     while (1)
-                        puts("4");
+                        ;
+                    puts("4");
                 }
                 else
                 {
-                    puts("parent");
+                    puts("4");
                     if (sys_fork() == 0)
                     {
                         while (1)
-                            puts("5");
+                            ;
+                        puts("5");
                     }
                     else
                     {
-                        puts("parent");
+                        puts("5");
                     }
                 }
             }

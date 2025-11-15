@@ -22,6 +22,7 @@ int64_t sys_fork(arch_cpu_state_t *state)
 
     // duplicate state
     memcpy(&child->state, state, sizeof(arch_cpu_state_t));
+    child->ppid = parent->id;
 
 #ifdef ARCH_x86_64
     child->state.rsp = parent->userspace_stack_top;
