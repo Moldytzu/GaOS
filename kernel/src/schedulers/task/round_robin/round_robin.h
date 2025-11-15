@@ -5,18 +5,18 @@
 
 struct scheduler_task
 {
+    // cpu state (must have 256 bytes alignment)
     uint64_t id;
     uint64_t syscall_stack_top;
     uint64_t userspace_stack_top;
+    arch_simd_state_t simd_state;
+    arch_cpu_state_t state;
+    uint64_t pad[7];
 
     // metadata
     char *name;
     size_t name_length;
     bool empty;
-
-    // cpu state
-    arch_cpu_state_t state;
-    arch_simd_state_t simd_state;
 
     // file descriptors
     size_t fd_count;
@@ -63,3 +63,4 @@ void task_scheduler_round_robin_install_context();
 noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state);
 noreturn void task_scheduler_round_robin_enable();
 void task_scheduler_round_robin_yield();
+scheduler_task_t *task_scheduler_round_robin_get_child(scheduler_task_t *parent, uint64_t pid);
