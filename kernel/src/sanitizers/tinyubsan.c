@@ -76,7 +76,7 @@ struct tu_invalid_builtin_data
     unsigned char kind;
 };
 
-#define print printk_serial
+#define print printk_serial_unsafe
 
 #ifdef __cplusplus
 extern "C"
