@@ -6,6 +6,7 @@
 #define SYS_CLOSE 2
 #define SYS_READ 3
 #define SYS_FORK 4
+#define SYS_YIELD 5
 
 #define STDIN 0
 #define STDOUT 1
@@ -36,6 +37,11 @@ int64_t sys_close(uint64_t fd)
 int64_t sys_fork()
 {
     return _syscall(SYS_FORK, 0, 0, 0, 0, 0);
+}
+
+void sys_yield()
+{
+    _syscall(SYS_YIELD, 0, 0, 0, 0, 0);
 }
 
 int64_t open_read_fd(char *filename)
@@ -87,6 +93,7 @@ size_t strlen(const char *str)
 void puts(const char *str)
 {
     sys_write(STDOUT, (char *)str, strlen(str));
+    sys_yield();
 }
 
 int _start()

@@ -262,3 +262,8 @@ void task_scheduler_round_robin_init()
 {
     task_scheduler_round_robin_install_context();
 }
+
+void task_scheduler_round_robin_yield()
+{
+    clock_preemption_timer.interrupt_now();
+}

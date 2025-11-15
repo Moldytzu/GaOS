@@ -62,3 +62,4 @@ void task_scheduler_round_robin_init();
 void task_scheduler_round_robin_install_context();
 noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state);
 noreturn void task_scheduler_round_robin_enable();
+void task_scheduler_round_robin_yield();
