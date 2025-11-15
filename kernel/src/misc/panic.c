@@ -7,12 +7,13 @@
 #define PRINT_TRACE_IF_POSSIBLE(x)                           \
     if ((uint64_t)STACK_TRACE_WALK(x) <= 0xFFFFFFFF80000000) \
         halt();                                              \
-    printk("Trace %d: %p\n", x, STACK_TRACE_WALK(x));        \
-    printk_serial("Trace %d: %p\n", x, STACK_TRACE_WALK(x));
+    printk_unsafe("Trace %d: %p\n", x, STACK_TRACE_WALK(x)); \
+    printk_serial_unsafe("Trace %d: %p\n", x, STACK_TRACE_WALK(x));
 
 noreturn void panic(const char *fmt, ...)
 {
     arch_kill_ap();
+    arch_interrupts_disable();
 
     va_list list;
 
@@ -20,23 +21,23 @@ noreturn void panic(const char *fmt, ...)
     if (framebuffer_available)
     {
         main_cursor.colour = 0xFF0000;
-        printk("Kernel panic.\nMessage: ");
+        printk_unsafe("Kernel panic.\nMessage: ");
 
         va_start(list, fmt);
-        vprintk(fmt, list);
+        vprintk_unsafe(fmt, list);
         va_end(list);
     }
 
     /// serial
-    printk_serial("Kernel panic.\nMessage: ");
+    printk_serial_unsafe("Kernel panic.\nMessage: ");
 
     va_start(list, fmt);
-    vprintk_serial(fmt, list);
+    vprintk_serial_unsafe(fmt, list);
     va_end(list);
 
     /// print stack trace
-    printk("\n");
-    printk_serial("\n");
+    printk_unsafe("\n");
+    printk_serial_unsafe("\n");
     PRINT_TRACE_IF_POSSIBLE(1);
     PRINT_TRACE_IF_POSSIBLE(2);
     PRINT_TRACE_IF_POSSIBLE(3);
