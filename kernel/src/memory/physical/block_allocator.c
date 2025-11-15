@@ -9,7 +9,7 @@
 #define BLOCK_MINIMUM_ALLOCATION 16
 #define BLOCK_SIGNATURE 0x7B3CC1F2D2FACAE0
 
-struct block_header
+struct align_addr(16) block_header
 {
     uint64_t signature;
     size_t size;
@@ -168,6 +168,8 @@ void *block_allocate(size_t size)
 
     if (size % 16) // round up size to next 16 (0x10)
         size += 16 - size % 16;
+
+    // size += sizeof(block_header_t); // add the size of the header
 
     spinlock_acquire(&block_allocator_lock);
 
