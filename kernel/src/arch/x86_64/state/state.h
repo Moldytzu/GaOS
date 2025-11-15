@@ -1,7 +1,7 @@
 #pragma once
 #include <misc/libc.h>
 
-pstruct align_addr(16)
+pstruct align_addr(8)
 {
     uint64_t cr3;
     uint64_t rax;
