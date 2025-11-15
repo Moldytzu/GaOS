@@ -19,12 +19,20 @@ void arch_xapic_timer_schedule_one_shot()
     arch_hint_serialize();
 }
 
+void arch_xapic_timer_interrupt_now()
+{
+    arch_xapic_eoi();
+    arch_xapic_write(XAPIC_REG_TIMER_INIT_COUNT, 1); // set count to 1 to trigger asap
+    arch_hint_serialize();
+}
+
 static clock_time_source_t arch_xapic_timer = {
     .name = "xapic",
     .time_keeping_capable = false,
     .ticks_per_second = 0,
     .one_shot_capable = true,
     .schedule_one_shot = arch_xapic_timer_schedule_one_shot,
+    .interrupt_now = arch_xapic_timer_interrupt_now,
 };
 
 noreturn void arch_xapic_isr_handler(arch_cpu_state_t *state)
