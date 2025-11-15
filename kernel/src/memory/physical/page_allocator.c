@@ -40,14 +40,9 @@ static void page_allocator_create_pools_limine()
         if (entry->type != LIMINE_MEMMAP_USABLE)
             continue;
 
-#ifdef ARCH_x86_64
-        // x86 quirk, ignore ram <1MB
-        if (entry->base + entry->length <= 1 * 1024 * 1024)
+        // we only care about regions larger than 128 KB
+        if (entry->length <= 128 * 1024)
             continue;
-
-        if (entry->base <= 1 * 1024 * 1024 && entry->base + entry->length >= 1 * 1024 * 1024) // clamp entry base to 1MB if it makes sense
-            entry->base = 1024 * 1024;
-#endif
 
         page_allocator_pool_t *pool = &allocator_pools[allocator_pool_index++];
 
@@ -225,4 +220,37 @@ void *page_reallocate(void *base, size_t old_pages, size_t new_pages)
     memcpy(new_base, base, old_pages * PAGE);
     page_deallocate(base, old_pages);
     return new_base;
+}
+
+size_t page_count_free()
+{
+    size_t free = 0;
+    for (size_t i = 0; i < allocator_pool_index; i++)
+    {
+        page_allocator_pool_t *pool = &allocator_pools[i];
+        free += pool->available;
+    }
+    return free;
+}
+
+size_t page_count_used()
+{
+    size_t used = 0;
+    for (size_t i = 0; i < allocator_pool_index; i++)
+    {
+        page_allocator_pool_t *pool = &allocator_pools[i];
+        used += pool->used;
+    }
+    return used;
+}
+
+size_t page_count_total()
+{
+    size_t total = 0;
+    for (size_t i = 0; i < allocator_pool_index; i++)
+    {
+        page_allocator_pool_t *pool = &allocator_pools[i];
+        total += pool->total;
+    }
+    return total;
 }

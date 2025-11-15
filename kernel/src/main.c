@@ -57,6 +57,12 @@ void _start()
     task_scheduler_init();                                      // initialise the task scheduler
     io_queue_init();                                            // initialise the i/o queuer
 
+    // display memory usage
+    log_info("memory: %d KB free, %d KB used, %d KB total",
+             page_count_free() / 1024,
+             page_count_used() / 1024,
+             page_count_total() / 1024);
+
     // load the init system from vfs
     vfs_fs_node_t *init_node = vfs_open("/initrd/init.elf", O_RDONLY);
     if (is_error(init_node))

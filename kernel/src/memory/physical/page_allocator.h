@@ -9,3 +9,6 @@ void page_allocator_init();
 void *page_allocate(size_t pages);
 void page_deallocate(void *base, size_t pages);
 void *page_reallocate(void *base, size_t old_pages, size_t new_pages);
+size_t page_count_free();
+size_t page_count_used();
+size_t page_count_total();
