@@ -5,6 +5,7 @@
 #include <syscalls/helpers.h>
 #include <memory/physical/page_allocator.h>
 #include <arch/x86_64/page_table_manager/table_manager.h>
+#include <filesystem/vfs.h>
 
 // https://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html
 
@@ -89,11 +90,14 @@ int64_t sys_fork(arch_cpu_state_t *state)
     child->fd_allocated_pages = parent->fd_allocated_pages;
     child->fd_translation = page_allocate(child->fd_allocated_pages);
 
-    // fixme: here we have to call the filesystem instead to duplicate the file descriptor for us
     for (size_t i = 0; i < child->fd_count; i++)
-        child->fd_translation[i] = parent->fd_translation[i];
+    {
+        if (parent->fd_translation[i] == nullptr) /// skip non-allocated fds
+            continue;
+
+        child->fd_translation[i] = vfs_dup(parent->fd_translation[i]);
+    }
 
     child->empty = false;
-
     return child->id;
 }

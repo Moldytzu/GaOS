@@ -395,6 +395,14 @@ void *devfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     return dev_node->device->write(node, buffer, size, offset);
 }
 
+vfs_fs_node_t *devfs_dup(vfs_fs_node_t *node)
+{
+    vfs_fs_node_t *new_vfs_node = devfs_open(node->fs, node->path, node->mode);
+    new_vfs_node->seek_position = node->seek_position;
+    new_vfs_node->max_seek_position = node->max_seek_position;
+    return new_vfs_node;
+}
+
 void device_manager_init()
 {
     // mount filesystem
@@ -404,6 +412,7 @@ void device_manager_init()
     devfs.close = devfs_close;
     devfs.write = devfs_write;
     devfs.read = devfs_read;
+    devfs.dup = devfs_dup;
     vfs_mount_fs("dev", &devfs);
 
     // create a dummy device to be the head

@@ -128,6 +128,22 @@ void vfs_close(vfs_fs_node_t *node)
         panic("%s has no close callback", node->fs->name);
         return;
     }
+
+    return node->fs->close(node);
+}
+
+vfs_fs_node_t *vfs_dup(vfs_fs_node_t *node)
+{
+    if (!node)
+        panic("kernel bug: null vfs node");
+
+    if (!node->fs->dup)
+    {
+        panic("%s has no dup callback", node->fs->name);
+        return nullptr;
+    }
+
+    return node->fs->dup(node);
 }
 
 bool vfs_async_task_register(struct vfs_fs_node *node, io_task_t *task)

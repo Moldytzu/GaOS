@@ -41,6 +41,7 @@ struct vfs_fs_ops
     void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void *(*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void (*close)(struct vfs_fs_node *node);
+    struct vfs_fs_node *(*dup)(struct vfs_fs_node *node);
     void (*async_task_register)(struct vfs_fs_node *node, io_task_t *task);
     void (*async_task_update)(struct vfs_fs_node *node, io_task_t *task);
     void (*async_task_unregister)(struct vfs_fs_node *node, io_task_t *task);
@@ -70,6 +71,7 @@ bool vfs_async_task_register(struct vfs_fs_node *node, io_task_t *task);
 void vfs_async_task_update(struct vfs_fs_node *node, io_task_t *task);
 void vfs_async_task_unregister(struct vfs_fs_node *node, io_task_t *task);
 void vfs_close(vfs_fs_node_t *node);
+vfs_fs_node_t *vfs_dup(vfs_fs_node_t *node);
 void vfs_dirname(const char *path, char *dirname, size_t max_len);
 void vfs_basename(const char *path, char *basename, size_t max_len);
 size_t vfs_sanatise_path(char *path);

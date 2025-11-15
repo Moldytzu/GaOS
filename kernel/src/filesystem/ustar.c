@@ -108,6 +108,13 @@ vfs_fs_node_t *ustar_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
     return (vfs_fs_node_t *)node;
 }
 
+vfs_fs_node_t *ustar_dup(vfs_fs_node_t *node)
+{
+    vfs_fs_node_t *new_node = ustar_open(node->fs, node->path, node->mode); /// reopen the file
+    new_node->seek_position = node->seek_position;                          // copy seek position
+    return new_node;
+}
+
 void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
     ustar_node_t *ustar_node = (ustar_node_t *)node;
@@ -210,6 +217,7 @@ void ustar_init()
     ustar.close = ustar_close;
     ustar.open = ustar_open;
     ustar.read = ustar_read;
+    ustar.dup = ustar_dup;
     ustar.name = "ustar";
     ustar.name_length = 5;
 
