@@ -3,6 +3,9 @@
 #include <arch/arch.h>
 #include <filesystem/vfs.h>
 
+#define RUN_MODE_RUNNING 0
+#define RUN_MODE_ZOMBIE 1
+
 struct scheduler_task
 {
     // cpu state (must have 256 bytes alignment)
@@ -18,6 +21,9 @@ struct scheduler_task
     size_t name_length;
     bool empty;
     uint64_t ppid;
+    int exit_code;
+    int run_mode;
+    bool is_waited;
 
     // file descriptors
     size_t fd_count;

@@ -215,7 +215,7 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
     // load new state
     spinlock_release(&context->running.lock);
     scheduler_task_t *next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
-    while (next_task->empty)
+    while (next_task->empty || next_task->run_mode == RUN_MODE_ZOMBIE)
         next_task = task_scheduler_round_robin_pop_from_queue(&context->running);
     arch_install_task_context(next_task);
 
