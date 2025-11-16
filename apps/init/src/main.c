@@ -8,6 +8,7 @@
 #define SYS_FORK 4
 #define SYS_YIELD 5
 #define SYS_WAITPID 6
+#define SYS_EXIT 7
 
 #define STDIN 0
 #define STDOUT 1
@@ -45,9 +46,14 @@ void sys_yield()
     _syscall(SYS_YIELD, 0, 0, 0, 0, 0);
 }
 
-int64_t sys_waitpid(uint64_t pid, int *stat_loc, int options)
+int64_t sys_waitpid(int64_t pid, int *stat_loc, int options)
 {
     return _syscall(SYS_WAITPID, pid, (uint64_t)stat_loc, options, 0, 0);
+}
+
+void sys_exit(int code)
+{
+    _syscall(SYS_EXIT, (uint64_t)code, 0, 0, 0, 0);
 }
 
 int64_t open_read_fd(char *filename)
@@ -104,6 +110,9 @@ void puts(const char *str)
 
 int _start()
 {
+    // we run as PID 2
+    // PID 1 is the kernel io task
+
     // open stdin, stdout, stderr
     sys_open("/dev/console", 0);
     sys_open("/dev/console", 0);
@@ -111,59 +120,28 @@ int _start()
 
     sys_write(STDOUT, "Hello, Gallium!", 15); // write a message
 
-    if (sys_fork() == 0)
+    if (sys_fork() == 0) /// spawn pid 3
     {
-        while (1)
+        if (sys_fork() == 0) // spawn pid 4
         {
-            for (int i = 1; i <= 6; i++)
-                if (sys_waitpid(i, 0, 0) == 1)
-                    puts("$");
-            puts("\n");
+            sys_exit(7); // exit with code 7
         }
+        while (1)
+            ;
     }
     else
     {
-        puts("1");
-        if (sys_fork() == 0)
-        {
-            while (1)
-                ;
-            puts("2");
-        }
-        else
-        {
-            puts("2");
-            if (sys_fork() == 0)
-            {
-                while (1)
-                    ;
-                puts("3");
-            }
-            else
-            {
-                puts("3");
-                if (sys_fork() == 0)
-                {
-                    while (1)
-                        ;
-                    puts("4");
-                }
-                else
-                {
-                    puts("4");
-                    if (sys_fork() == 0)
-                    {
-                        while (1)
-                            ;
-                        puts("5");
-                    }
-                    else
-                    {
-                        puts("5");
-                    }
-                }
-            }
-        }
+        int status, pid;
+        while ((pid = sys_waitpid(4, &status, 0)) < 0)
+            sys_yield();
+
+        puts("\nChild process ");
+        char pid_str[] = {'0' + pid, 0};
+        puts(pid_str);
+        puts(" terminated with exit code ");
+        pid_str[0] = '0' + (status & 0xFF);
+        puts(pid_str);
+        puts("\n");
     }
 
     // test_open_close();
