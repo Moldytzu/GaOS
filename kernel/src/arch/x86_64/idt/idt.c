@@ -22,12 +22,7 @@ uint16_t interrupts_vector_base = 0x20;
 arch_idtr_t arch_global_idtr;
 extern void *arch_isr_handlers[]; // array of handlers
 
-static uint64_t __attribute__((noinline)) arch_read_cr2()
-{
-    uint64_t value = 0;
-    iasm("mov %%cr2, %0" ::"r"(value));
-    return value;
-}
+uint64_t arch_read_cr2(); // implemented in assembly
 
 void arch_isr_handler(arch_cpu_state_t *state, uint64_t interrupt_number)
 {

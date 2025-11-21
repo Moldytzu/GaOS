@@ -3,7 +3,7 @@ bits 64
 section .text
 
 extern arch_isr_handlers, arch_isr_handler
-global arch_idt_load, arch_interrupts_enabled
+global arch_idt_load, arch_interrupts_enabled, arch_read_cr2
 
 arch_idt_load: ; rdi = idtr
     lidt [rdi]
@@ -57,6 +57,11 @@ arch_interrupts_enabled:
     pop r14
     pop r15
 %endmacro
+
+; function to return cr2 for handling page faults
+arch_read_cr2:
+    mov rax, cr2
+    ret
 
 ; macro to generate handler
 %macro GEN_HANDLER 1
