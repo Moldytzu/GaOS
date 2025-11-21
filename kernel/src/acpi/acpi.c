@@ -27,11 +27,13 @@ acpi_xsdp_t *sdp;
 acpi_sdt_header_t *acpi_get_table_xsdt(char *signature)
 {
     size_t entries = (sdt->length - sizeof(acpi_sdt_header_t)) / sizeof(uint64_t);
-    uint64_t *headers = (uint64_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
+    uint8_t *base = (uint8_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
 
     for (size_t i = 0; i < entries; i++)
     {
-        acpi_sdt_header_t *header = (acpi_sdt_header_t *)(headers[i] + kernel_hhdm_offset);
+        uint64_t addr;
+        memcpy(&addr, base + i * sizeof(uint64_t), sizeof(uint64_t));
+        acpi_sdt_header_t *header = (acpi_sdt_header_t *)(addr + kernel_hhdm_offset);
         if (memcmp(header->signature, signature, 4) == 0)
             return header;
     }
@@ -44,11 +46,13 @@ acpi_sdt_header_t *acpi_get_table_xsdt(char *signature)
 acpi_sdt_header_t *acpi_get_table_rsdt(char *signature)
 {
     size_t entries = (sdt->length - sizeof(acpi_sdt_header_t)) / sizeof(uint32_t);
-    uint32_t *headers = (uint32_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
+    uint8_t *base = (uint8_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
 
     for (size_t i = 0; i < entries; i++)
     {
-        acpi_sdt_header_t *header = (acpi_sdt_header_t *)((uint64_t)headers[i] + kernel_hhdm_offset);
+        uint32_t addr;
+        memcpy(&addr, base + i * sizeof(uint32_t), sizeof(uint32_t));
+        acpi_sdt_header_t *header = (acpi_sdt_header_t *)((uint64_t)addr + kernel_hhdm_offset);
         if (memcmp(header->signature, signature, 4) == 0)
             return header;
     }
@@ -106,24 +110,30 @@ void acpi_create_device()
     if (sdp->revision == 0)
     {
         size_t entries = (sdt->length - sizeof(acpi_sdt_header_t)) / sizeof(uint32_t);
-        uint32_t *headers = (uint32_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
+        uint8_t *base = (uint8_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
 
         for (size_t i = 0; i < entries; i++)
         {
-            acpi_sdt_header_t *header = (acpi_sdt_header_t *)((uint64_t)headers[i] + kernel_hhdm_offset);
+            uint32_t addr;
+            memcpy(&addr, base + i * sizeof(uint32_t), sizeof(uint32_t));
+            acpi_sdt_header_t *header = (acpi_sdt_header_t *)((uint64_t)addr + kernel_hhdm_offset);
             memcpy(path + 6, header->signature, 4);
+            path[6 + 4] = '\0';
             device_create_at(path, acpi_table, acpi_read, acpi_write);
         }
     }
     else
     {
         size_t entries = (sdt->length - sizeof(acpi_sdt_header_t)) / sizeof(uint64_t);
-        uint64_t *headers = (uint64_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
+        uint8_t *base = (uint8_t *)((uint64_t)sdt + sizeof(acpi_sdt_header_t));
 
         for (size_t i = 0; i < entries; i++)
         {
-            acpi_sdt_header_t *header = (acpi_sdt_header_t *)(headers[i] + kernel_hhdm_offset);
+            uint64_t addr;
+            memcpy(&addr, base + i * sizeof(uint64_t), sizeof(uint64_t));
+            acpi_sdt_header_t *header = (acpi_sdt_header_t *)(addr + kernel_hhdm_offset);
             memcpy(path + 6, header->signature, 4);
+            path[6 + 4] = '\0';
             device_create_at(path, acpi_table, acpi_read, acpi_write);
         }
     }
