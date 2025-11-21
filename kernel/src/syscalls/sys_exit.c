@@ -12,6 +12,7 @@ int64_t sys_exit(uint64_t num, int code)
     scheduler_task_t *caller = GET_CALLER_TASK();
     caller->exit_code = code;
     caller->run_mode = RUN_MODE_ZOMBIE;
+    trace_info("exit code %d", code);
     while (1)
         task_scheduler_yield();
     return 0;

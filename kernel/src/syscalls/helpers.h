@@ -13,13 +13,29 @@
 #define IS_USER_MEMORY(address, task) (!IS_HIGHER_HALF_ADDRESS((address)) && IS_MAPPED((address), GET_PAGE_TABLE(task)))
 
 #ifdef TRACE_ERRORS
-#define trace_error(fmt, ...) log_error((fmt), ##__VA_ARGS__)
+#define trace_error(fmt, ...) printk_serial_unsafe("[%s (pid %d) error %s @ %d.%d%d%d] " fmt "\n",                                                               \
+                                                   GET_CALLER_TASK()->name,                                                                                      \
+                                                   GET_CALLER_TASK()->id,                                                                                        \
+                                                   MODULE,                                                                                                       \
+                                                   (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 / 1000 : 0),       \
+                                                   (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 % 1000 / 100 : 0), \
+                                                   (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 % 100 / 10 : 0),   \
+                                                   (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 % 10 : 0),         \
+                                                   ##__VA_ARGS__)
 #else
 #define trace_error(fmt, ...) ()
 #endif
 
 #ifdef TRACE_INFOS
-#define trace_info(fmt, ...) log_info((fmt), ##__VA_ARGS__)
+#define trace_info(fmt, ...) printk_serial_unsafe("[%s (pid %d) info %s @ %d.%d%d%d] " fmt "\n",                                                                \
+                                                  GET_CALLER_TASK()->name,                                                                                      \
+                                                  GET_CALLER_TASK()->id,                                                                                        \
+                                                  MODULE,                                                                                                       \
+                                                  (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 / 1000 : 0),       \
+                                                  (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 % 1000 / 100 : 0), \
+                                                  (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 % 100 / 10 : 0),   \
+                                                  (clock_system_timer.time_keeping_capable ? clock_system_timer.read_nanoseconds() / 1000000 % 10 : 0),         \
+                                                  ##__VA_ARGS__)
 #else
 #define trace_info(fmt, ...) ()
 #endif

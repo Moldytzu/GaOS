@@ -13,12 +13,16 @@ int64_t sys_close(uint64_t num, uint64_t fd)
 
     // sanitize fd
     if (fd >= caller->fd_max || caller->fd_translation[fd] == nullptr)
+    {
+        trace_error("bad fd %d", fd);
         return -EBADF;
+    }
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
     vfs_close(node);
 
     caller->fd_count--;
     caller->fd_translation[fd] = 0;
+    trace_info("closed fd %d", fd);
     return 0;
 }

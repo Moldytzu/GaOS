@@ -13,14 +13,14 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size)
     // verify pointer
     if (!IS_USER_MEMORY(buffer, caller))
     {
-        trace_error("failed to read invalid pointer %p from %s", buffer, caller->name);
+        trace_error("failed to read invalid pointer %p", buffer);
         return -EPERM;
     }
 
     // verify fd
     if (fd >= caller->fd_count)
     {
-        trace_error("fd %d of %s is invalid", fd, caller->name);
+        trace_error("fd %d is invalid", fd);
         return -EBADF;
     }
 
@@ -28,7 +28,7 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size)
 
     if (node == nullptr)
     {
-        trace_error("fd %d of %s is invalid", fd, caller->name);
+        trace_error("fd %d is invalid", fd);
         return -EBADF;
     }
 
@@ -43,5 +43,6 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size)
     if (status == 0)
         node->seek_position += size;
 
+    trace_info("read %d bytes from fd %d of %s", size, fd, caller->name);
     return status;
 }

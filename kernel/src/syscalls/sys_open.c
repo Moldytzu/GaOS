@@ -16,14 +16,17 @@ int64_t sys_open(uint64_t num, char *path, uint64_t oflag)
     // verify pointer
     if (!IS_USER_MEMORY(path, caller))
     {
-        log_error("failed to open invalid pointer %p from %s", path, caller->name);
+        trace_error("invalid pointer %p", path);
         return -EPERM;
     }
 
     // open the node while propagating the errors
     vfs_fs_node_t *node = vfs_open(path, oflag);
     if (is_error(node))
+    {
+        trace_error("failed to open file %s (%d)", path, -error_of(node));
         return error_of(node);
+    }
 
     // push the node on the translation table
 try_again:
@@ -43,6 +46,6 @@ try_again:
 
     caller->fd_translation[fd] = node;
     caller->fd_count++;
-
+    trace_info("opened file %s with fd %d", path, fd);
     return fd;
 }

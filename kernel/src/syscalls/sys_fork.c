@@ -99,6 +99,7 @@ int64_t sys_fork(arch_cpu_state_t *state)
         child->fd_translation[i] = vfs_dup(parent->fd_translation[i]);
     }
 
+    trace_info("created child process with pid %d", child->id);
     child->empty = false;
     return child->id;
 }

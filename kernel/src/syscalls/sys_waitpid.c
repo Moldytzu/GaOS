@@ -13,10 +13,16 @@ int64_t sys_waitpid(uint64_t num, int64_t pid, int *stat_loc, int options)
     scheduler_task_t *caller = GET_CALLER_TASK();
 
     if (pid < 0 /*wait is unimplemented*/ || !refered_task || refered_task->is_waited)
+    {
+        trace_error("pid %d is invalid", pid);
         return -ECHILD; // pid does not exist
+    }
 
     if (!IS_USER_MEMORY(stat_loc, caller))
+    {
+        trace_error("invalid pointer %p", stat_loc);
         return -EFAULT; // stat_loc is an invalid pointer
+    }
 
     // check if the refered task is a child of the current task
     scheduler_task_t *current_task = refered_task;
@@ -36,9 +42,13 @@ int64_t sys_waitpid(uint64_t num, int64_t pid, int *stat_loc, int options)
 
     refered_task->is_waited = true;
 
+    trace_info("waiting for pid %d", pid);
+
     // wait for the task to exit
     while (refered_task->run_mode != RUN_MODE_ZOMBIE)
         task_scheduler_yield();
+
+    trace_info("pid %d exited with code %d", pid, refered_task->exit_code);
 
     // fill stat_loc
     int to_return = 0;

@@ -13,21 +13,21 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size)
     // sanitize address
     if (!IS_USER_MEMORY(buffer, caller))
     {
-        trace_error("failed to write invalid pointer %p from %s", buffer, caller->name);
+        trace_error("failed to write invalid pointer %p", buffer);
         return -EPERM;
     }
 
     // verify fd
     if (fd >= caller->fd_count)
     {
-        trace_error("fd %d of %s is invalid", fd, caller->name);
+        trace_error("fd %d is invalid", fd);
         return -EBADF;
     }
 
     vfs_fs_node_t *node = caller->fd_translation[fd];
     if (node == nullptr)
     {
-        trace_error("fd %d of %s is invalid", fd, caller->name);
+        trace_error("fd %d is invalid", fd);
         return -EBADF;
     }
 
@@ -37,6 +37,8 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size)
     // if the operation is sucessful increase the seek position
     if (status == 0)
         node->seek_position += size;
+
+    trace_info("wrote %d bytes to fd %d", size, fd);
 
     return status;
 }
