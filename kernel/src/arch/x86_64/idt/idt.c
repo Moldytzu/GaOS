@@ -5,6 +5,7 @@
 #include <arch/x86_64/idt/idt.h>
 #include <arch/arch.h>
 #include <memory/physical/page_allocator.h>
+#include <schedulers/task/task.h>
 
 pstruct
 {
@@ -36,18 +37,28 @@ void arch_isr_handler(arch_cpu_state_t *state, uint64_t interrupt_number)
         {
             uint32_t error = state->error;
             uint64_t cr2 = arch_read_cr2();
+
+            scheduler_task_t *task = (scheduler_task_t *)arch_get_task_context();
+
             if (cr2 < 0x1000)
-                panic("Null dereference at %x", state->rip);
+                panic("null dereference at %x", state->rip);
             else
-                panic("Page Fault caused by %s page, on a %s in %s of %x at %x", error & 1 ? "present" : "non-present", error & 0b10 ? "write" : "read", error & 0b100 ? "user-mode" : "kernel-mode", cr2, state->rip);
+                panic("page fault caused by %s page, on a %s in %s of %x at %x (%s pid %d)",
+                      error & 1 ? "present" : "non-present",
+                      error & 0b10 ? "write" : "read",
+                      error & 0b100 ? "user-mode" : "kernel-mode",
+                      cr2,
+                      state->rip,
+                      (error & 0b100 && task) ? task->name : "kernel",
+                      (error & 0b100 && task) ? task->id : 0);
         }
         else
-            panic("Exception %x at %x", interrupt_number, state->rip);
+            panic("exception %x at %x", interrupt_number, state->rip);
     }
     else
     {
         // handle interrupt
-        log_info("Interrupt %x at %p in %s", interrupt_number, state->rip, state->cs == 0x08 ? "kernel-mode" : "user-mode");
+        log_info("interrupt %x at %p in %s", interrupt_number, state->rip, state->cs == 0x08 ? "kernel-mode" : "user-mode");
     }
 }
 
