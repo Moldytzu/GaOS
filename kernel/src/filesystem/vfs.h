@@ -75,3 +75,4 @@ vfs_fs_node_t *vfs_dup(vfs_fs_node_t *node);
 void vfs_dirname(const char *path, char *dirname, size_t max_len);
 void vfs_basename(const char *path, char *basename, size_t max_len);
 size_t vfs_sanatise_path(char *path);
+void vfs_print_debug();

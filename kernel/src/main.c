@@ -63,8 +63,10 @@ void _start()
              page_count_used() / 1024,
              page_count_total() / 1024);
 
+    vfs_print_debug();
+
     // load the init system from vfs
-    vfs_fs_node_t *init_node = vfs_open("/initrd/init.elf", O_RDONLY);
+    vfs_fs_node_t *init_node = vfs_open("/init.elf", O_RDONLY);
     if (is_error(init_node))
         panic("failed to open init.elf from initrd: %d", -error_of(init_node));
 

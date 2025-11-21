@@ -73,7 +73,7 @@ ustar_header_t *ustar_open_header(const char *path)
         if (real_size % TAR_BLOCK_SIZE)
             real_size += 512 - (real_size % TAR_BLOCK_SIZE);
 
-        if (strncmp(path, header->name + 1 /*skip .*/, strlen((char *)path)) == 0) // find exact match of path
+        if (strncmp(path, header->name + 2 /*skip ./*/, strlen((char *)path)) == 0) // find exact match of path
             return header;
 
         header = (ustar_header_t *)((uint64_t)header + real_size); // get next header
@@ -221,7 +221,7 @@ void ustar_init()
     ustar.name = "ustar";
     ustar.name_length = 5;
 
-    vfs_mount_fs("initrd", &ustar); // mount it
+    vfs_mount_fs("/", &ustar); // mount it as root
 
     ustar_debug_print();
 }

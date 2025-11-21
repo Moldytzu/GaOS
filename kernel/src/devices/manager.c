@@ -413,7 +413,7 @@ void device_manager_init()
     devfs.write = devfs_write;
     devfs.read = devfs_read;
     devfs.dup = devfs_dup;
-    vfs_mount_fs("dev", &devfs);
+    vfs_mount_fs("/dev", &devfs);
 
     // create a dummy device to be the head
     device_list = allocate_dummy();

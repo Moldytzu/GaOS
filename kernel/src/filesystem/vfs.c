@@ -38,7 +38,7 @@ void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs)
 
     spinlock_release(&mount_lock);
 
-    log_info("mounting %s on /%s", fs->name, name);
+    log_info("mounting %s on %s", fs->name, name);
 }
 
 vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
@@ -52,29 +52,24 @@ vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
     size_t path_len = strlen((char *)path);
 
     // structure of a path is
-    // /<filesystem name>/path/to/files
+    // /path/to/files
     // anything that isn't like this is invalid and should return an error
 
     if (*path != '/')
     {
-        log_error("failed to open \"%s\" with unknown root", path);
+        log_error("failed to open \"%s\" with invalid root", path);
         return (void *)-ENOENT;
     }
 
-    // get the name of the filesystem targeted in the path
-    size_t fsname_len;
-    for (fsname_len = 1; path[fsname_len] != '/' && fsname_len < path_len; fsname_len++)
-        ;
-    fsname_len--; // ignore last /
-
     spinlock_acquire(&mount_lock);
-    vfs_mount_point_t *mount = mount_points->next; // get first mount point
-    while (mount)
+    vfs_mount_point_t *mount;
+    for (mount = mount_points->next; mount != nullptr; mount = mount->next)
     {
-        if (strncmp(path + 1, mount->name, fsname_len) == 0) // compare the mount names
-            break;                                           // and if they're identical break
+        if (path_len < mount->name_length)
+            continue; // skip if the path is shorter than the filesystem name
 
-        mount = mount->next; // else, continue comparing
+        if (strncmp(path, mount->name, mount->name_length) == 0) // compare the mount names
+            break;                                               // and if they're identical break
     }
     spinlock_release(&mount_lock);
 
@@ -87,7 +82,7 @@ vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
     if (!mount->fs->open)
         panic("%s has no open callback", mount->fs->name);
 
-    return mount->fs->open(mount->fs, path + fsname_len + 1 /*skip /<filesystem name>*/, mode);
+    return mount->fs->open(mount->fs, path + mount->name_length /*skip /<filesystem name>*/, mode);
 }
 
 void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
@@ -188,7 +183,7 @@ void vfs_print_debug()
     vfs_mount_point_t *point = mount_points->next;
     while (point)
     {
-        printk_serial("vfs: mount point: /%s/ on %s\n", point->name, point->fs->name);
+        printk_serial("vfs: mount point: %s on %s\n", point->name, point->fs->name);
         point = point->next;
     }
 
