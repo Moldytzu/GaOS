@@ -6,6 +6,7 @@
 #include <arch/arch.h>
 #include <memory/physical/page_allocator.h>
 #include <schedulers/task/task.h>
+#include <boot/limine.h>
 
 pstruct
 {
@@ -35,10 +36,25 @@ void arch_isr_handler(arch_cpu_state_t *state, uint64_t interrupt_number)
         // handle exceptions
         if (interrupt_number == 0xE) // page fault
         {
+            scheduler_task_t *task = (scheduler_task_t *)arch_get_task_context();
+
+            // try to handle user space fault
+            if (state->cs & 3)
+            {
+                // check if the fault address is in stack
+                uint64_t cr2 = arch_read_cr2();
+                if (cr2 >= 0x1000 && cr2 < task->virtual_stack_top)
+                {
+                    //  allocate a new page for the stack
+                    arch_table_manager_map((arch_page_table_t *)(task->state.cr3 + kernel_hhdm_offset), cr2 & ~0xFFF, (uint64_t)page_allocate(1) - kernel_hhdm_offset, TABLE_ENTRY_USER | TABLE_ENTRY_READ_WRITE);
+                    log_info("allocated new stack page for task %s (pid %d) at %x", task->name, task->id, cr2 & ~0xFFF);
+                    return; // return to the faulting instruction
+                }
+            }
+
+            // or else handle the page fault
             uint32_t error = state->error;
             uint64_t cr2 = arch_read_cr2();
-
-            scheduler_task_t *task = (scheduler_task_t *)arch_get_task_context();
 
             if (cr2 < 0x1000)
                 panic("null dereference at %x", state->rip);

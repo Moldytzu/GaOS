@@ -118,7 +118,7 @@ int _start()
     sys_open("/dev/console", 0);
     sys_open("/dev/console", 0);
 
-    sys_write(STDOUT, "Hello, Gallium!", 15); // write a message
+    puts("Init process started\n");
 
     if (sys_fork() == 0) /// spawn pid 3
     {
@@ -143,6 +143,18 @@ int _start()
         puts(pid_str);
         puts("\n");
     }
+
+    // create a striped patter
+    char to_write[4 * 1024 * 70];
+
+    uint64_t fb_fd = sys_open("/dev/fb0", 0);
+
+    for (int i = 0; i < 4 * 1024 * 70; i++)
+        to_write[i] = i;
+
+    sys_write(fb_fd, (char *)to_write, 4 * 1024 * 70);
+
+    puts("Init finished\n");
 
     // test_open_close();
     // test_read();
