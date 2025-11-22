@@ -10,7 +10,7 @@ LD := $(PREFIX)ld
 OBJCOPY := $(PREFIX)objcopy
 
 # User controllable flags.
-CFLAGS := -g -O2 -pipe
+CFLAGS := -g -Og -pipe
 CPPFLAGS :=
 NASMFLAGS := -F dwarf -g
 LDFLAGS :=
