@@ -6,7 +6,7 @@
 #define RUN_MODE_RUNNING 0
 #define RUN_MODE_ZOMBIE 1
 
-struct scheduler_task
+struct align_addr(16) scheduler_task
 {
     // cpu state (must have 256 bytes alignment)
     uint64_t id;
@@ -24,6 +24,7 @@ struct scheduler_task
     int exit_code;
     int run_mode;
     bool is_waited;
+    uint64_t virtual_stack_top;
 
     // file descriptors
     size_t fd_count;

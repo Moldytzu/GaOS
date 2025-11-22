@@ -100,7 +100,15 @@ bool elf_load_from(vfs_fs_node_t *node)
     new_task->state.cr3 = (uint64_t)page_table - kernel_hhdm_offset; // cr3 has to be a physical address
     new_task->state.rip = (uint64_t)elf_header.e_entry;              // point to the designated entry point
     new_task->state.rflags = 0x202;                                  // enable interrupts
-    new_task->state.rsp = stack_base + PAGE;                         // point to the stack (on x86_64 the stack grows down)
+
+    // point to the stack (on x86_64 the stack grows down)
+    // Ensure the initial rsp is adjusted by -8 so that the function prologue
+    // (push rbp; mov rbp, rsp) yields a RBP such that stack-allocated buffers
+    // that the compiler expects to be 16-byte aligned (for movdqa) are indeed
+    // aligned. Without this adjustment the stack top (page-aligned) produces
+    // rbp - offset that is only 8-byte aligned which causes movdqa to fault.
+    new_task->state.rsp = stack_base + PAGE - 8;
+    new_task->virtual_stack_top = stack_base + PAGE;
 
     // point to userspace segements
     new_task->state.cs = 8 * 4 | 3;

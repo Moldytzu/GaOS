@@ -24,6 +24,7 @@ void arch_bootstrap_entry_limine(struct limine_mp_info *mp_info)
 {
     used(mp_info);
 
+    arch_simd_enable();
     arch_load_gdt();
     arch_table_manager_switch_to(arch_bootstrap_page_table);
     arch_swap_stack(page_allocate(1), 1 * PAGE);

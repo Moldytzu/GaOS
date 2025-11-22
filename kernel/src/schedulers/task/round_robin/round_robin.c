@@ -171,8 +171,8 @@ void task_scheduler_round_robin_install_context()
     // install the context
     arch_install_scheduler_context(new_context);
 
-    // create the idle task
-    scheduler_task_t *task = block_allocate(sizeof(scheduler_task_t));
+    // create the idle task — allocate a page so the struct is page-aligned
+    scheduler_task_t *task = (scheduler_task_t *)page_allocate(1);
     task->name = "idle";
     task->name_length = 4;
     task->empty = false;
@@ -187,6 +187,10 @@ void task_scheduler_round_robin_install_context()
     task->state.cs = 8 * 1 | 0;
     task->state.ss = 8 * 2 | 0;
 #endif
+
+    // initialize simd state for the new task from the current (kernel) state
+    //  so that fxrstor restores a valid register context when we schedule it
+    arch_save_simd_state(&task->simd_state);
 
     task_scheduler_round_robin_push_to_queue(&new_context->running, task); // add it in the list
 
@@ -229,7 +233,7 @@ noreturn void task_scheduler_round_robin_reschedule(arch_cpu_state_t *state)
 
 scheduler_task_t *task_scheduler_round_robin_create(const char *name)
 {
-    scheduler_task_t *task = block_allocate(sizeof(scheduler_task_t));
+    scheduler_task_t *task = page_allocate(1); // allocate a page for the task struct, ensure alignment
 
     // allocate and copy name
     size_t name_len = strlen((char *)name);
@@ -266,6 +270,11 @@ scheduler_task_t *task_scheduler_round_robin_create(const char *name)
 
         current_context = current_context->previous; // we start with the last context, thus we have to iterate backwards
     } while (current_context);
+
+    // initialize simd area from kernel default so user tasks start with a
+    // sane FPU/SSE state (MXCSR, control words, etc). block_allocate zeros
+    // memory, which is not a valid fxsave area.
+    arch_save_simd_state(&task->simd_state);
 
     task_scheduler_round_robin_push_to_queue(&free_context->running, task); // push it tot the queue
 
