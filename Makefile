@@ -38,13 +38,16 @@ run-accel: all
 	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -hda $(IMAGE_NAME).hdd -boot c $(QEMU_ACCELERATED)
 
 run-gdb: all
-	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) $(QEMU_DEBUG) -hda $(IMAGE_NAME).hdd -boot c &
+	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) $(QEMU_DEBUG) -hda $(IMAGE_NAME).hdd -boot c -monitor telnet:127.0.0.1:55555,server,nowait &
 	gdb-multiarch $(GDB_FLAGS) kernel/bin/kernel.elf
 	pkill -f qemu-system-$(OUTPUT_ARCH)
 	reset
 
 run-uefi: all ovmf
 	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+
+run-uefi-accel: all ovmf
+	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd $(QEMU_ACCELERATED)
 
 run-log: all
 	qemu-system-$(OUTPUT_ARCH) $(QEMU_FLAGS) $(QEMU_LOG) -hda $(IMAGE_NAME).hdd -boot c
