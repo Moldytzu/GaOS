@@ -18,5 +18,5 @@ ssize_t console_read(struct vfs_fs_node *node, void *buffer, size_t size)
 
 void console_create_device()
 {
-    device_create_at("/console", reserved, console_read, console_write);
+    device_create_at("/console", reserved, nullptr, console_read, console_write);
 }

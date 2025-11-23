@@ -160,10 +160,17 @@ ssize_t framebuffer_read(struct vfs_fs_node *node, void *buffer, size_t size)
 
 ssize_t framebuffer_write(struct vfs_fs_node *node, void *buffer, size_t size)
 {
-    // fixme: sanitize node->seek_position
+    if (node->seek_position + size > node->max_seek_position)
+        node->seek_position = node->max_seek_position - size;
     memcpy((void *)((uint64_t)main_framebuffer.base + node->seek_position), buffer, size);
     node->seek_position += size;
     return size;
+}
+
+int framebuffer_initialise_node(struct vfs_fs_node *node)
+{
+    node->max_seek_position = main_framebuffer.pitch * main_framebuffer.height - 1;
+    return 0;
 }
 
 void framebuffer_create_device()
@@ -171,5 +178,5 @@ void framebuffer_create_device()
     if (!framebuffer_available)
         return;
 
-    device_create_at("/fb0", framebuffer, framebuffer_read, framebuffer_write);
+    device_create_at("/fb0", framebuffer, framebuffer_initialise_node, framebuffer_read, framebuffer_write);
 }

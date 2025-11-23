@@ -109,5 +109,5 @@ void uart16550_create_device()
     if (!uart16650_present)
         return;
 
-    device_create_at("/uart0", serial, uart16550_read, uart16550_write);
+    device_create_at("/uart0", serial, nullptr, uart16550_read, uart16550_write);
 }

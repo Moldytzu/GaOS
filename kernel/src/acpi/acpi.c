@@ -87,15 +87,15 @@ void acpi_init()
         sdt = (acpi_sdt_header_t *)(sdp->xsdt + kernel_hhdm_offset);
 }
 
-void *acpi_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+void *acpi_write(vfs_fs_node_t *node, void *buffer, size_t size)
 {
-    used(node), used(size), used(offset);
+    used(node), used(size);
     return buffer;
 }
 
-void *acpi_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+void *acpi_read(vfs_fs_node_t *node, void *buffer, size_t size)
 {
-    used(node), used(size), used(offset);
+    used(node), used(size);
     return buffer;
 }
 
@@ -104,7 +104,7 @@ void acpi_create_device()
     // create the root
     char *path = page_allocate(1);
     strcpy(path, "/acpi/");
-    device_create_at(path, reserved, nullptr, nullptr);
+    device_create_at(path, reserved, nullptr, nullptr, nullptr);
 
     // scan all tables and add them in the namespace
     if (sdp->revision == 0)
@@ -119,7 +119,7 @@ void acpi_create_device()
             acpi_sdt_header_t *header = (acpi_sdt_header_t *)((uint64_t)addr + kernel_hhdm_offset);
             memcpy(path + 6, header->signature, 4);
             path[6 + 4] = '\0';
-            device_create_at(path, acpi_table, acpi_read, acpi_write);
+            device_create_at(path, acpi_table, nullptr, acpi_read, acpi_write);
         }
     }
     else
@@ -134,7 +134,7 @@ void acpi_create_device()
             acpi_sdt_header_t *header = (acpi_sdt_header_t *)(addr + kernel_hhdm_offset);
             memcpy(path + 6, header->signature, 4);
             path[6 + 4] = '\0';
-            device_create_at(path, acpi_table, acpi_read, acpi_write);
+            device_create_at(path, acpi_table, nullptr, acpi_read, acpi_write);
         }
     }
 

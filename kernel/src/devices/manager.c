@@ -40,7 +40,7 @@ void list_devices()
     list_devices_layer(device_list, 0);
 }
 
-device_t *allocate_device(const char *path, device_type_t type, void *read, void *write)
+device_t *allocate_device(const char *path, device_type_t type, void *initialise_node, void *read, void *write)
 {
     device_t *dev = block_allocate(sizeof(device_t));
     size_t path_len = strlen((char *)path);
@@ -49,6 +49,7 @@ device_t *allocate_device(const char *path, device_type_t type, void *read, void
     dev->read = read;
     dev->write = write;
     dev->type = type;
+    dev->initialise_node = initialise_node;
     memcpy(dev->name, path, path_len);
 
     return dev;
@@ -56,7 +57,7 @@ device_t *allocate_device(const char *path, device_type_t type, void *read, void
 
 device_t *allocate_dummy()
 {
-    return allocate_device(".", reserved, nullptr, nullptr);
+    return allocate_device(".", reserved, nullptr, nullptr, nullptr);
 }
 
 char *device_generate_path_of(device_t *device, char *path, size_t path_len)
@@ -103,7 +104,7 @@ char *device_generate_path_of(device_t *device, char *path, size_t path_len)
     return path;
 }
 
-device_t *device_create_at(const char *path, device_type_t type, void *read, void *write)
+device_t *device_create_at(const char *path, device_type_t type, void *initialise_node, void *read, void *write)
 {
     // the basic idea of this algorithm is to split the given path in a hierachy of directories starting from the root (the top layer)
     // then, for each directory name, search in the list of the current level
@@ -185,9 +186,9 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
                 char *parent = block_allocate(total_path_offset);
                 memcpy(parent, path_orig, total_path_offset - 1 /*skips '/'*/);
 
-                device_t *new = device_create_at(parent, reserved, nullptr, nullptr); // create the parent directory
-                list = new->child = allocate_dummy();                                 // create the child list
-                new->child->parent = new;                                             // set the child accordingly
+                device_t *new = device_create_at(parent, reserved, nullptr, nullptr, nullptr); // create the parent directory
+                list = new->child = allocate_dummy();                                          // create the child list
+                new->child->parent = new;                                                      // set the child accordingly
                 block_deallocate(parent);
             }
         }
@@ -216,7 +217,7 @@ device_t *device_create_at(const char *path, device_type_t type, void *read, voi
             }
 
             // create the device
-            last->next = allocate_device(path, type, read, write);
+            last->next = allocate_device(path, type, initialise_node, read, write);
             last->next->parent = last->parent;
             last = last->next;
 
@@ -353,6 +354,9 @@ vfs_fs_node_t *devfs_open(struct vfs_fs_ops *fs, const char *path, uint64_t mode
             memcpy(node->vfs_header.path, path_orig, path_len);
 
             node->device = dev;
+
+            if (dev->initialise_node)
+                dev->initialise_node((vfs_fs_node_t *)node);
 
             return (vfs_fs_node_t *)node;
         }

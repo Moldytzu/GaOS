@@ -88,7 +88,7 @@ void limine_create_device()
     // create the root
     char *path = page_allocate(1);
     strcpy(path, "/boot/modules/");
-    device_create_at(path, reserved, nullptr, nullptr);
+    device_create_at(path, reserved, nullptr, nullptr, nullptr);
 
     // create a device for each module if there exist any
     if (!module_request.response)
@@ -101,6 +101,6 @@ void limine_create_device()
     {
         struct limine_file *file = modules[i];
         strcpy(path + 14, file->path);
-        device_create_at(path, module, nullptr, nullptr);
+        device_create_at(path, module, nullptr, nullptr, nullptr);
     }
 }

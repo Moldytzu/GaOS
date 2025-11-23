@@ -145,14 +145,15 @@ int _start()
     }
 
     // create a striped patter
-    char to_write[4 * 1024 * 70];
+    char to_write[4 * 1024 * 4];
 
     uint64_t fb_fd = sys_open("/dev/fb0", 0);
 
-    for (int i = 0; i < 4 * 1024 * 70; i++)
+    for (int i = 0; i < 4 * 1024 * 4; i++)
         to_write[i] = i;
 
-    sys_write(fb_fd, (char *)to_write, 4 * 1024 * 70);
+    for (int i = 0; i <= 1000; i++)
+        sys_write(fb_fd, (char *)to_write, 4 * 1024 * 4);
 
     puts("Init finished\n");
 

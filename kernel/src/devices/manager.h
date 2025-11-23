@@ -22,6 +22,7 @@ struct device
 
     ssize_t (*read)(struct vfs_fs_node *node, void *buffer, size_t size);
     ssize_t (*write)(struct vfs_fs_node *node, void *buffer, size_t size);
+    int (*initialise_node)(struct vfs_fs_node *node);
 
     struct device *parent;
     struct device *child;
@@ -33,5 +34,5 @@ struct device
 typedef struct device device_t;
 
 void device_manager_init();
-device_t *device_create_at(const char *path, device_type_t type, void *read, void *write);
+device_t *device_create_at(const char *path, device_type_t type, void *initialise_node, void *read, void *write);
 char *device_get_by_type(device_type_t type, char *path, size_t path_len, uint64_t index);

@@ -146,7 +146,9 @@ ssize_t ustar_lseek(vfs_fs_node_t *node, ssize_t offset, int whence)
     else if (whence == SEEK_END)
         node->seek_position = node->max_seek_position + offset;
 
-    // fixme: check if seek_position is canonical
+    if (node->seek_position > node->max_seek_position)
+        node->seek_position = node->max_seek_position;
+
     return node->seek_position;
 }
 
