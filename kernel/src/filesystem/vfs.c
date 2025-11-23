@@ -85,7 +85,7 @@ vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
     return mount->fs->open(mount->fs, path + mount->name_length /*skip /<filesystem name>*/, mode);
 }
 
-void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
     if (!node)
         panic("kernel bug: null vfs node");
@@ -93,13 +93,13 @@ void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     if (!node->fs->read)
     {
         log_error("%s has no read callback", node->fs->name);
-        return buffer;
+        return -EBADF;
     }
 
     return node->fs->read(node, buffer, size, offset);
 }
 
-void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
     if (!node)
         panic("kernel bug: null vfs node");
@@ -107,7 +107,7 @@ void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     if (!node->fs->write)
     {
         log_error("%s has no write callback", node->fs->name);
-        return buffer;
+        return -EBADF;
     }
 
     return node->fs->write(node, buffer, size, offset);

@@ -20,8 +20,8 @@ struct device
     size_t name_length;
     device_type_t type;
 
-    void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
-    void *(*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
+    ssize_t (*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
+    ssize_t (*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
 
     struct device *parent;
     struct device *child;

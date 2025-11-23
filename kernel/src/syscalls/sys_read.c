@@ -37,12 +37,12 @@ int64_t sys_read(uint64_t num, uint64_t fd, char *buffer, size_t size)
         size = node->max_seek_position - node->seek_position;
 
     // call the filesystem
-    int64_t status = error_of(vfs_read(node, buffer, size, node->seek_position));
+    ssize_t read = vfs_read(node, buffer, size, node->seek_position);
 
     // if the operation is sucessful increase the seek position
-    if (status == 0)
+    if (read > 0)
         node->seek_position += size;
 
-    trace_info("read %d bytes from fd %d of %s", size, fd, caller->name);
-    return status;
+    trace_info("read %d bytes from fd %d", read, fd);
+    return read;
 }

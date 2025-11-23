@@ -38,8 +38,8 @@ struct vfs_fs_ops
     size_t name_length;
 
     struct vfs_fs_node *(*open)(struct vfs_fs_ops *fs, const char *path, uint64_t mode);
-    void *(*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
-    void *(*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
+    ssize_t (*read)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
+    ssize_t (*write)(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset);
     void (*close)(struct vfs_fs_node *node);
     struct vfs_fs_node *(*dup)(struct vfs_fs_node *node);
     void (*async_task_register)(struct vfs_fs_node *node, io_task_t *task);
@@ -65,8 +65,8 @@ typedef struct vfs_mount_point vfs_mount_point_t;
 void vfs_init();
 void vfs_mount_fs(const char *name, vfs_fs_ops_t *fs);
 vfs_fs_node_t *vfs_open(const char *path, uint64_t mode);
-void *vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
-void *vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
+ssize_t vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
+ssize_t vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset);
 bool vfs_async_task_register(struct vfs_fs_node *node, io_task_t *task);
 void vfs_async_task_update(struct vfs_fs_node *node, io_task_t *task);
 void vfs_async_task_unregister(struct vfs_fs_node *node, io_task_t *task);

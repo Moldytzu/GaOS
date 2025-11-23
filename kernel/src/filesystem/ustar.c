@@ -115,7 +115,7 @@ vfs_fs_node_t *ustar_dup(vfs_fs_node_t *node)
     return new_node;
 }
 
-void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
     ustar_node_t *ustar_node = (ustar_node_t *)node;
     size_t node_size = parse_size_of(ustar_node->ustar_header);
@@ -124,7 +124,7 @@ void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
     if (offset >= node_size) // invalid offset
     {
         log_error("invalid offset %d when reading %s", offset, node->path);
-        return error_ptr(-EINVAL);
+        return -EINVAL;
     }
 
     if (offset + size >= node_size) // properly map size to fit the file
@@ -134,7 +134,7 @@ void *ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 
     void *contents = (void *)((uint64_t)ustar_node->ustar_header + TAR_HEADER_SIZE);
     memcpy(buffer, (void *)((uint64_t)contents + offset), size);
-    return 0;
+    return size;
 }
 
 void ustar_close(vfs_fs_node_t *node)

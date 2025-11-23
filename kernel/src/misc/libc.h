@@ -157,6 +157,8 @@
 #define align_addr(al) [[gnu::aligned(al)]]
 #define used(x) (void)x
 
+typedef long ssize_t;
+
 void *memcpy(void *dest, const void *src, size_t n);
 char *strcpy(char *dest, char *src);
 void *memset(void *s, int c, size_t n);

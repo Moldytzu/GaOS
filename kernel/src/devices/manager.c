@@ -1,6 +1,7 @@
 #define MODULE "device_manager"
 #include <misc/logger.h>
 
+#include <misc/libc.h>
 #include <devices/manager.h>
 #include <devices/serial/serial.h>
 #include <devices/timers/timers.h>
@@ -371,25 +372,25 @@ void devfs_close(vfs_fs_node_t *node)
     block_deallocate(dev_node);
 }
 
-void *devfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t devfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
     device_node_t *dev_node = (device_node_t *)node;
     if (!dev_node->device->read)
     {
         log_error("%s doesn't support read", dev_node->device->name);
-        return buffer;
+        return -EBADF;
     }
 
     return dev_node->device->read(node, buffer, size, offset);
 }
 
-void *devfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t devfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
 {
     device_node_t *dev_node = (device_node_t *)node;
     if (!dev_node->device->write)
     {
         log_error("%s doesn't support write", dev_node->device->name);
-        return buffer;
+        return -EBADF;
     }
 
     return dev_node->device->write(node, buffer, size, offset);
