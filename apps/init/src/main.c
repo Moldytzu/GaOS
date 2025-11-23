@@ -135,7 +135,7 @@ int _start()
         while ((pid = sys_waitpid(4, &status, 0)) < 0)
             sys_yield();
 
-        puts("\nChild process ");
+        puts("Child process ");
         char pid_str[] = {'0' + pid, 0};
         puts(pid_str);
         puts(" terminated with exit code ");

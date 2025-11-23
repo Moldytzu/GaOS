@@ -115,26 +115,39 @@ vfs_fs_node_t *ustar_dup(vfs_fs_node_t *node)
     return new_node;
 }
 
-ssize_t ustar_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t ustar_read(vfs_fs_node_t *node, void *buffer, size_t size)
 {
     ustar_node_t *ustar_node = (ustar_node_t *)node;
     size_t node_size = parse_size_of(ustar_node->ustar_header);
     size = min(node_size, size);
 
-    if (offset >= node_size) // invalid offset
+    if (node->seek_position >= node_size) // invalid seek
     {
-        log_error("invalid offset %d when reading %s", offset, node->path);
+        log_error("invalid seek position %d when reading %s", node->seek_position, node->path);
         return -EINVAL;
     }
 
-    if (offset + size >= node_size) // properly map size to fit the file
-        size = node_size - offset;
-
-    // log_info("reading %d bytes from %s + %d offset", size, node->path, offset);
+    if (node->seek_position >= node_size) // properly map size to fit the file
+        size = node_size - node->seek_position;
 
     void *contents = (void *)((uint64_t)ustar_node->ustar_header + TAR_HEADER_SIZE);
-    memcpy(buffer, (void *)((uint64_t)contents + offset), size);
+    memcpy(buffer, (void *)((uint64_t)contents + node->seek_position), size);
+
+    node->seek_position += size;
     return size;
+}
+
+ssize_t ustar_lseek(vfs_fs_node_t *node, ssize_t offset, int whence)
+{
+    if (whence == SEEK_SET)
+        node->seek_position = offset;
+    else if (whence == SEEK_CUR)
+        node->seek_position += offset;
+    else if (whence == SEEK_END)
+        node->seek_position = node->max_seek_position + offset;
+
+    // fixme: check if seek_position is canonical
+    return node->seek_position;
 }
 
 void ustar_close(vfs_fs_node_t *node)
@@ -218,6 +231,7 @@ void ustar_init()
     ustar.open = ustar_open;
     ustar.read = ustar_read;
     ustar.dup = ustar_dup;
+    ustar.lseek = ustar_lseek;
     ustar.name = "ustar";
     ustar.name_length = 5;
 

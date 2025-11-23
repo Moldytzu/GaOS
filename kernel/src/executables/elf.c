@@ -10,9 +10,12 @@
 
 bool elf_load_from(vfs_fs_node_t *node)
 {
+    // fixme: propagate vfs errors
+
     // read the elf header
     Elf64_Ehdr elf_header;
-    vfs_read(node, &elf_header, sizeof(Elf64_Ehdr), 0);
+    vfs_lseek(node, 0, SEEK_SET);
+    vfs_read(node, &elf_header, sizeof(Elf64_Ehdr));
 
     // validate the header
     if (memcmp(elf_header.e_ident, ELFMAG, 4) != 0)
@@ -44,7 +47,8 @@ bool elf_load_from(vfs_fs_node_t *node)
     Elf64_Phdr program_header;
     for (int i = 0; i < elf_header.e_phnum; i++)
     {
-        vfs_read(node, &program_header, sizeof(Elf64_Phdr), elf_header.e_phoff + sizeof(Elf64_Phdr) * i);
+        vfs_lseek(node, elf_header.e_phoff + sizeof(Elf64_Phdr) * i, SEEK_SET);
+        vfs_read(node, &program_header, sizeof(Elf64_Phdr));
 
         if (program_header.p_type != PT_LOAD)
             continue;
@@ -65,7 +69,8 @@ bool elf_load_from(vfs_fs_node_t *node)
     // read the program headers
     for (int i = 0; i < elf_header.e_phnum; i++)
     {
-        vfs_read(node, &program_header, sizeof(Elf64_Phdr), elf_header.e_phoff + sizeof(Elf64_Phdr) * i);
+        vfs_lseek(node, elf_header.e_phoff + sizeof(Elf64_Phdr) * i, SEEK_SET);
+        vfs_read(node, &program_header, sizeof(Elf64_Phdr));
 
         if (program_header.p_type != PT_LOAD)
             continue;
@@ -85,7 +90,8 @@ bool elf_load_from(vfs_fs_node_t *node)
             load_size = abs(load_size);
             load_size = min(load_size, PAGE); // clamp the value to page size
 
-            vfs_read(node, page, load_size, program_header.p_offset + i);
+            vfs_lseek(node, program_header.p_offset + i, SEEK_SET);
+            vfs_read(node, page, load_size);
         }
     }
 

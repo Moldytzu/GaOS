@@ -150,17 +150,19 @@ void framebuffer_init()
     log_info("initialised");
 }
 
-ssize_t framebuffer_read(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+ssize_t framebuffer_read(struct vfs_fs_node *node, void *buffer, size_t size)
 {
-    used(node);
-    memcpy(buffer, (void *)((uint64_t)main_framebuffer.base + offset), size);
+    // fixme: sanitize node->seek_position
+    memcpy(buffer, (void *)((uint64_t)main_framebuffer.base + node->seek_position), size);
+    node->seek_position += size;
     return size;
 }
 
-ssize_t framebuffer_write(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+ssize_t framebuffer_write(struct vfs_fs_node *node, void *buffer, size_t size)
 {
-    used(node);
-    memcpy((void *)((uint64_t)main_framebuffer.base + offset), buffer, size);
+    // fixme: sanitize node->seek_position
+    memcpy((void *)((uint64_t)main_framebuffer.base + node->seek_position), buffer, size);
+    node->seek_position += size;
     return size;
 }
 

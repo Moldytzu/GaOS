@@ -1,18 +1,18 @@
 #include <devices/console.h>
 #include <devices/manager.h>
 
-ssize_t console_write(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+ssize_t console_write(struct vfs_fs_node *node, void *buffer, size_t size)
 {
-    used(node), used(offset);
+    used(node);
     char *c = buffer;
     for (size_t i = 0; i < size; i++)
         printk("%c", c[i]);
     return size;
 }
 
-ssize_t console_read(struct vfs_fs_node *node, void *buffer, size_t size, size_t offset)
+ssize_t console_read(struct vfs_fs_node *node, void *buffer, size_t size)
 {
-    used(node), used(size), used(buffer), used(offset);
+    used(node), used(size), used(buffer);
     return 0;
 }
 

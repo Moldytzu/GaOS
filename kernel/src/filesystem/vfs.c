@@ -85,7 +85,7 @@ vfs_fs_node_t *vfs_open(const char *path, uint64_t mode)
     return mount->fs->open(mount->fs, path + mount->name_length /*skip /<filesystem name>*/, mode);
 }
 
-ssize_t vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t vfs_read(vfs_fs_node_t *node, void *buffer, size_t size)
 {
     if (!node)
         panic("kernel bug: null vfs node");
@@ -96,10 +96,10 @@ ssize_t vfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
         return -EBADF;
     }
 
-    return node->fs->read(node, buffer, size, offset);
+    return node->fs->read(node, buffer, size);
 }
 
-ssize_t vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t vfs_write(vfs_fs_node_t *node, void *buffer, size_t size)
 {
     if (!node)
         panic("kernel bug: null vfs node");
@@ -110,7 +110,21 @@ ssize_t vfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
         return -EBADF;
     }
 
-    return node->fs->write(node, buffer, size, offset);
+    return node->fs->write(node, buffer, size);
+}
+
+ssize_t vfs_lseek(vfs_fs_node_t *node, ssize_t offset, int whence)
+{
+    if (!node)
+        panic("kernel bug: null vfs node");
+
+    if (!node->fs->lseek)
+    {
+        log_error("%s has no lseek callback", node->fs->name);
+        return -EBADF;
+    }
+
+    return node->fs->lseek(node, offset, whence);
 }
 
 void vfs_close(vfs_fs_node_t *node)

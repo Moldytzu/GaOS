@@ -32,12 +32,7 @@ int64_t sys_write(uint64_t num, uint64_t fd, char *buffer, size_t size)
     }
 
     // call the filesystem
-    ssize_t written = vfs_write(node, buffer, size, node->seek_position);
-
-    if (written > 0)
-        node->seek_position += written;
-
+    ssize_t written = vfs_write(node, buffer, size);
     trace_info("wrote %d bytes to fd %d", written, fd);
-
     return written;
 }

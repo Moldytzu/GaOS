@@ -372,7 +372,7 @@ void devfs_close(vfs_fs_node_t *node)
     block_deallocate(dev_node);
 }
 
-ssize_t devfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t devfs_read(vfs_fs_node_t *node, void *buffer, size_t size)
 {
     device_node_t *dev_node = (device_node_t *)node;
     if (!dev_node->device->read)
@@ -381,10 +381,10 @@ ssize_t devfs_read(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset
         return -EBADF;
     }
 
-    return dev_node->device->read(node, buffer, size, offset);
+    return dev_node->device->read(node, buffer, size);
 }
 
-ssize_t devfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offset)
+ssize_t devfs_write(vfs_fs_node_t *node, void *buffer, size_t size)
 {
     device_node_t *dev_node = (device_node_t *)node;
     if (!dev_node->device->write)
@@ -393,7 +393,7 @@ ssize_t devfs_write(vfs_fs_node_t *node, void *buffer, size_t size, size_t offse
         return -EBADF;
     }
 
-    return dev_node->device->write(node, buffer, size, offset);
+    return dev_node->device->write(node, buffer, size);
 }
 
 vfs_fs_node_t *devfs_dup(vfs_fs_node_t *node)
