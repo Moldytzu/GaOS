@@ -120,4 +120,5 @@ deps-debian:
 
 .PHONY: toolchain
 toolchain:
-	bash ./toolchain/build_kernel_toolchain.sh $(OUTPUT_ARCH)
+	-bash ./toolchain/build_kernel_toolchain.sh $(OUTPUT_ARCH)
+	-bash ./toolchain/build_userspace_toolchain.sh $(OUTPUT_ARCH)

@@ -226,10 +226,11 @@ size_t strlen(const char *str)
     return i;
 }
 
-void puts(const char *str)
+int puts(const char *str)
 {
     sys_write(STDOUT, (char *)str, strlen(str));
     sys_yield();
+    return 0;
 }
 
 int64_t open_read_fd(char *filename)
@@ -324,10 +325,10 @@ int _start()
 
     puts("Init process started\n");
 
-    test_fork();
     test_fb();
     test_open_close();
     test_read();
+    test_fork();
 
     puts("Init finished\n");
 

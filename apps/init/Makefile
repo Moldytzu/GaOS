@@ -3,7 +3,7 @@ APP :=  $(notdir $(shell pwd)).elf
 
 # This is the prefix of our custom cross-compiler
 # fixme: replace this with a userspace toolchain
-PREFIX := $(TOOLCHAIN_BASE)/kernel/bin/$(OUTPUT_ARCH)-elf-
+PREFIX := $(TOOLCHAIN_BASE)/userspace/bin/$(OUTPUT_ARCH)-pc-gaos-
 
 # Default compiler/linker
 CC := $(PREFIX)gcc
@@ -22,33 +22,16 @@ CFLAGS += \
     -Wextra \
     -Werror \
     -std=gnu2x \
-    -ffreestanding \
-    -fno-stack-protector \
-    -fno-stack-check \
-    -fno-lto \
-    -fno-pie \
-	-fno-pic \
     -march=nocona \
-    -mno-red-zone \
     -Wno-unused-function
 
 # Internal C preprocessor flags that should not be changed by the user.
 CPPFLAGS := \
     -Isrc/ \
-    $(CPPFLAGS) \
-    -MMD \
-    -MP \
-    -D ARCH_$(OUTPUT_ARCH)
+    $(CPPFLAGS)
 
 # Internal linker flags that should not be changed by the user.
-LDFLAGS += \
-    -m elf_$(OUTPUT_ARCH) \
-    -nostdlib \
-    -static \
-    --no-dynamic-linker \
-    -z text \
-    -z max-page-size=0x1000 \
-    -T linker.ld
+LDFLAGS += 
 
 # Internal nasm flags that should not be changed by the user.
 NASMFLAGS += \
