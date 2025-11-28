@@ -112,6 +112,50 @@ static uint64_t bitmap_get(uint64_t bitmap, uint64_t index)
     return *pointer & mask;
 }
 
+void *__page_allocate_single_fast()
+{
+    spinlock_acquire(&page_allocator_lock);
+
+    for (size_t i = 0; i < allocator_pool_index; i++)
+    {
+        page_allocator_pool_t *pool = &allocator_pools[i];
+
+        if (pool->available < PAGE) // can't hold the data
+            continue;
+
+        // the 'pool' variable holds a valid pool viable for allocation
+
+        // try to find first available page
+        for (size_t index = pool->last_allocated_page_index; index < pool->bitmap_entries; index++)
+        {
+            if (bitmap_get(pool->bitmap_base, index))
+                continue;
+
+            // set the bit
+            bitmap_set(pool->bitmap_base, index);
+
+            // update metadata
+            pool->used += PAGE;
+            pool->available -= PAGE;
+            pool->last_allocated_page_index = index;
+
+            // return initialised memory
+            void *pointer = (void *)(pool->allocate_base + index * PAGE);
+            zero64(pointer, PAGE);
+
+            spinlock_release(&page_allocator_lock);
+
+            return pointer;
+        }
+    }
+
+    spinlock_release(&page_allocator_lock);
+
+    panic("failed to allocate a page (%d KB)", PAGE / 1024);
+
+    return nullptr;
+}
+
 void *page_allocate(size_t pages)
 {
     if (!pages)
@@ -119,6 +163,9 @@ void *page_allocate(size_t pages)
         log_warn("requested null pages. allocating one page.");
         pages = 1;
     }
+
+    if (pages == 1) /// fast path for single pages
+        return __page_allocate_single_fast();
 
     spinlock_acquire(&page_allocator_lock);
 
@@ -159,8 +206,6 @@ void *page_allocate(size_t pages)
             // return initialised memory
             void *pointer = (void *)(pool->allocate_base + index * PAGE);
             zero64(pointer, required_bytes);
-
-            // printk_serial("page_allocator: allocating %p (%d pages)\n", pointer, pages);
 
             spinlock_release(&page_allocator_lock);
 
