@@ -225,8 +225,7 @@ void ustar_init()
     initrd = initrd_file->address;
 
     // map in page table
-    for (size_t i = 0; i <= initrd_file->size; i += 4096)
-        arch_table_manager_map(arch_bootstrap_page_table, (uint64_t)initrd + i, (uint64_t)initrd + i - kernel_hhdm_offset, TABLE_ENTRY_READ_WRITE);
+    arch_table_manager_map_range(arch_bootstrap_page_table, (uint64_t)initrd, (uint64_t)initrd - kernel_hhdm_offset, TABLE_ENTRY_READ_WRITE, initrd_file->size / PAGE);
 
     // instantiate the filesystem
     ustar.close = ustar_close;

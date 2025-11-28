@@ -34,6 +34,77 @@ ifunc arch_page_table_layer_t *arch_table_manager_allocate_next_layer(arch_page_
     return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
 }
 
+void arch_table_manager_map_range(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags, uint64_t count)
+{
+    // generate indices
+    // uint64_t pml4 = (virtual_address & (0x1FFULL << 48)) >> 48; // for future use (5 level paging)
+    uint64_t pml3_index = (virtual_address & (0x1FFULL << 39)) >> 39;
+    uint64_t pml2_index = (virtual_address & (0x1FFULL << 30)) >> 30;
+    uint64_t pml1_index = (virtual_address & (0x1FFULL << 21)) >> 21;
+    uint64_t p_index = (virtual_address & (0x1FFULL << 12)) >> 12;
+
+    // optimized mapping for a contiguous range of pages:
+    // - allocate the pml3/pml2/pml1 once for the initial indices
+    // - map as many contiguous entries in the current PML1 as possible
+    // - when the p_index wraps, advance pml1_index/pml2_index/pml3_index
+    //   and allocate new layers only when needed
+
+    arch_page_table_layer_t *pml3 = arch_table_manager_allocate_next_layer(table, pml3_index, flags);
+    arch_page_table_layer_t *pml2 = arch_table_manager_allocate_next_layer(pml3, pml2_index, flags);
+    arch_page_table_layer_t *pml1 = arch_table_manager_allocate_next_layer(pml2, pml1_index, flags);
+
+    while (count > 0)
+    {
+        // number of remaining entries in current PML1
+        uint64_t remaining_in_pml1 = 512 - p_index; // 2^9 entries per level
+        uint64_t to_map = (count < remaining_in_pml1) ? count : remaining_in_pml1;
+
+        // map `to_map` consecutive entries in this PML1
+        for (uint64_t i = 0; i < to_map; ++i)
+        {
+            uint64_t *entry = &pml1->entries[p_index + i];
+            *entry |= flags | TABLE_ENTRY_PRESENT;
+            arch_table_manager_set_address(entry, physical_address + (i * PAGE));
+        }
+
+        // advance addresses and remaining count
+        physical_address += to_map * PAGE;
+        virtual_address += to_map * PAGE;
+        count -= to_map;
+
+        // advance indices: we finished this PML1, so next p_index is 0
+        p_index = 0;
+        pml1_index++;
+
+        // handle wrapping of indices and allocate next layers as needed
+        if (pml1_index >= 512)
+        {
+            pml1_index = 0;
+            pml2_index++;
+            if (pml2_index >= 512)
+            {
+                pml2_index = 0;
+                pml3_index++;
+                // allocate new pml3/pml2/pml1 chain
+                pml3 = arch_table_manager_allocate_next_layer(table, pml3_index, flags);
+                pml2 = arch_table_manager_allocate_next_layer(pml3, pml2_index, flags);
+                pml1 = arch_table_manager_allocate_next_layer(pml2, pml1_index, flags);
+            }
+            else
+            {
+                // allocate new pml2 and pml1
+                pml2 = arch_table_manager_allocate_next_layer(pml3, pml2_index, flags);
+                pml1 = arch_table_manager_allocate_next_layer(pml2, pml1_index, flags);
+            }
+        }
+        else
+        {
+            // allocate next pml1 in the same pml2
+            pml1 = arch_table_manager_allocate_next_layer(pml2, pml1_index, flags);
+        }
+    }
+}
+
 void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags)
 {
     // generate indices
@@ -109,15 +180,9 @@ void arch_table_manager_create_bootstrap_table_limine()
         uint64_t virtual_base = physical_base + kernel_hhdm_offset;
 
         if (entry->type == LIMINE_MEMMAP_EXECUTABLE_AND_MODULES)
-        {
-            for (size_t offset = 0; offset < entry->length; offset += PAGE)
-                arch_table_manager_map(arch_bootstrap_page_table, kernel_virtual_base + offset, kernel_physical_base + offset, TABLE_ENTRY_READ_WRITE);
-        }
+            arch_table_manager_map_range(arch_bootstrap_page_table, kernel_virtual_base, kernel_physical_base, TABLE_ENTRY_READ_WRITE, entry->length / PAGE);
         else
-        {
-            for (size_t offset = 0; offset < entry->length; offset += PAGE)
-                arch_table_manager_map(arch_bootstrap_page_table, virtual_base + offset, physical_base + offset, TABLE_ENTRY_READ_WRITE);
-        }
+            arch_table_manager_map_range(arch_bootstrap_page_table, virtual_base, physical_base, TABLE_ENTRY_READ_WRITE, entry->length / PAGE);
     }
 }
 

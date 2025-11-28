@@ -37,8 +37,7 @@ void *block_allocator_allocate_block(size_t pages)
     block_allocator_current_virtual_address = virtual_base + pages * PAGE;
 
     // create mappings
-    for (size_t p = 0; p < pages; ++p)
-        arch_table_manager_map(arch_bootstrap_page_table, virtual_base + p * PAGE, physical_base + p * PAGE, TABLE_ENTRY_READ_WRITE);
+    arch_table_manager_map_range(arch_bootstrap_page_table, virtual_base, physical_base, TABLE_ENTRY_READ_WRITE, pages);
 
     // initialize header area
     block_header_t *hdr = (block_header_t *)virtual_base;

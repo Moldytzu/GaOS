@@ -46,6 +46,7 @@ ifunc arch_page_table_layer_t *arch_table_manager_get_next_layer(arch_page_table
     return (arch_page_table_layer_t *)(arch_table_manager_get_address(entry) + kernel_hhdm_offset); // return its address
 }
 
+void arch_table_manager_map_range(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags, uint64_t count);
 void arch_table_manager_map(arch_page_table_t *table, uint64_t virtual_address, uint64_t physical_address, uint64_t flags);
 void arch_table_manager_init();
 uint64_t arch_table_manager_translate_to_physical(arch_page_table_t *table, uint64_t virtual_address);
