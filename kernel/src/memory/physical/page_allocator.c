@@ -141,7 +141,7 @@ void *__page_allocate_single_fast()
 
             // return initialised memory
             void *pointer = (void *)(pool->allocate_base + index * PAGE);
-            zero64(pointer, PAGE);
+            arch_zero_pages(pointer, 1);
 
             spinlock_release(&page_allocator_lock);
 
@@ -205,7 +205,7 @@ void *page_allocate(size_t pages)
 
             // return initialised memory
             void *pointer = (void *)(pool->allocate_base + index * PAGE);
-            zero64(pointer, required_bytes);
+            arch_zero_pages(pointer, pages);
 
             spinlock_release(&page_allocator_lock);
 

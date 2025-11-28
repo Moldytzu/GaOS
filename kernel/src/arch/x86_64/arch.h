@@ -11,6 +11,7 @@
 #include <arch/x86_64/context/context.h>                  // per-cpu context
 #include <arch/x86_64/state/state.h>
 #include <arch/x86_64/syscall/syscall.h>
+#include <arch/x86_64/memory/memory.h>
 
 #define PAGE 4096
 

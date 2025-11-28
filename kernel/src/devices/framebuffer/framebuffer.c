@@ -99,7 +99,7 @@ void framebuffer_write_character(char c)
         main_cursor.y = 0;
         main_cursor.x = 0;
 
-        zero64(main_framebuffer.base, main_framebuffer.height * main_framebuffer.pitch); // clear the framebuffer
+        arch_zero_pages(main_framebuffer.base, main_framebuffer.height * main_framebuffer.pitch / PAGE); // clear the framebuffer
     }
 
     framebuffer_plot_character(c, main_cursor.x, main_cursor.y, main_cursor.colour); // draw the character
